@@ -7,9 +7,10 @@ export async function api(action,body){
  if(!response.ok)throw Error(data.error||'Chưa xử lý được yêu cầu.');return data;
 }
 // The queue prevents a late heartbeat from overwriting the final result.
+let pendingSaves=Promise.resolve();
 export function playRecorder(user,settings,report,request=api){
  let playId=null,closed=false,queue=Promise.resolve(),lastSeconds=0;
- const started=request('start',{gameCode:settings.gameCode||'falling_letters',difficulty:settings.difficulty,keys:settings.keys})
+ const started=pendingSaves.then(()=>request('start',{gameCode:settings.gameCode||'falling_letters',difficulty:settings.difficulty,keys:settings.keys}))
   .then(result=>{playId=result.data.play_id;return playId}).catch(error=>{report(error.message);return null});
  return {
   abandon(state){
@@ -24,7 +25,7 @@ export function playRecorder(user,settings,report,request=api){
    if(result==='in_progress'&&seconds-lastSeconds<10)return queue;
    lastSeconds=seconds;if(result!=='in_progress')closed=true;
    const snapshot={seconds,score:state.score,result,metrics:{correct:state.correct,wrong:state.wrong,missed:state.missed}};
-   queue=queue.then(async()=>{if(await started)await request('progress',{playId,...snapshot})}).catch(error=>report(error.message));return queue;
+   queue=queue.then(async()=>{if(await started)await request('progress',{playId,...snapshot})}).catch(error=>report(error.message));pendingSaves=queue;return queue;
   }
  };
 }

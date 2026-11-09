@@ -2,6 +2,13 @@
 
 Ngày: 09/11/2026.
 
+## Cập nhật typing / admin riêng / lưu kết quả gọn
+
+- 35 kiểm thử tự động đã đạt: ngưỡng đúng 5/6 lỗi, số/dấu câu, kiểm tra backend, trang admin với 15 ô số cho ba độ khó, giới hạn hai kết quả và khóa quyền.
+- Kiểm thử PostgreSQL xác nhận backfill không cộng trùng, heartbeat lặp không tăng thời gian, kết quả lặp không tăng thời gian, kỷ lục không bị kết quả thấp hơn thay thế và lượt cũ không ghi đè lượt mới.
+- Đã áp dụng schema lưu gọn trên Supabase, đối chiếu tổng cũ/mới đều 4.178 giây, 8 bản tổng hợp học sinh/game.
+- Dữ liệu legacy được giữ nguyên để tránh mất dữ liệu trong chuyển đổi; các lượt mới dùng hai slot kết quả và một hàng tạm tái sử dụng.
+
 ## Cập nhật database và backend
 
 - 29/29 kiểm thử đã đạt trước khi push, gồm PostgreSQL/PGlite, phân quyền RLS, chống tự nâng quyền, cookie phiên, giới hạn đăng nhập, kiểm tra điểm/thời gian, giao diện đăng ký bằng PIN một ký tự và lưu màn/chỉ số riêng cho game bổ sung sau này.

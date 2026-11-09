@@ -32,7 +32,7 @@ test('audio controls persist independently; countdown plays once per beat and op
  await click('Xong rồi');await click('Cùng luyện phím nào');notes.length=0;await click('Bắt đầu chơi');
  await until(()=>d.querySelector('.letter'));
  assert.equal(notes.filter(x=>x===580).length,2);assert.equal(notes.filter(x=>x===780).length,1);
- assert.ok(notes.includes(990));assert.ok(notes.includes(523.25));
+ assert.ok(notes.includes(990));await until(()=>notes.includes(523.25));
  d.querySelector('[aria-label="Cài đặt âm thanh"]').click();await until(()=>d.querySelector('.audio-settings'));
  const count=notes.length;await sleep(120);assert.equal(notes.length,count);
  d.querySelector('[aria-label="Hiệu ứng"]').click();await sleep(25);saved=JSON.parse(w.localStorage.getItem('tipy-audio'));assert.equal(saved.effectsEnabled,false);assert.equal(saved.musicEnabled,true);

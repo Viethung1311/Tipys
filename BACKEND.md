@@ -1,5 +1,15 @@
 # TIPY backend · Supabase + Vercel
 
+## Cập nhật lưu gọn và trang quản trị
+
+- Trang quản trị riêng: `/admin`. Tốc độ rơi, khoảng xuất hiện và mật độ chữ của từng độ khó dùng ô số có nhãn, không cần sửa JSON.
+- Luật Chữ rơi: tối đa 5 lần sai; sai lần thứ 6 kết thúc dù còn mạng. Hỗ trợ A–Z, 0–9 và `; ' , . /`, kể cả phím số bên phải.
+- Chạy `db/schema.sql` rồi `db/compact_results.sql` khi dựng dự án mới. Database hiện tại đã được nâng cấp bằng file thứ hai.
+- `player_game_stats` có đúng một hàng/học sinh/game với tối đa hai snapshot kết quả cao nhất và gần nhất, tổng thời gian và tổng lượt cộng dồn.
+- `active_plays` tái sử dụng một hàng/học sinh/game. Khi lượt kết thúc, dữ liệu chi tiết ở hàng tạm được dọn; chỉ hai snapshot hoàn tất được giữ ở stats. Gửi lại heartbeat/kết quả không cộng trùng thời gian. Hai RPC dùng khóa hàng và transaction để giữ kết quả/tổng thời gian nhất quán.
+- `play_history` cũ không bị xóa: được giữ làm bản dữ liệu trước chuyển đổi và không được backend mới ghi thêm. Kiểm tra lúc chuyển đổi: tổng 4.178 giây được giữ nguyên trong 8 bản tổng hợp học sinh/game. Từ bản này, số hàng lưu mới không tăng theo số lượt chơi.
+- Thời gian là thời gian game thực chạy, loại đếm ngược và tạm dừng; không phải thời gian trang web mở. Độ chính xác đến giây, heartbeat 10 giây; mất kết nối/đóng cưỡng bức vẫn có giới hạn best-effort.
+
 ## Cấu trúc
 
 File SQL Server gốc được chuyển thành `db/schema.sql` cho PostgreSQL. Ba bảng nghiệp vụ giữ quan hệ tài khoản → lịch sử ← game, không sao chép tên người/tên game vào lịch sử và không lưu tổng điểm vào hồ sơ.

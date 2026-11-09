@@ -1,5 +1,7 @@
 import {createHmac,createHash,timingSafeEqual} from 'node:crypto';
 import {createClient} from '@supabase/supabase-js';
+import {SUPPORTED_KEYS} from '../src/game/config.js';
+import {resultRows} from '../src/game/results.js';
 
 export class ApiError extends Error { constructor(status,message){super(message);this.status=status} }
 export function username(value){const name=String(value??'').trim().toLowerCase();if(!/^[a-z0-9][a-z0-9_.-]{0,39}$/.test(name))throw new ApiError(400,'Tên đăng nhập dùng chữ không dấu, số, dấu chấm, gạch ngang hoặc gạch dưới.');return name}
@@ -63,8 +65,8 @@ export function createBackend(env,clientFactory=createClient){
   },
   async logout(access){if(access){const response=await fetch(`${env.SUPABASE_URL}/auth/v1/logout?scope=local`,{method:'POST',headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${access}`}});if(!response.ok&&response.status!==401)throw new ApiError(503,'Chưa đăng xuất được. Bạn thử lại nhé.')}},
   async games(admin=false){const query=db.from('games').select('*').order('created_at');const {data,error}=await(admin?query:query.eq('is_active',true));fail(error);return data},
-  async history(profile){let query=db.from('play_history').select('*,games(game_code,game_name),profiles(username,full_name)').order('started_at',{ascending:false}).limit(100);if(profile.role!=='admin')query=query.eq('user_id',profile.user_id);const {data,error}=await query;fail(error);return data},
-  async students(profile){requireAdmin(profile);const {data,error}=await db.from('profiles').select('user_id,username,full_name,role,is_active,created_at').eq('role','student').order('created_at',{ascending:false}).limit(200);fail(error);return data},
+  async history(profile){let query=db.from('player_game_stats').select('*,games(game_code,game_name),profiles(username,full_name)').order('last_played_at',{ascending:false}).limit(200);if(profile.role!=='admin')query=query.eq('user_id',profile.user_id);const {data,error}=await query;fail(error);return resultRows(data)},
+  async students(profile){requireAdmin(profile);const {data,error}=await db.from('profiles').select('user_id,username,full_name,role,is_active,created_at,player_game_stats(total_active_seconds,total_plays,last_played_at)').eq('role','student').order('created_at',{ascending:false}).limit(200);fail(error);return data.map(student=>({...student,total_active_seconds:student.player_game_stats.reduce((n,s)=>n+Number(s.total_active_seconds),0),total_plays:student.player_game_stats.reduce((n,s)=>n+Number(s.total_plays),0)})).sort((a,b)=>b.total_active_seconds-a.total_active_seconds)},
   async studentUpdate(profile,input){requireAdmin(profile);if(typeof input.active!=='boolean')throw new ApiError(400,'Trạng thái chưa hợp lệ.');const {data,error}=await db.from('profiles').update({is_active:input.active}).eq('user_id',input.userId).eq('role','student').select('user_id,is_active').single();fail(error);return data},
   async saveGame(profile,input){
    requireAdmin(profile);const code=String(input.gameCode??'');if(!/^[a-z][a-z0-9_]{0,49}$/.test(code))throw new ApiError(400,'Mã game dùng chữ thường, số và gạch dưới.');
@@ -76,16 +78,16 @@ export function createBackend(env,clientFactory=createClient){
   async start(profile,input){
    const {data:game,error}=await db.from('games').select('*').eq('game_code',input.gameCode).eq('is_active',true).single();fail(error,'Trò chơi chưa được mở.');
    const difficulty=input.difficulty??null;if(difficulty!==null&&(!/^[a-z0-9_-]{1,40}$/.test(difficulty)||!game.config?.levels?.[difficulty]))throw new ApiError(400,'Độ khó chưa hợp lệ.');
-   const keys=Array.isArray(input.keys)?[...new Set(input.keys)]:[];if(keys.some(k=>typeof k!=='string'||!/^[A-Z]$/.test(k)))throw new ApiError(400,'Bộ phím chưa hợp lệ.');
+   const keys=Array.isArray(input.keys)?[...new Set(input.keys)]:[];if(keys.some(k=>!SUPPORTED_KEYS.has(k)))throw new ApiError(400,'Bộ phím chưa hợp lệ.');
    if(game.engine_code==='falling_letters'&&!keys.length)throw new ApiError(400,'Bạn chọn ít nhất một phím nhé.');
    const stage=input.stageNumber??null;if(stage!==null&&(!Number.isInteger(stage)||stage<1||stage>100000))throw new ApiError(400,'Số màn chưa hợp lệ.');
-   const {data,error:insertError}=await db.from('play_history').insert({user_id:profile.user_id,game_id:game.game_id,difficulty,stage_number:stage,metrics:{keys,config_snapshot:game.config}}).select().single();fail(insertError);return data;
+   const {data,error:insertError}=await db.rpc('tipy_begin_play',{p_user:profile.user_id,p_game:game.game_id,p_difficulty:difficulty,p_keys:keys,p_config:game.config,p_stage:stage});fail(insertError);return data;
   },
   async progress(profile,input){
-   const {data:play,error}=await db.from('play_history').select('*,games(engine_code)').eq('play_id',input.playId).eq('user_id',profile.user_id).single();fail(error,'Không tìm thấy lượt chơi của bạn.');
+   const {data:play,error}=await db.from('active_plays').select('*,games(engine_code)').eq('play_id',input.playId).eq('user_id',profile.user_id).single();fail(error,'Không tìm thấy lượt chơi của bạn.');
    if(play.result!=='in_progress')return play; // Retrying a final save is idempotent.
    const values=validateProgress(play,input);
-   const {data,error:updateError}=await db.from('play_history').update(values).eq('play_id',play.play_id).eq('user_id',profile.user_id).eq('result','in_progress').select().maybeSingle();fail(updateError);return data||play;
+   const {data,error:updateError}=await db.rpc('tipy_save_play',{p_user:profile.user_id,p_play:play.play_id,p_values:values});fail(updateError);return data||play;
   }
  };
 }
@@ -103,7 +105,7 @@ export function validateProgress(play,input,now=Date.now()){
  if(typeof metrics!=='object'||Array.isArray(metrics))throw new ApiError(400,'Chỉ số lượt chơi chưa hợp lệ.');
  if(play.games.engine_code==='falling_letters'){
   const {correct,wrong,missed}=metrics;
-  if(![correct,wrong,missed].every(n=>Number.isInteger(n)&&n>=0)||correct<(old.correct||0)||wrong<(old.wrong||0)||missed<(old.missed||0)||missed>3||score!==correct*10||correct>seconds*20+20||wrong>seconds*30+30||(result==='game_over'&&missed!==3)||result==='completed')throw new ApiError(400,'Số chữ hoặc điểm chưa hợp lệ.');
+  if(![correct,wrong,missed].every(n=>Number.isInteger(n)&&n>=0)||correct<(old.correct||0)||wrong<(old.wrong||0)||missed<(old.missed||0)||missed>3||wrong>6||score!==correct*10||correct>seconds*20+20||wrong>seconds*30+30||(result==='game_over'&&missed!==3&&wrong!==6)||(result==='in_progress'&&(missed===3||wrong===6))||result==='completed')throw new ApiError(400,'Số chữ hoặc điểm chưa hợp lệ.');
  }
  const stage=input.stageNumber??play.stage_number??null;
  if(stage!==null&&(!Number.isInteger(stage)||stage<1||stage>100000||stage<(play.stage_number||0)))throw new ApiError(400,'Số màn chưa hợp lệ.');

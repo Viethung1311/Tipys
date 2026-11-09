@@ -30,11 +30,11 @@ Lệnh cuối tạo một file HTML độc lập ở thư mục cha, có thể m
 
 ## Luật chơi
 
-- Ba mạng, mỗi chữ đúng +10 điểm; sai không mất mạng.
+- Ba mạng, mỗi chữ đúng +10 điểm; sai lần thứ 6 kết thúc lượt dù còn mạng.
 - Chữ chạm đáy mất một mạng; hết mạng hiện kết quả.
 - Phím trùng nhau: ưu tiên chữ thấp nhất. Giữ phím không được tính lặp.
 - Ba độ khó tăng dần mỗi 20 giây, có giới hạn tốc độ và số chữ.
-- Bộ 4/6/8/A–Z hoặc tự chọn; túi phím xáo trộn giúp luyện đều.
+- Bộ 4/6/8/A–Z, số, dấu câu hoặc tự chọn; hỗ trợ thêm 0–9 và ; ' , . /.
 - Bàn phím vật lý đọc KeyboardEvent.code; bàn phím cảm ứng cho điện thoại.
 - Esc/nút tạm dừng; tự dừng khi chuyển tab, mất tiêu điểm hoặc đổi kích thước cửa sổ.
 - Lưu cài đặt, âm thanh và kỷ lục riêng theo độ khó + bộ phím bằng localStorage. Kỷ lục chỉ thuộc trình duyệt này.
@@ -63,3 +63,5 @@ Toàn bộ âm được tạo bằng Web Audio, không tải file âm thanh bên
 - tests/: kiểm thử logic và tương tác ứng dụng.
 
 Hướng dẫn database, biến môi trường, phân quyền và thêm game: xem [BACKEND.md](BACKEND.md). Chưa có bảng xếp hạng công khai. Bản HTML độc lập chỉ hỗ trợ chơi khách, không dùng tính năng tài khoản.
+
+Trang admin riêng: https://tipys.vercel.app/admin. Có chỉnh tốc độ từng độ khó và xem tổng thời gian luyện của học sinh. Kết quả chỉ giữ cao nhất và gần nhất trên mỗi học sinh/game; tổng thời gian vẫn cộng dồn.

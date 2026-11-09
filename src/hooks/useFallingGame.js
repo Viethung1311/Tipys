@@ -1,5 +1,6 @@
 import { useEffect,useRef,useState,useCallback } from 'react';
 import {createGame,advance,press,speed} from '../game/engine.js';
+import {physicalKey} from '../game/config.js';
 export default function useFallingGame(settings,onFinish,onSound,onProgress){
  const model=useRef(null);if(!model.current)model.current=createGame(settings);
  const [view,setView]=useState(()=>({...model.current}));const finish=useRef(onFinish),sound=useRef(onSound),progress=useRef(onProgress);finish.current=onFinish;sound.current=onSound;progress.current=onProgress;
@@ -30,6 +31,6 @@ export default function useFallingGame(settings,onFinish,onSound,onProgress){
   };
   frame=requestAnimationFrame(loop);return()=>cancelAnimationFrame(frame);
  },[publish]);
- useEffect(()=>{const down=e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(e.code==='Escape'){e.preventDefault();pause();return}if(/^Key[A-Z]$/.test(e.code)){e.preventDefault();hit(e.code.slice(3))}};const hidden=()=>{if(document.hidden)pause()};window.addEventListener('keydown',down);document.addEventListener('visibilitychange',hidden);window.addEventListener('resize',pause);window.addEventListener('blur',pause);return()=>{window.removeEventListener('keydown',down);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('resize',pause);window.removeEventListener('blur',pause)}},[hit,pause]);
+ useEffect(()=>{const down=e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(e.code==='Escape'){e.preventDefault();pause();return}if(model.current.status!=='playing'||e.target?.closest?.('input,textarea,select,[contenteditable=true]'))return;const key=physicalKey(e.code);if(key){e.preventDefault();hit(key)}};const hidden=()=>{if(document.hidden)pause()};window.addEventListener('keydown',down);document.addEventListener('visibilitychange',hidden);window.addEventListener('resize',pause);window.addEventListener('blur',pause);return()=>{window.removeEventListener('keydown',down);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('resize',pause);window.removeEventListener('blur',pause)}},[hit,pause]);
  return {view,hit,pause,resume,restart};
 }
