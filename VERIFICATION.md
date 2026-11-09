@@ -2,6 +2,15 @@
 
 Ngày: 09/11/2026.
 
+## Cập nhật database và backend
+
+- 28/28 kiểm thử đã đạt trước khi push, gồm PostgreSQL/PGlite, phân quyền RLS, chống tự nâng quyền, cookie phiên, giới hạn đăng nhập, kiểm tra điểm/thời gian và giao diện đăng ký bằng PIN một ký tự.
+- Supabase project: pjzsszjcymcfyamycidx (tipy-stem), Singapore.
+- Đã áp dụng schema lên database thật và chạy truy vấn xác nhận game falling_letters tồn tại; RLS=true trên profiles/games/play_history.
+- Đã tắt public Auth sign-up để đăng ký đi qua backend có giới hạn tần suất và tạo role student cố định.
+- Đã lưu khóa backend bằng biến Secret của Vercel Production; không commit giá trị.
+- Thử đăng nhập và lưu kết quả trên bản triển khai thật được thực hiện sau khi deployment hoàn tất; các kiểm thử ở trên không tự chứng minh kết nối production.
+
 ## Cập nhật âm thanh
 
 - Build mới thành công; 19/19 kiểm thử đạt (11 bài trước và 8 bài mới cho âm thanh).

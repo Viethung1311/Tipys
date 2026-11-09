@@ -1,6 +1,6 @@
 # TIPY STEM · Vườn phím nhỏ
 
-Web luyện bàn phím tiếng Việt bằng React + Vite, Tailwind CSS, Radix Dialog và Lucide. Không cần backend hoặc tài khoản.
+Web luyện bàn phím tiếng Việt bằng React + Vite, Tailwind CSS, Radix Dialog và Lucide. Có backend Vercel + Supabase cho tài khoản học sinh, quản trị và lịch sử; khách vẫn có thể chơi thử không cần đăng nhập.
 
 Chơi trực tuyến: https://tipys.vercel.app
 
@@ -62,4 +62,4 @@ Toàn bộ âm được tạo bằng Web Audio, không tải file âm thanh bên
 - src/game/audio.js và src/hooks/useGameAudio.js: tổng hợp âm, giới hạn âm chồng, nhạc nền và lưu tùy chọn.
 - tests/: kiểm thử logic và tương tác ứng dụng.
 
-Chưa có đăng nhập, đồng bộ dữ liệu hoặc bảng xếp hạng trực tuyến theo đúng phạm vi bản đầu.
+Hướng dẫn database, biến môi trường, phân quyền và thêm game: xem [BACKEND.md](BACKEND.md). Chưa có bảng xếp hạng công khai. Bản HTML độc lập chỉ hỗ trợ chơi khách, không dùng tính năng tài khoản.

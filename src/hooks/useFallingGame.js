@@ -1,8 +1,8 @@
 import { useEffect,useRef,useState,useCallback } from 'react';
 import {createGame,advance,press,speed} from '../game/engine.js';
-export default function useFallingGame(settings,onFinish,onSound){
+export default function useFallingGame(settings,onFinish,onSound,onProgress){
  const model=useRef(null);if(!model.current)model.current=createGame(settings);
- const [view,setView]=useState(()=>({...model.current}));const finish=useRef(onFinish),sound=useRef(onSound);finish.current=onFinish;sound.current=onSound;
+ const [view,setView]=useState(()=>({...model.current}));const finish=useRef(onFinish),sound=useRef(onSound),progress=useRef(onProgress);finish.current=onFinish;sound.current=onSound;progress.current=onProgress;
  const publish=useCallback(()=>setView({...model.current,letters:[...model.current.letters]}),[]);
  const hit=useCallback(key=>{const s=model.current;if(s.status!=='playing')return;press(s,key);sound.current(s.feedback);publish()},[publish]);
  const pause=useCallback(()=>{const s=model.current;if(['playing','countdown'].includes(s.status)){s.previous=s.status;s.status='paused';publish()}},[publish]);
@@ -25,7 +25,7 @@ export default function useFallingGame(settings,onFinish,onSound){
    const nextSpeed=speed(s);
    if(s.status==='playing'&&(nextSpeed.fall<oldSpeed.fall||nextSpeed.spawn<oldSpeed.spawn))sound.current('speed');
    if(s.status==='result'&&!reported){const newRecord=finish.current({...s});sound.current(newRecord?'record':'finish');reported=true}
-   if(now-paint>32){publish();paint=now}
+   if(now-paint>32){progress.current?.(s);publish();paint=now}
    frame=requestAnimationFrame(loop);
   };
   frame=requestAnimationFrame(loop);return()=>cancelAnimationFrame(frame);
