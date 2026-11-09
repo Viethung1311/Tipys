@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createGame,advance,press,speed,shuffle,accuracy,formatTime} from '../src/game/engine.js';
+import {DEFAULT,LEVELS,recordKey} from '../src/game/config.js';
+const playing=()=>({...createGame(DEFAULT),status:'playing',spawnIn:100});
+test('countdown does not add playing time or accept presses',()=>{const s=createGame(DEFAULT);press(s,'F');advance(s,2);assert.equal(s.elapsed,0);assert.equal(s.wrong,0);assert.equal(s.countdown,1);advance(s,1);assert.equal(s.status,'playing')});
+test('correct press removes only lowest duplicate and adds ten',()=>{const s=playing();s.letters=[{id:1,key:'F',y:.3},{id:2,key:'F',y:.8}];press(s,'F');assert.equal(s.score,10);assert.equal(s.correct,1);assert.deepEqual(s.letters.map(x=>x.id),[1])});
+test('wrong presses affect accuracy, never lives',()=>{const s=playing();press(s,'Z');assert.equal(s.lives,3);assert.equal(s.wrong,1);s.correct=3;assert.equal(accuracy(s),75);assert.equal(accuracy(playing()),0)});
+test('crossing bottom costs one life only, three misses finish round',()=>{const s=playing();for(let n=0;n<3;n++){s.letters=[{id:n,key:'F',y:.99,fall:1}];advance(s,.02)}assert.equal(s.lives,0);assert.equal(s.missed,3);assert.equal(s.status,'result');advance(s,1);assert.equal(s.missed,3)});
+test('paused game is frozen and ignores input',()=>{const s=playing();s.status='paused';const before=JSON.stringify(s);advance(s,40);press(s,'F');assert.equal(JSON.stringify(s),before)});
+test('movement uses elapsed seconds independent of frame rate',()=>{const a=playing(),b=playing();a.letters=[{id:1,key:'F',y:0,fall:9}];b.letters=[{...a.letters[0]}];advance(a,1);for(let i=0;i<60;i++)advance(b,1/60);assert.ok(Math.abs(a.letters[0].y-b.letters[0].y)<1e-10)});
+test('difficulty progression stops at configured limits',()=>{for(const difficulty of Object.keys(LEVELS)){const s=playing();s.settings={...s.settings,difficulty};s.elapsed=1e6;const v=speed(s);assert.equal(v.fall,LEVELS[difficulty].minFall);assert.equal(v.spawn,LEVELS[difficulty].minSpawn)}});
+test('bag supplies each selected key once per round',()=>{const s=playing(),keys=[];for(let i=0;i<4;i++){s.spawnIn=0;s.letters=[];advance(s,.01,()=>.4);keys.push(s.letters[0].key)}assert.deepEqual(keys.sort(),[...DEFAULT.keys].sort())});
+test('spawn limit prevents overloaded arena',()=>{const s=playing();s.spawnIn=0;s.letters=Array.from({length:4},(_,id)=>({id,key:'F',column:id,y:.2,fall:9}));advance(s,.01);assert.equal(s.letters.length,4)});
+test('restart initializes independent clean state and record separates key sets',()=>{const s=playing();s.score=400;const fresh=createGame(DEFAULT);assert.equal(fresh.score,0);assert.equal(fresh.lives,3);assert.equal(fresh.letters.length,0);assert.notEqual(recordKey(DEFAULT),recordKey({...DEFAULT,keys:['A']}));assert.equal(recordKey(DEFAULT),recordKey({...DEFAULT,keys:[...DEFAULT.keys].reverse()}));assert.equal(formatTime(135),'02:15');assert.deepEqual(shuffle(['F']),['F'])});
