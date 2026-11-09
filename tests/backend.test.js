@@ -39,7 +39,7 @@ test('play persistence queues heartbeats before final result and retries do not 
 });
 test('server always provisions student role on signup and bootstraps admin only with the configured secret',async()=>{
  const created=[];let existing=false;let profile={user_id:'student-1',role:'student',is_active:true};
- const db={rpc:async()=>({data:true}),from:()=>({select(){return this},eq(){return this},maybeSingle:async()=>({data:existing?{user_id:'admin-1'}:null}),single:async()=>({data:profile})}),auth:{admin:{createUser:async values=>{created.push(values);return {data:{user:{id:'user-1'}}}}},signInWithPassword:async()=>({data:{user:{id:profile.user_id},session:{access_token:'a'}}})}};
+ const db={rpc:async()=>({data:true}),from:()=>({select(){return this},update(){return this},eq(){return this},maybeSingle:async()=>({data:existing?{user_id:'admin-1',role:'admin'}:null}),single:async()=>({data:profile})}),auth:{admin:{updateUserById:async()=>({data:{}}),createUser:async values=>{created.push(values);return {data:{user:{id:'user-1'}}}}},signInWithPassword:async()=>({data:{user:{id:profile.user_id},session:{access_token:'a'}}})}};
  const backend=createBackend({...env,TIPY_ADMIN_INITIAL_PASSWORD:'test-initial-password'},()=>db);
  await backend.auth('signup',{username:'banan',fullName:'Bạn An',password:'1',role:'admin'},'test-ip');
  assert.equal(created[0].app_metadata.tipy_role,'student');assert.notEqual(created[0].password,'1');assert.equal(created[0].email,emailFor('banan'));

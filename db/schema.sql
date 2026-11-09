@@ -71,12 +71,8 @@ create or replace function tipy_private.new_profile() returns trigger
 language plpgsql security definer set search_path='' as $$
 declare chosen_username text := lower(trim(new.raw_user_meta_data->>'username'));
 begin
- if chosen_username='admin' and coalesce(new.raw_app_meta_data->>'tipy_role','')<>'admin' then
-  raise exception 'Reserved username';
- end if;
  insert into public.profiles(user_id,username,full_name,role)
- values(new.id,chosen_username,trim(new.raw_user_meta_data->>'full_name'),
-  case when new.raw_app_meta_data->>'tipy_role'='admin' then 'admin' else 'student' end);
+ values(new.id,chosen_username,trim(new.raw_user_meta_data->>'full_name'),'student');
  return new;
 end $$;
 revoke all on function tipy_private.new_profile() from public,anon,authenticated;

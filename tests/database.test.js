@@ -14,6 +14,8 @@ test('Postgres schema, constraints, RLS ownership, admin isolation and reserved 
  for(const [id,name,meta]of [[a,'banan',{}],[b,'banbinh',{role:'admin'}],[admin,'admin',{}]]){
   await db.query('insert into auth.users values($1,$2,$3)',[id,{username:name,full_name:name,...meta},name==='admin'?{tipy_role:'admin'}:{}]);
  }
+ assert.equal((await db.query('select role from profiles where user_id=$1',[admin])).rows[0].role,'student');
+ await db.query("update profiles set role='admin' where user_id=$1",[admin]);
  assert.equal((await db.query('select role from profiles where user_id=$1',[b])).rows[0].role,'student');
  await assert.rejects(db.query('insert into auth.users values(gen_random_uuid(),$1,$2)',[{username:'admin',full_name:'Fake admin'},{}]));
  const game=(await db.query('select game_id from games')).rows[0].game_id;

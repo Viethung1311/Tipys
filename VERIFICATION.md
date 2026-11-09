@@ -8,6 +8,7 @@ Ngày: 09/11/2026.
 - Supabase project: pjzsszjcymcfyamycidx (tipy-stem), Singapore.
 - Đã áp dụng schema lên database thật và chạy truy vấn xác nhận game falling_letters tồn tại; RLS=true trên profiles/games/play_history.
 - Đã tắt public Auth sign-up để đăng ký đi qua backend có giới hạn tần suất và tạo role student cố định.
+- Đã sửa trigger theo thứ tự thực tế của Supabase Auth: hồ sơ luôn khởi tạo student; backend cấp admin riêng sau khi xác nhận mật khẩu khởi tạo, không phụ thuộc app_metadata trong INSERT trigger.
 - Đã lưu khóa backend bằng biến Secret của Vercel Production; không commit giá trị.
 - Thử đăng nhập và lưu kết quả trên bản triển khai thật được thực hiện sau khi deployment hoàn tất; các kiểm thử ở trên không tự chứng minh kết nối production.
 

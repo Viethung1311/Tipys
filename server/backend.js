@@ -23,12 +23,22 @@ export function createBackend(env,clientFactory=createClient){
    if(action==='login'&&name==='admin'&&env.TIPY_ADMIN_INITIAL_PASSWORD){
     const expected=credential(name,env.TIPY_ADMIN_INITIAL_PASSWORD,env.TIPY_AUTH_SECRET);
     if(timingSafeEqual(Buffer.from(password),Buffer.from(expected))){
-     const existing=await db.from('profiles').select('user_id').eq('username','admin').maybeSingle();
+     const existing=await db.from('profiles').select('user_id,role').eq('username','admin').maybeSingle();
      if(existing.error)throw new ApiError(503,'Chưa kết nối được phần tài khoản.');
-     if(!existing.data){
+     let adminId=existing.data?.user_id;
+     if(!adminId){
       const created=await db.auth.admin.createUser({email:emailFor('admin'),password,email_confirm:true,user_metadata:{username:'admin',full_name:'Giáo viên TIPY'},app_metadata:{tipy_role:'admin'}});
       // A concurrent first login may already have created the same admin.
       if(created.error&&!/already|registered|exists/i.test(created.error.message))throw new ApiError(503,'Chưa khởi tạo được tài khoản giáo viên.');
+      adminId=created.data?.user?.id;
+      if(!adminId){const found=await db.from('profiles').select('user_id').eq('username','admin').single();adminId=found.data?.user_id}
+     }
+     if(!adminId)throw new ApiError(503,'Chưa khởi tạo được tài khoản giáo viên.');
+     if(existing.data?.role!=='admin'){
+      const secured=await db.auth.admin.updateUserById(adminId,{password,app_metadata:{tipy_role:'admin'}});
+      if(secured.error)throw new ApiError(503,'Chưa khởi tạo được tài khoản giáo viên.');
+      const promoted=await db.from('profiles').update({role:'admin'}).eq('user_id',adminId);
+      if(promoted.error)throw new ApiError(503,'Chưa khởi tạo được tài khoản giáo viên.');
      }
     }
    }
