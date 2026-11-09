@@ -1,2 +1,42 @@
-import {resultLabel,resultType,practiceTime} from '../game/results.js';
-export default function ResultsTable({rows}){return <div className="table-scroll"><table><thead><tr>{['Học sinh','Trò chơi','Kết quả giữ lại','Điểm','Thời gian lượt','Tổng luyện tập','Lý do kết thúc','Bắt đầu (VN)'].map(text=><th key={text}>{text}</th>)}</tr></thead><tbody>{rows.map(row=><tr key={`${row.user_id}-${row.game_id}-${row.result_type||row.play_id}`}><td>{row.profiles.full_name}</td><td>{row.games.game_name}</td><td>{resultType(row.result_type)}</td><td>{row.score}</td><td>{practiceTime(row.active_seconds)}</td><td>{practiceTime(row.total_active_seconds)}</td><td>{resultLabel(row)}</td><td>{new Date(row.started_at).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}</td></tr>)}</tbody></table>{!rows.length&&<p>Chưa có lượt chơi nào. Mình bắt đầu nhé!</p>}</div>}
+import { resultLabel, resultType, practiceTime } from '../game/results.js';
+export default function ResultsTable({ rows }) {
+  return (
+    <div className="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            {[
+              'Học sinh',
+              'Trò chơi',
+              'Kết quả giữ lại',
+              'Điểm',
+              'Thời gian lượt',
+              'Tổng luyện tập',
+              'Lý do kết thúc',
+              'Bắt đầu (VN)',
+            ].map((text) => (
+              <th key={text}>{text}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={`${row.user_id}-${row.game_id}-${row.result_type || row.play_id}`}>
+              <td>{row.profiles.full_name}</td>
+              <td>{row.games.game_name}</td>
+              <td>{resultType(row.result_type)}</td>
+              <td>{row.score}</td>
+              <td>{practiceTime(row.active_seconds)}</td>
+              <td>{practiceTime(row.total_active_seconds)}</td>
+              <td>{resultLabel(row)}</td>
+              <td>
+                {new Date(row.started_at).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {!rows.length && <p>Chưa có lượt chơi nào. Mình bắt đầu nhé!</p>}
+    </div>
+  );
+}

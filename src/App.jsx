@@ -1,70 +1,166 @@
-import {useEffect,useRef,useState} from 'react';
-import {ArrowRight,ArrowLeft,Keyboard as KeyboardIcon,Volume2,VolumeX,Heart,Pause,Play,RotateCcw,Home,Trophy,Check, Sparkles,MousePointer2,ShieldCheck} from 'lucide-react';
-import * as Dialog from '@radix-ui/react-dialog';
-import Keyboard from './components/Keyboard.jsx';
-import Leaderboard from './components/Leaderboard.jsx';
+import { useEffect, useState } from 'react';
+import { Keyboard, Volume2, VolumeX } from 'lucide-react';
 import Account from './components/Account.jsx';
-import {playRecorder} from './game/backend.js';
-import useFallingGame from './hooks/useFallingGame.js';
+import AudioSettings from './components/AudioSettings.jsx';
+import HomePage from './screens/HomePage.jsx';
+import TypingSetup from './features/typing/TypingSetup.jsx';
+import TypingGame from './features/typing/TypingGame.jsx';
+import ClassroomPage from './features/classroom/ClassroomPage.jsx';
+import Reveal from './shared/Reveal.jsx';
 import useGameAudio from './hooks/useGameAudio.js';
-import {DEFAULT,PRESETS,LEVELS,load,save,readSettings,recordKey} from './game/config.js';
-import {accuracy,formatTime} from './game/engine.js';
+import { LEVELS, load, save, readSettings, recordKey } from './game/config.js';
 
-function Modal({title,description,children}){return <Dialog.Root open><Dialog.Portal><Dialog.Overlay className="overlay"/><Dialog.Content className="modal" onEscapeKeyDown={e=>e.preventDefault()} onPointerDownOutside={e=>e.preventDefault()}><Dialog.Title>{title}</Dialog.Title><Dialog.Description>{description}</Dialog.Description>{children}</Dialog.Content></Dialog.Portal></Dialog.Root>}
-function Game({settings,onHome,onSetup,onFinish,sound,audioOpen,onPlayingChange,user}){
- const recorder=useRef(null),latest=useRef(null);
- const [saveMessage,setSaveMessage]=useState('');
- const finished=state=>{recorder.current?.update(state,'game_over');return onFinish(state)};
- const {view:s,hit,pause,resume,restart}=useFallingGame(settings,finished,sound,state=>{latest.current={...state};recorder.current?.update(state)});
- latest.current=s;
- useEffect(()=>{
-  if(user)recorder.current=playRecorder(user,settings,setSaveMessage);
-  const leaving=()=>{if(latest.current)recorder.current?.abandon(latest.current)};
-  window.addEventListener('pagehide',leaving);
-  return()=>{window.removeEventListener('pagehide',leaving);if(latest.current)recorder.current?.update(latest.current,'quit')};
- },[]);
- const playAgain=()=>{recorder.current?.update(latest.current,'quit');if(user)recorder.current=playRecorder(user,settings,setSaveMessage);setSaveMessage('');restart()};
- useEffect(()=>{onPlayingChange(s.status==='playing')},[s.status,onPlayingChange]);
- useEffect(()=>()=>onPlayingChange(false),[onPlayingChange]);
- useEffect(()=>{if(audioOpen)pause()},[audioOpen,pause]);
- const best=load(recordKey(settings),0);
- return <main className="game-page">{saveMessage&&<p role="status" className="account-message">Chưa lưu được kết quả: {saveMessage}</p>}<div className="game-heading"><button className="text-button" onClick={pause}><ArrowLeft size={17}/> Khu luyện tập</button><span className="tag">{LEVELS[settings.difficulty].icon} {LEVELS[settings.difficulty].name} · {settings.keys.length} phím</span></div>
- <div className="game-toolbar"><div><small>ĐIỂM CỦA BẠN</small><strong data-testid="score">{s.score}<span> điểm</span></strong></div><span className="speed-counter">Tốc độ {Math.floor(s.score/500)+1} · Mốc tiếp: {(Math.floor(s.score/500)+1)*500}</span><span className="wrong-counter" data-testid="wrong-counter">Sai: {s.wrong}/6</span><div className="hearts" aria-label={`Còn ${s.lives} mạng`}>{[0,1,2].map(n=><Heart key={n} fill={n<s.lives?'currentColor':'none'} className={n<s.lives?'':'empty'}/>)}</div><div className="timer"><small>THỜI GIAN</small><strong>{formatTime(s.elapsed)}</strong></div><button className="icon-button" aria-label="Tạm dừng" onClick={pause}><Pause/></button></div>
- <div className={`arena ${s.feedback==='missed'?'missed':''}`} aria-label="Khu vực chữ rơi"><div className="arena-top"><span><i/> Luyện tập mỗi ngày, tiến bộ từng phím</span><span>+10 / chữ đúng</span></div><div className="lanes">{Array.from({length:6},(_,i)=><div key={i}/>)}</div><div className="fall-zone">{s.letters.map(l=><div className={`letter color-${l.id%4}`} data-key={l.key} key={l.id} style={{left:`${(l.column+.5)/6*100}%`,top:`${l.y*100}%`}}>{l.key}</div>)}</div><div className="danger-line"><span>Đừng để chữ chạm vạch này nhé!</span></div>{s.status==='countdown'&&<div className="countdown" role="status"><span>Sẵn sàng nào!</span><strong>{Math.ceil(s.countdown)}</strong><p>Đặt tay lên phím hoặc chạm bàn phím bên dưới</p></div>}</div>
- <div className="keyboard-caption"><KeyboardIcon size={17}/><span>Bấm phím trên máy tính hoặc chạm phím bên dưới</span><b>{s.lastKey||'⌨'}</b></div><Keyboard keys={settings.keys} onKey={hit} lastKey={s.lastKey} disabled={s.status!=='playing'}/><p className="game-note">Gõ đúng +10 điểm <span>•</span> Sai lần thứ 6 sẽ kết thúc <span>•</span> Mỗi 500 điểm tăng tốc <span>•</span> Esc để tạm dừng</p>
- {s.status==='paused'&&!audioOpen&&<Modal title="Nghỉ một chút nhé ☕" description="Chữ và thời gian đã dừng. Tiếp tục khi bạn sẵn sàng."><button className="primary full" onClick={resume}><Play size={18}/> Tiếp tục</button><button className="secondary full" onClick={playAgain}><RotateCcw size={17}/> Chơi lại</button><button className="text-button centered" onClick={onHome}><Home size={17}/> Về trang chủ</button></Modal>}
- {s.status==='result'&&!audioOpen&&<Modal title="Bạn đã làm rất tốt! 🌟" description="Kết thúc lượt chơi · Mỗi lần luyện là một lần tiến bộ."><p className="end-reason">{s.endReason==='wrong_limit'?'Bạn đã bấm sai quá 5 lần. Mình thử chậm lại nhé!':'Luyện tập thêm một chút để giữ được nhiều chữ hơn nhé!'}</p><div className="result-score">{s.score}<span>điểm</span></div><div className="record"><Trophy size={16}/> Kỷ lục trên máy này: {Math.max(best,s.score)}</div><div className="result-grid">{[['Thời gian',formatTime(s.elapsed)],['Độ chính xác',`${accuracy(s)}%`],['Bấm đúng',s.correct],['Bấm sai',s.wrong],['Bỏ lỡ',s.missed],['Độ khó',LEVELS[settings.difficulty].name]].map(([label,value])=><div key={label}><small>{label}</small><strong>{value}</strong></div>)}</div><p className="result-keys">Bộ phím: {[...settings.keys].sort().join(', ')}</p><button className="primary full" onClick={playAgain}><RotateCcw size={18}/> Chơi lại nào</button><button className="secondary full" onClick={onSetup}>Đổi cài đặt</button><button className="text-button centered" onClick={onHome}>Về trang chủ</button></Modal>}
- </main>
-}
-function Setup({settings,setSettings,onStart,onHome}){const activePreset=Object.entries(PRESETS).find(([,keys])=>[...keys].sort().join('')===[...settings.keys].sort().join(''))?.[0];const toggle=key=>setSettings({...settings,keys:settings.keys.includes(key)?settings.keys.filter(k=>k!==key):[...settings.keys,key]});const left=settings.keys.some(k=>'QWERTASDFGZXCVB'.includes(k)),right=settings.keys.some(k=>'YUIOPHJKLNM'.includes(k));return <main className="setup-page"><button className="text-button" onClick={onHome}><ArrowLeft size={17}/> Về trang chủ</button><div className="page-title"><span className="eyebrow">SẴN SÀNG KHÁM PHÁ</span><h1>Chọn thử thách của bạn<span>.</span></h1><p>Một chút tùy chỉnh, một hành trình thật vui.</p></div><div className="setup-grid"><section className="panel"><h2><span className="step">01</span> Chọn độ khó</h2><div className="difficulty-options">{Object.entries(LEVELS).map(([id,level])=><button key={id} className={`difficulty ${settings.difficulty===id?'active':''}`} aria-pressed={settings.difficulty===id} onClick={()=>setSettings({...settings,difficulty:id})}><span className="plant">{level.icon}</span><span><b>{level.name}</b><small>{level.description}</small></span>{settings.difficulty===id&&<Check size={19}/>}</button>)}</div><div className="tip"><Sparkles size={20}/><p>Mới bắt đầu? Chọn <b>Dễ</b> và 4 phím để làm quen nhé!</p></div></section><section className="panel key-panel"><h2><span className="step">02</span> Chọn bộ phím</h2><p className="muted">Chọn nhanh một bộ, hoặc chạm từng phím để tùy chỉnh.</p><div className="presets">{Object.entries(PRESETS).map(([name,keys])=><button key={name} className={activePreset===name?'active':''} onClick={()=>setSettings({...settings,keys:[...keys]})}>{name}</button>)}</div><Keyboard keys={settings.keys} onKey={toggle} editing/><div className="selection-info"><span>{activePreset||'Tùy chỉnh'} · <b>Đã chọn: {settings.keys.length} phím</b></span><button onClick={()=>setSettings({...settings,keys:[]})}>Bỏ chọn tất cả</button></div>{settings.keys.length>0&&(!left||!right)&&<p className="balance-tip">Gợi ý: chọn thêm phím bên {left?'phải':'trái'} để luyện cả hai tay.</p>}<div className="start-row"><span><Heart size={17} fill="currentColor"/> 3 mạng <i>·</i> +10 điểm / chữ</span><button className="primary" onClick={onStart} disabled={!settings.keys.length}>Bắt đầu chơi <ArrowRight size={18}/></button></div>{!settings.keys.length&&<p role="status" className="balance-tip">Hãy chọn ít nhất một phím để bắt đầu.</p>}</section></div><div className="how-strip"><b>Cách chơi thật đơn giản</b><span>① Nhìn chữ đang rơi</span><span>② Gõ hoặc chạm phím tương ứng</span><span>③ Giữ chữ khỏi vạch đáy</span></div></main>}
-function HomeScreen({onPlay,gameEnabled=true,user}){return <main><section className="hero"><div className="hero-copy"><span className="eyebrow"><span className="tiny-star">✦</span> GÓC LUYỆN TẬP CỦA NHỮNG NHÀ KHÁM PHÁ NHỎ</span><h1>Đôi tay nhỏ.<br/>Khả năng <span>thật lớn.</span></h1><p>Biến từng lần gõ phím thành một niềm vui.<br/>Cùng TIPY STEM luyện phản xạ, tự tin khám phá thế giới số!</p><button className="primary" onClick={onPlay} disabled={!gameEnabled}>Cùng luyện phím nào <ArrowRight size={20}/></button><div className="hero-meta"><span><Check size={15}/> Không cần đăng nhập</span><span><Check size={15}/> Chơi trên mọi thiết bị</span></div></div><div className="hero-art" aria-hidden="true"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><span className="art-spark spark-one">✦</span><span className="art-spark spark-two">✳</span><span className="floating-key k-f">F</span><span className="floating-key k-j">J</span><span className="floating-key k-a">A</span><div className="art-keyboard">{['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'].map((row,i)=><div key={i}>{[...row].map(k=><span key={k} className={'FGHJ'.includes(k)?'orange':''}>{k}</span>)}</div>)}<div><span className="spacebar"/></div></div><span className="art-label"><Sparkles size={15}/> Mỗi phím gõ, một bước tiến!</span><div className="smile">⌣</div></div></section><section className="games-section"><div className="section-heading"><div><span className="eyebrow">HỌC QUA TRÒ CHƠI</span><h2>Hôm nay, mình chơi gì?</h2></div><span className="section-note">Luyện một chút. Giỏi hơn mỗi ngày.</span></div><div className="game-card"><div className="card-art" aria-hidden="true"><span className="mini-cloud">☁</span><span className="mini-letter ml-a">A</span><span className="mini-letter ml-f">F</span><span className="mini-letter ml-j">J</span><span className="mini-ground"/><span className="mini-star">✦</span></div><div className="card-copy"><span className="tag green"><i/> SẴN SÀNG CHƠI</span><h3>Chữ rơi</h3><p>Bắt lấy những chữ cái bằng đôi tay nhanh nhẹn.<br/>Bạn giữ được bao nhiêu chữ trước khi chúng chạm đất?</p><div className="card-features"><span><KeyboardIcon size={16}/> Chữ, số & dấu câu</span><span><Heart size={16}/> 3 mạng</span><span>🌱 3 độ khó</span></div></div><button className="primary" onClick={onPlay} disabled={!gameEnabled}>Chơi ngay <ArrowRight size={18}/></button></div></section><Leaderboard user={user}/><section className="benefits">{[[KeyboardIcon,'Quen phím, vững tay','Từng bước làm chủ bàn phím.'],[MousePointer2,'Máy tính hay điện thoại','Gõ phím hoặc chạm để chơi.'],[ShieldCheck,'An tâm khám phá','Không quảng cáo, luôn có thể chơi thử.']].map(([Icon,title,text])=><div key={title}><span className="benefit-icon"><Icon size={22}/></span><div><h3>{title}</h3><p>{text}</p></div></div>)}</section></main>}
-
-function AudioSettings({preferences,onChange,onClose}) {
- const change=(key,value)=>onChange(previous=>({...previous,[key]:value}));
- return <Modal title="Âm thanh vui nhộn 🎵" description="Điều chỉnh riêng hiệu ứng và nhạc nền. Chọn âm lượng vừa đủ nghe cho lớp học.">
-  <div data-audio-control className="audio-settings">
-   {[['effects','Hiệu ứng','Click, đếm ngược, pop và những lời chúc mừng.'],['music','Nhạc nền','Giai điệu nhẹ, không lời. Chỉ phát khi đang chơi.']].map(([id,title,description])=><section className="audio-channel" key={id}>
-    <div className="audio-channel-heading"><div><h3>{title}</h3><p>{description}</p></div><button type="button" role="switch" aria-label={title} aria-checked={preferences[id+'Enabled']} className={preferences[id+'Enabled']?'audio-switch on':'audio-switch'} onClick={()=>change(id+'Enabled',!preferences[id+'Enabled'])}><span/></button></div>
-    <label className="volume-label" htmlFor={id+'-volume'}>Âm lượng {title.toLowerCase()} <output>{Math.round(preferences[id+'Volume']*100)}%</output></label>
-    <input id={id+'-volume'} type="range" min="0" max="100" value={Math.round(preferences[id+'Volume']*100)} onChange={event=>change(id+'Volume',Number(event.target.value)/100)}/>
-   </section>)}
-  </div>
-  <p className="audio-note">Nhạc nền tắt mặc định. Cài đặt được lưu trên trình duyệt này.</p>
-  <button className="primary full" onClick={onClose}>Xong rồi <Check size={18}/></button>
- </Modal>
-}
-
-export default function App(){
- const [screen,setScreen]=useState('home'),[settings,setSettings]=useState(readSettings);
- const [audioOpen,setAudioOpen]=useState(false),[gamePlaying,setGamePlaying]=useState(false);
- const [accountOpen,setAccountOpen]=useState(false),[user,setUser]=useState(null),[catalog,setCatalog]=useState(null),[runSettings,setRunSettings]=useState(settings);
- const gameEnabled=catalog===null||catalog.some(game=>game.game_code==='falling_letters'&&game.is_active);
- const start=()=>{const game=catalog?.find(game=>game.game_code==='falling_letters');setRunSettings({...settings,levels:game?.config?.levels||LEVELS});setScreen('game')};
- const {preferences,setPreferences,play}=useGameAudio(screen==='game'&&gamePlaying&&!audioOpen&&!accountOpen);
- useEffect(()=>save('tipy-settings',settings),[settings]);
- const finish=s=>{const key=recordKey(s.settings);if(s.score>load(key,0)){save(key,s.score);return true}return false};
- return <><header className="site-header"><button className="brand" onClick={()=>{if(screen!=='game')setScreen('home')}} aria-label="TIPY STEM trang chủ"><span className="brand-icon"><KeyboardIcon size={23}/></span><span>TIPY<span className="brand-stem"> STEM</span><small>VƯỜN PHÍM NHỎ</small></span></button><div className="header-right"><span className="header-message">Học thật vui. Lớn thật hay.</span><Account onUser={setUser} onCatalog={setCatalog} onOpen={setAccountOpen}/><button className="sound-button" aria-label="Cài đặt âm thanh" onClick={()=>setAudioOpen(true)}>{preferences.effectsEnabled||preferences.musicEnabled?<Volume2 size={18}/>:<VolumeX size={18}/>}<span>Âm thanh</span></button></div></header>
- {screen==='home'?<HomeScreen user={user} onPlay={()=>setScreen('setup')} gameEnabled={gameEnabled}/>:screen==='setup'?<Setup settings={settings} setSettings={setSettings} onHome={()=>setScreen('home')} onStart={start}/>:<Game settings={runSettings} user={user} onHome={()=>setScreen('home')} onSetup={()=>setScreen('setup')} onFinish={finish} sound={play} audioOpen={audioOpen||accountOpen} onPlayingChange={setGamePlaying}/>}
- {audioOpen&&<AudioSettings preferences={preferences} onChange={setPreferences} onClose={()=>setAudioOpen(false)}/>}
- <footer><span>TIPY STEM <i>✦</i> Khơi mở tiềm năng từ những điều nhỏ</span><span>Được tạo cho những đôi tay ham học hỏi.</span></footer></>
+/** App shell owns navigation and identity. Each feature owns its own data and UI. */
+export default function App() {
+  const [screen, setScreen] = useState(() =>
+    location.hash === '#typing' ? 'setup' : location.hash === '#classroom' ? 'classroom' : 'home',
+  );
+  const [settings, setSettings] = useState(readSettings),
+    [runSettings, setRunSettings] = useState(settings);
+  const [user, setUser] = useState(null),
+    [catalog, setCatalog] = useState(null),
+    [classes, setClasses] = useState([]);
+  const [audioOpen, setAudioOpen] = useState(false),
+    [accountOpen, setAccountOpen] = useState(false),
+    [gamePlaying, setGamePlaying] = useState(false);
+  const canClassroom = Boolean(
+    user && (user.role === 'admin' || classes.some((c) => !c.archived_at)),
+  );
+  const gameEnabled =
+    catalog === null ||
+    catalog.some((game) => game.game_code === 'falling_letters' && game.is_active);
+  const navigate = (next) => {
+    setScreen(next);
+    history.replaceState(
+      null,
+      '',
+      next === 'home' ? '#home' : next === 'setup' ? '#typing' : `#${next}`,
+    );
+  };
+  const { preferences, setPreferences, play } = useGameAudio(
+    screen === 'game' && gamePlaying && !audioOpen && !accountOpen,
+  );
+  useEffect(() => save('tipy-settings', settings), [settings]);
+  const start = () => {
+    const game = catalog?.find((g) => g.game_code === 'falling_letters');
+    setRunSettings({ ...settings, levels: game?.config?.levels || LEVELS });
+    setScreen('game');
+  };
+  const finish = (state) => {
+    const key = recordKey(state.settings);
+    if (state.score > load(key, 0)) {
+      save(key, state.score);
+      return true;
+    }
+    return false;
+  };
+  return (
+    <>
+      <header className="site-header">
+        <button className="brand" onClick={() => navigate('home')} aria-label="TIPY STEM trang chủ">
+          <span className="brand-icon">
+            <Keyboard size={23} />
+          </span>
+          <span>
+            TIPY<span className="brand-stem"> STEM</span>
+            <small>HỌC VUI MỖI NGÀY</small>
+          </span>
+        </button>
+        <div className="header-right">
+          <span className="header-message">Học thật vui. Lớn thật hay.</span>
+          <button
+            className="sound-button"
+            aria-label="Cài đặt âm thanh"
+            onClick={() => setAudioOpen(true)}
+          >
+            {preferences.effectsEnabled || preferences.musicEnabled ? (
+              <Volume2 size={18} />
+            ) : (
+              <VolumeX size={18} />
+            )}
+            <span>Âm thanh</span>
+          </button>
+        </div>
+      </header>
+      <nav className="main-nav" aria-label="Điều hướng chính">
+        <button
+          aria-current={screen === 'home' ? 'page' : undefined}
+          onClick={() => navigate('home')}
+        >
+          Trang chủ
+        </button>
+        <button
+          aria-current={['setup', 'game'].includes(screen) ? 'page' : undefined}
+          onClick={() => navigate('setup')}
+        >
+          Gõ chữ
+        </button>
+        <button
+          disabled={!canClassroom}
+          title={canClassroom ? 'Mở lớp học' : 'Giáo viên cần thêm bạn vào lớp trước'}
+          aria-current={screen === 'classroom' ? 'page' : undefined}
+          onClick={() => navigate('classroom')}
+        >
+          Lớp học
+        </button>
+        <Account
+          onUser={setUser}
+          onCatalog={setCatalog}
+          onClasses={setClasses}
+          onOpen={setAccountOpen}
+        />
+      </nav>
+      {screen === 'classroom' ? (
+        <Reveal key={user?.user_id || 'guest'}>
+          {canClassroom ? (
+            <ClassroomPage user={user} onMembershipChange={setClasses} />
+          ) : (
+            <main className="classroom-page">
+              <section className="panel">
+                <h1>Lớp học</h1>
+                <p>Bạn cần đăng nhập và được giáo viên thêm vào lớp.</p>
+              </section>
+            </main>
+          )}
+        </Reveal>
+      ) : screen === 'home' ? (
+        <Reveal key="home">
+          <HomePage user={user} onPlay={() => navigate('setup')} gameEnabled={gameEnabled} />
+        </Reveal>
+      ) : screen === 'setup' ? (
+        <Reveal key="setup">
+          <TypingSetup
+            settings={settings}
+            setSettings={setSettings}
+            onHome={() => navigate('home')}
+            onStart={start}
+          />
+        </Reveal>
+      ) : (
+        <TypingGame
+          settings={runSettings}
+          user={user}
+          onHome={() => navigate('home')}
+          onSetup={() => navigate('setup')}
+          onFinish={finish}
+          sound={play}
+          audioOpen={audioOpen || accountOpen}
+          onPlayingChange={setGamePlaying}
+        />
+      )}
+      {audioOpen && (
+        <AudioSettings
+          preferences={preferences}
+          onChange={setPreferences}
+          onClose={() => setAudioOpen(false)}
+        />
+      )}
+      <footer>
+        <span>
+          TIPY STEM <i>✦</i> Khơi mở tiềm năng từ những điều nhỏ
+        </span>
+        <span>Được tạo cho những đôi tay ham học hỏi.</span>
+      </footer>
+    </>
+  );
 }

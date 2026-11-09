@@ -1,0 +1,286 @@
+/* Classroom layouts: responsive desks, readable posts and bounded media sizes. */
+.main-nav {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e8e8d8;
+  flex-wrap: wrap;
+}
+.main-nav > button {
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 750;
+  background: transparent;
+  color: #536047;
+  cursor: pointer;
+}
+.main-nav > button[aria-current='page'] {
+  background: #fff0dc;
+  color: #b45822;
+}
+.main-nav > button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.main-nav .account-button {
+  margin-left: auto;
+  background: #edf1e5;
+}
+.classroom-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 30px 0 60px;
+}
+.classroom-page > .panel,
+.classroom-page > .screen-reveal {
+  margin: 22px 0;
+}
+.class-select,
+.class-create label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 750;
+  margin: 20px 0;
+}
+.class-select select,
+.class-create input,
+.avatar-editor select,
+.account-form textarea {
+  padding: 12px;
+  border: 1px solid #dbdfd1;
+  border-radius: 10px;
+  background: #fff;
+  color: #34402c;
+  font: inherit;
+  max-width: 100%;
+}
+.class-select select {
+  width: min(100%, 480px);
+}
+.class-create {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.class-create label {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+}
+.class-blackboard {
+  background: linear-gradient(135deg, #385345, #52795f);
+  color: #fff7db;
+  border: 9px solid #d6b184;
+  border-radius: 14px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 0 6px 0 #b98d5c;
+}
+.class-blackboard span {
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.class-blackboard h2 {
+  color: inherit;
+  font-size: clamp(26px, 4vw, 40px);
+  margin: 14px 0;
+}
+.class-blackboard p {
+  color: #e3eddd;
+}
+.class-desks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 25px 20px;
+  margin-top: 36px;
+}
+.student-desk {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 10px;
+  padding: 18px 8px 12px;
+  border-radius: 14px;
+  background: #fffaf1;
+  border-bottom: 8px solid #d5b083;
+  min-width: 0;
+}
+.student-desk b {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.student-desk small {
+  color: #a08462;
+  font-size: 11px;
+}
+.own-desk {
+  outline: 2px solid #e9a941;
+  background: #fff2d6;
+}
+.student-avatar {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 25px;
+  background: #ffe4a8;
+  font-size: 45px;
+}
+.student-avatar small {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  font-size: 24px;
+}
+.avatar-mint {
+  background: #d9eddc;
+}
+.avatar-sky {
+  background: #d8ecfa;
+}
+.avatar-rose {
+  background: #fbe0e5;
+}
+.avatar-lavender {
+  background: #e8defa;
+}
+.avatar-editor {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 25px;
+}
+.class-post {
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+.class-post > small {
+  color: #8b967e;
+}
+.class-post h2 {
+  font-size: 23px;
+}
+.post-body {
+  white-space: pre-wrap;
+  line-height: 1.8;
+}
+.lesson-link {
+  display: inline-block;
+  color: #a7551f;
+  font-weight: 750;
+  padding: 12px 0;
+}
+.class-attachment {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 12px;
+  margin: 16px 0;
+}
+.class-attachment a {
+  color: #a7551f;
+  text-decoration: underline;
+}
+.class-attachment img {
+  max-width: 100%;
+  max-height: 460px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+.class-composer {
+  margin: 24px 0;
+}
+.account-form textarea {
+  width: 100%;
+  resize: vertical;
+}
+.screen-reveal {
+  animation: screen-enter 0.35s ease both;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(14px);
+}
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.class-post {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}
+.game-page,
+.admin-main > .panel,
+.modal {
+  animation: screen-enter 0.3s ease both;
+}
+@media (max-width: 700px) {
+  .main-nav {
+    margin: 0 16px;
+    gap: 4px;
+    justify-content: center;
+  }
+  .main-nav > button {
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+  .main-nav .account-button {
+    margin-left: 0;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .classroom-page {
+    padding: 20px 16px 40px;
+  }
+  .class-desks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  .avatar-editor {
+    grid-template-columns: 1fr;
+  }
+  .class-blackboard {
+    padding: 24px 12px;
+  }
+  .student-desk {
+    padding: 15px 8px;
+  }
+  .class-create button {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-reveal,
+  .game-page,
+  .admin-main > .panel,
+  .modal {
+    animation: none;
+    transition: none;
+  }
+  .reveal-pending {
+    opacity: 1;
+    transform: none;
+  }
+}
+.reveal-pending {
+  animation: none;
+}

@@ -69,3 +69,11 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - Loader phím chữ vàng bo góc theo ảnh tham khảo, nhún lệch nhịp và bóng co giãn theo mẫu mobinkakei/Uiverse; ghi nhận giấy phép MIT trong THIRD_PARTY_NOTICES.md.
 - Bảng top hiện dần một lần khi IntersectionObserver báo đã cuộn tới, từng dòng lệch nhịp; trình duyệt không hỗ trợ observer vẫn hiện bảng.
 - Tắt animation với prefers-reduced-motion. 39/39 kiểm thử đạt, gồm trigger reveal và đủ 10 phím chữ/1 khoảng cách trong loader.
+
+## Portal, lớp học và sắp xếp mã
+
+- 44/44 kiểm thử đạt sau build; kiểm tra định dạng toàn bộ src/server/api/tests/scripts cũng đạt.
+- PGlite kiểm tra RLS người ngoài lớp/thành viên, chặn học sinh ghi bảng hoặc gọi RPC đăng bài, upload chưa hoàn tất không tạo bài, bài và liên kết file được ghi nguyên tử, xóa mềm/khôi phục giữ dữ liệu.
+- UI kiểm tra nav khách không vào lớp, học sinh được thêm nhìn thấy lớp/bàn học/bài/link và đổi nhân vật của riêng mình. Bộ test game, âm thanh và kết quả trước đây vẫn đạt sau refactor.
+- Supabase xác nhận `Success. No rows returned` khi áp dụng `db/classrooms.sql` ngày 09/11/2026; phiên bản cuối không có DROP/DELETE/TRUNCATE.
+- Tách game/setup/home/audio và các service identity/games/classrooms/validation; thêm ARCHITECTURE.md, comment tại ranh giới và lệnh format/format:check.

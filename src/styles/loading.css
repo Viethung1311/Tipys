@@ -1,0 +1,56 @@
+/* Single rotating A. Only transform is animated, and only while loading. */
+.tipy-loading {
+  display: flex;
+  min-height: 160px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+  color: #75432c;
+  background: #fff9ef;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+.tipy-loading p {
+  margin: 0;
+  font-size: 14px;
+}
+.loading-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  border-radius: 0;
+}
+.loading-letters {
+  display: grid;
+  place-items: center;
+  min-height: 84px;
+  isolation: isolate;
+}
+.loading-letters .loading-key {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 60px;
+  border-radius: 15px;
+  background: #ffc86b;
+  color: #a5681c;
+  font: 900 34px/1 sans-serif;
+  box-shadow: 0 5px 0 #e6ab4b;
+  animation: tipy-a-spin 1.5s linear infinite;
+}
+.loading-key::after {
+  content: none;
+}
+@keyframes tipy-a-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-letters .loading-key {
+    animation: none;
+    transform: rotate(-10deg);
+  }
+}

@@ -24,13 +24,13 @@ File SQL Server gốc được chuyển thành `db/schema.sql` cho PostgreSQL. B
 
 Chỉ nhập trong Vercel Environment Variables, loại Secret, Production. Không đặt tiền tố `VITE_`, không commit giá trị.
 
-| Biến | Ý nghĩa |
-|---|---|
-| SUPABASE_URL | Địa chỉ dự án TIPY |
-| SUPABASE_SERVICE_ROLE_KEY | Secret/service_role key, chỉ ở server |
-| TIPY_AUTH_SECRET | Chuỗi ngẫu nhiên tối thiểu 32 ký tự, giữ cố định và lưu an toàn |
-| TIPY_ADMIN_INITIAL_PASSWORD | Mật khẩu khởi tạo admin do chủ web nhập riêng |
-| APP_ORIGIN | Origin chính thức; mặc định https://tipys.vercel.app |
+| Biến                        | Ý nghĩa                                                         |
+| --------------------------- | --------------------------------------------------------------- |
+| SUPABASE_URL                | Địa chỉ dự án TIPY                                              |
+| SUPABASE_SERVICE_ROLE_KEY   | Secret/service_role key, chỉ ở server                           |
+| TIPY_AUTH_SECRET            | Chuỗi ngẫu nhiên tối thiểu 32 ký tự, giữ cố định và lưu an toàn |
+| TIPY_ADMIN_INITIAL_PASSWORD | Mật khẩu khởi tạo admin do chủ web nhập riêng                   |
+| APP_ORIGIN                  | Origin chính thức; mặc định https://tipys.vercel.app            |
 
 Admin được khởi tạo trong lần đăng nhập `admin` đầu tiên nếu mật khẩu khớp biến khởi tạo. Không có mật khẩu admin viết sẵn trong SQL, mã React hoặc repository. Sau khi admin được tạo, có thể gỡ biến mật khẩu khởi tạo; tài khoản vẫn đăng nhập bình thường.
 
@@ -73,3 +73,9 @@ Admin thay cấu hình Chữ rơi trong Quản lý game. Thay đổi áp dụng 
 Ngoài kiểm thử UI và game, PGlite chạy SQL bằng PostgreSQL thực trong môi trường thử với auth schema/roles mô phỏng. Kiểm tra idempotence, constraint, RLS, không tự nâng quyền, không đọc lịch sử người khác, và khóa tên admin. Đây không thay cho thử đăng nhập/session thực trên Supabase sau khi nhập biến môi trường.
 
 Mã UI và SQL chỉ là một phần hoàn tất; cần lưu biến, triển khai và xác minh đăng ký/đăng nhập thật trước khi báo backend hoạt động.
+
+## Portal / classroom migration
+
+`db/classrooms.sql` adds five tables and a private Storage bucket: classes, class_members, student_avatars, class_posts, class_attachments. Applied successfully to project pjzsszjcymcfyamycidx. It contains no DROP, DELETE or TRUNCATE. Existing game/account/result data remains intact.
+
+API classroom actions are authenticated. Every membership-gated action checks the database, and all administration actions require the DB admin role. Signed file downloads last 300 seconds; no public bucket. Full maintenance details: [ARCHITECTURE.md](ARCHITECTURE.md).
