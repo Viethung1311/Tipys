@@ -9,6 +9,6 @@ test('animated loader stays visible while bootstrap is pending and disappears on
  const dom=new JSDOM('<div id="root"></div>',{url:'https://tipy.test',runScripts:'outside-only',pretendToBeVisual:true});const w=dom.window,d=w.document;let finish;
  w.fetch=()=>new Promise((resolve,reject)=>{finish=()=>fail?reject(Error('offline')):resolve({ok:true,json:async()=>({configured:false,user:null,games:[]})})});
  const bundle=readdirSync(new URL('../dist/assets/',import.meta.url)).find(x=>x.endsWith('.js'));w.eval(readFileSync(new URL('../dist/assets/'+bundle,import.meta.url),'utf8'));
- try{await until(()=>finish&&d.querySelector('.loading-fullscreen'));assert.equal(d.querySelector('.loading-letters').textContent.replace('\u00a0',' '),'typing TIPY');assert.equal(d.querySelectorAll('.loading-letters span').length,11);finish();await until(()=>!d.querySelector('.loading-fullscreen'));assert.ok(d.querySelector('h1'))}finally{w.close()}
+ try{await until(()=>finish&&d.querySelector('.loading-fullscreen'));assert.equal(d.querySelector('.loading-letters').textContent.replace('\u00a0',' '),'typing TIPY');assert.equal(d.querySelectorAll('.loading-letters span').length,11);assert.equal(d.querySelectorAll('.loading-key').length,10);assert.equal(d.querySelectorAll('.loading-space').length,1);finish();await until(()=>!d.querySelector('.loading-fullscreen'));assert.ok(d.querySelector('h1'))}finally{w.close()}
  }
 });

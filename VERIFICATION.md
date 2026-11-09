@@ -63,3 +63,9 @@ Ngày: 09/11/2026.
 Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm thanh bằng tai. Kiểm tra điện thoại sử dụng viewport mô phỏng trong trình duyệt; hành vi chạm được xác nhận qua nút bàn phím trên web.
 
 Để tái kiểm tra: `npm run build` rồi `npm test`.
+
+## Loader phím vàng và hiệu ứng bảng top
+
+- Loader phím chữ vàng bo góc theo ảnh tham khảo, nhún lệch nhịp và bóng co giãn theo mẫu mobinkakei/Uiverse; ghi nhận giấy phép MIT trong THIRD_PARTY_NOTICES.md.
+- Bảng top hiện dần một lần khi IntersectionObserver báo đã cuộn tới, từng dòng lệch nhịp; trình duyệt không hỗ trợ observer vẫn hiện bảng.
+- Tắt animation với prefers-reduced-motion. 39/39 kiểm thử đạt, gồm trigger reveal và đủ 10 phím chữ/1 khoảng cách trong loader.

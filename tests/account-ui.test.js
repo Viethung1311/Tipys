@@ -7,7 +7,7 @@ async function until(check){for(let i=0;i<250;i++){const value=check();if(value)
 test('child account signup needs no email and accepts a one-character PIN; history and logout work',async()=>{
  const errors=[],requests=[];let user=null;const console=new VirtualConsole();console.on('jsdomError',error=>errors.push(error.message));
  const dom=new JSDOM('<div id="root"></div>',{url:'https://tipy-account.test',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:console});
- const w=dom.window,d=w.document;
+ const w=dom.window,d=w.document;let reveal,disconnected=false;w.IntersectionObserver=class{constructor(callback){reveal=callback}observe(){}disconnect(){disconnected=true}};
  w.fetch=async(url,options={})=>{
   const body=options.body?JSON.parse(options.body):null;requests.push(body||url);let value;
   if(body?.action==='signup'){user={user_id:'child',username:body.username,full_name:body.fullName,role:'student'};value={user}}
@@ -21,6 +21,7 @@ test('child account signup needs no email and accepts a one-character PIN; histo
  const button=text=>[...d.querySelectorAll('button')].find(b=>b.textContent.includes(text));
  const click=async text=>{(await until(()=>button(text))).click();await sleep(25)};
  try{
+ await until(()=>reveal);assert.equal(d.querySelector('.leaderboard').classList.contains('is-revealed'),false);reveal([{isIntersecting:false}]);assert.equal(disconnected,false);reveal([{isIntersecting:true}]);await until(()=>d.querySelector('.leaderboard').classList.contains('is-revealed'));assert.equal(disconnected,true);
  await click('Đăng nhập');await click('Đăng ký');
  assert.equal(d.querySelector('[name="email"]'),null);assert.equal(d.querySelector('[name="password"]').hasAttribute('minlength'),false);
  d.querySelector('[name="fullName"]').value='Bạn An';d.querySelector('[name="username"]').value='banan';d.querySelector('[name="password"]').value='1';
