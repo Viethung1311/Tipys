@@ -2,6 +2,10 @@
 
 Web luyện bàn phím tiếng Việt bằng React + Vite, Tailwind CSS, Radix Dialog và Lucide. Không cần backend hoặc tài khoản.
 
+Chơi trực tuyến: https://tipys.vercel.app
+
+Mã nguồn: https://github.com/Viethung1311/Tipys
+
 ## Chạy dự án
 
 Yêu cầu Node.js 22.12+ hoặc 24.
@@ -16,8 +20,8 @@ Mở địa chỉ Local do Vite hiển thị. Để điện thoại chơi cùng 
 ## Kiểm tra và build
 
 ```sh
-npm test
 npm run build
+npm test
 npm run preview
 node scripts/standalone.mjs
 ```
@@ -37,7 +41,7 @@ Lệnh cuối tạo một file HTML độc lập ở thư mục cha, có thể m
 
 ## Triển khai
 
-Đã có vercel.json: framework Vite, build npm run build, output dist.
+Đã có vercel.json: framework Vite, build `npm run build && npm test`, output dist. Chỉ hoàn tất deployment khi build và kiểm thử thành công.
 Đưa mã lên kho GitHub của bạn, import kho đó vào Vercel và chọn Deploy. Không cần biến môi trường.
 
 ## Cấu trúc
