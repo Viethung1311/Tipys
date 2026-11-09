@@ -1,0 +1,1 @@
+export default function Loading({label='Đang tải…',fullscreen=false}){return <div className={`tipy-loading ${fullscreen?'loading-fullscreen':''}`} role="status" aria-label={label}><div className="loading-letters" aria-hidden="true">{[...'typing TIPY'].map((letter,i)=><span key={i} style={{'--letter':i}}>{letter===' '?'\u00a0':letter}</span>)}</div><p>{label}</p></div>}

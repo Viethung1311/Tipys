@@ -12,6 +12,7 @@ test('child account signup needs no email and accepts a one-character PIN; histo
   const body=options.body?JSON.parse(options.body):null;requests.push(body||url);let value;
   if(body?.action==='signup'){user={user_id:'child',username:body.username,full_name:body.fullName,role:'student'};value={user}}
   else if(body?.action==='logout'){user=null;value={ok:true}}
+  else if(url.includes('leaderboard'))value={leaderboard:[{rank:1,user_id:'child',name:'Bạn An',score:500,difficulty:'easy'}]};
   else if(url.includes('history'))value={history:[]};
   else value={configured:true,user,games:[]};
   return {ok:true,json:async()=>value};
@@ -25,6 +26,7 @@ test('child account signup needs no email and accepts a one-character PIN; histo
  d.querySelector('[name="fullName"]').value='Bạn An';d.querySelector('[name="username"]').value='banan';d.querySelector('[name="password"]').value='1';
  d.querySelector('form').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
  await until(()=>d.body.textContent.includes('Xin chào, Bạn An!'));assert.equal(requests.find(r=>r.action==='signup').password,'1');assert.equal(d.body.textContent.includes('Quản lý game'),false);
+ await until(()=>d.querySelector('.ranking-list'));assert.match(d.querySelector('.ranking-list').textContent,/Bạn An.*500/s);
  await click('Lịch sử chơi');await until(()=>d.body.textContent.includes('Chưa có lượt chơi'));
  await click('Tài khoản');await click('Đăng xuất');await until(()=>d.querySelector('[name="password"]'));assert.equal(user,null);assert.deepEqual(errors,[]);
  }finally{w.close()}

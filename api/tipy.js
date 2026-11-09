@@ -33,6 +33,7 @@ export function createHandler({env=process.env,makeBackend=createBackend}={}){
     return res.status(200).json({configured:true,user,games:await backend.games(user?.role==='admin')});
    }
    const {profile,access}=await current();
+   if(req.method==='GET'&&action==='leaderboard')return res.status(200).json({leaderboard:await backend.leaderboard()});
    if(req.method==='GET'&&action==='history')return res.status(200).json({history:await backend.history(profile)});
    if(req.method==='GET'&&action==='students')return res.status(200).json({students:await backend.students(profile)});
    if(req.method==='POST'&&action==='logout'){await backend.logout(access);setSession(res,null,production);return res.status(200).json({ok:true})}

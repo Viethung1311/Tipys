@@ -5,7 +5,7 @@ export default function useFallingGame(settings,onFinish,onSound,onProgress){
  const model=useRef(null);if(!model.current)model.current=createGame(settings);
  const [view,setView]=useState(()=>({...model.current}));const finish=useRef(onFinish),sound=useRef(onSound),progress=useRef(onProgress);finish.current=onFinish;sound.current=onSound;progress.current=onProgress;
  const publish=useCallback(()=>setView({...model.current,letters:[...model.current.letters]}),[]);
- const hit=useCallback(key=>{const s=model.current;if(s.status!=='playing')return;press(s,key);sound.current(s.feedback);publish()},[publish]);
+ const hit=useCallback(key=>{const s=model.current;if(s.status!=='playing')return;const old=speed(s);press(s,key);sound.current(s.feedback);const next=speed(s);if(next.fall<old.fall||next.spawn<old.spawn)sound.current('speed');publish()},[publish]);
  const pause=useCallback(()=>{const s=model.current;if(['playing','countdown'].includes(s.status)){s.previous=s.status;s.status='paused';publish()}},[publish]);
  const resume=()=>{const s=model.current;if(s.status==='paused'){s.status=s.previous||'playing';publish()}};
  const restart=()=>{model.current=createGame(settings);publish()};

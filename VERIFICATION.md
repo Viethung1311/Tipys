@@ -2,6 +2,13 @@
 
 Ngày: 09/11/2026.
 
+## Mốc điểm / bảng top / loading
+
+- Tăng tốc tại 500, 1.000, 1.500 điểm và mỗi 500 điểm tiếp theo; không tăng theo thời gian. Chữ đang rơi và chữ mới đều áp dụng tốc độ mới, có giới hạn admin.
+- Bảng top 50 đọc best_play, một hàng/học sinh, sắp điểm giảm dần; chỉ học sinh đang hoạt động, cần đăng nhập để xem.
+- Loading typing TIPY có từng chữ nhỏ đến lớn, dùng trước khi JavaScript tải xong và khi đang gọi API; tắt chuyển động theo thiết lập giảm chuyển động của thiết bị.
+- Kiểm thử thêm mốc 499/500/999/1.000/1.499/1.500, giới hạn/query bảng top, hiển thị top sau đăng nhập và loading khi API chờ/lỗi.
+
 ## Cập nhật typing / admin riêng / lưu kết quả gọn
 
 - 35 kiểm thử tự động đã đạt: ngưỡng đúng 5/6 lỗi, số/dấu câu, kiểm tra backend, trang admin với 15 ô số cho ba độ khó, giới hạn hai kết quả và khóa quyền.
