@@ -9,7 +9,7 @@ export async function api(action,body){
 // The queue prevents a late heartbeat from overwriting the final result.
 export function playRecorder(user,settings,report,request=api){
  let playId=null,closed=false,queue=Promise.resolve(),lastSeconds=0;
- const started=request('start',{gameCode:'falling_letters',difficulty:settings.difficulty,keys:settings.keys})
+ const started=request('start',{gameCode:settings.gameCode||'falling_letters',difficulty:settings.difficulty,keys:settings.keys})
   .then(result=>{playId=result.data.play_id;return playId}).catch(error=>{report(error.message);return null});
  return {
   abandon(state){

@@ -4,13 +4,15 @@ Ngày: 09/11/2026.
 
 ## Cập nhật database và backend
 
-- 28/28 kiểm thử đã đạt trước khi push, gồm PostgreSQL/PGlite, phân quyền RLS, chống tự nâng quyền, cookie phiên, giới hạn đăng nhập, kiểm tra điểm/thời gian và giao diện đăng ký bằng PIN một ký tự.
+- 29/29 kiểm thử đã đạt trước khi push, gồm PostgreSQL/PGlite, phân quyền RLS, chống tự nâng quyền, cookie phiên, giới hạn đăng nhập, kiểm tra điểm/thời gian, giao diện đăng ký bằng PIN một ký tự và lưu màn/chỉ số riêng cho game bổ sung sau này.
 - Supabase project: pjzsszjcymcfyamycidx (tipy-stem), Singapore.
 - Đã áp dụng schema lên database thật và chạy truy vấn xác nhận game falling_letters tồn tại; RLS=true trên profiles/games/play_history.
 - Đã tắt public Auth sign-up để đăng ký đi qua backend có giới hạn tần suất và tạo role student cố định.
 - Đã sửa trigger theo thứ tự thực tế của Supabase Auth: hồ sơ luôn khởi tạo student; backend cấp admin riêng sau khi xác nhận mật khẩu khởi tạo, không phụ thuộc app_metadata trong INSERT trigger.
 - Đã lưu khóa backend bằng biến Secret của Vercel Production; không commit giá trị.
 - Thử đăng nhập và lưu kết quả trên bản triển khai thật được thực hiện sau khi deployment hoàn tất; các kiểm thử ở trên không tự chứng minh kết nối production.
+- Đã xác minh production: admin đăng nhập/lưu cấu hình; học sinh đăng ký với PIN một ký tự và không có quyền quản trị; lượt thử lưu 10 điểm/8 giây/game_over; học sinh và admin đọc được lịch sử theo quyền; tài khoản thử bị khóa và đăng nhập bị từ chối.
+- Đã xem Advisor Center. Giữ index phục vụ lịch sử và bảng giới hạn đăng nhập private chỉ cho server; không bật tính năng chống mật khẩu rò rỉ thuộc gói trả phí. Thu hồi quyền gọi hàm tự động bật RLS do Supabase tạo và tách policy đọc game để tránh policy chồng nhau.
 
 ## Cập nhật âm thanh
 

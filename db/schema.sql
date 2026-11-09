@@ -60,9 +60,10 @@ drop policy if exists profiles_read on public.profiles;
 create policy profiles_read on public.profiles for select to authenticated
  using(user_id=(select auth.uid()) or (select tipy_private.is_admin()));
 drop policy if exists games_read on public.games;
-create policy games_read on public.games for select to anon,authenticated using(is_active);
+create policy games_read on public.games for select to anon using(is_active);
 drop policy if exists games_admin_read on public.games;
-create policy games_admin_read on public.games for select to authenticated using((select tipy_private.is_admin()));
+drop policy if exists games_member_read on public.games;
+create policy games_member_read on public.games for select to authenticated using(is_active or (select tipy_private.is_admin()));
 drop policy if exists history_read on public.play_history;
 create policy history_read on public.play_history for select to authenticated
  using(user_id=(select auth.uid()) or (select tipy_private.is_admin()));
@@ -107,4 +108,10 @@ insert into public.games(game_code,game_name,engine_code,description,config)
 values('falling_letters','Chữ rơi','falling_letters','Luyện phím với những chữ cái đang rơi.',
  '{"levels":{"easy":{"fall":9,"minFall":5,"spawn":2,"minSpawn":1.2,"max":4},"normal":{"fall":7,"minFall":4,"spawn":1.5,"minSpawn":0.9,"max":6},"hard":{"fall":5.5,"minFall":3,"spawn":1.1,"minSpawn":0.65,"max":8}}}'::jsonb)
 on conflict(game_code) do nothing;
+-- Supabase's automatic-RLS event trigger is infrastructure, not a public RPC.
+do $$ begin
+ if to_regprocedure('public.rls_auto_enable()') is not null then
+  execute 'revoke execute on function public.rls_auto_enable() from public,anon,authenticated';
+ end if;
+end $$;
 commit;

@@ -17,6 +17,11 @@ test('server rejects forged score/time, inconsistent game-over and backwards pro
 test('teacher configuration rejects impossible speeds and oversized letter density',()=>{
  const levels=Object.fromEntries(['easy','normal','hard'].map(key=>[key,{fall:9,minFall:5,spawn:2,minSpawn:1,max:4}]));validateLevels(levels);assert.throws(()=>validateLevels({...levels,easy:{...levels.easy,max:100}}));assert.throws(()=>validateLevels({...levels,easy:{...levels.easy,minFall:.01}}));
 });
+test('future games can store stage completion and custom metrics without overwriting configuration snapshots',()=>{
+ const play={score:0,active_seconds:0,started_at:new Date(0).toISOString(),stage_number:1,metrics:{config_snapshot:{version:1}},games:{engine_code:'math_game'}};
+ const values=validateProgress(play,{seconds:12,score:50,result:'completed',stageNumber:2,metrics:{answers:5,config_snapshot:{version:999}}},12000);
+ assert.equal(values.stage_number,2);assert.equal(values.metrics.details.answers,5);assert.deepEqual(values.metrics.config_snapshot,{version:1});assert.throws(()=>validateProgress({...play,stage_number:3},{seconds:12,score:50,stageNumber:2},12000));
+});
 const response=()=>({headers:{},setHeader(key,value){this.headers[key]=value},status(code){this.code=code;return this},json(body){this.body=body;return this}});
 const env={SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-only',TIPY_AUTH_SECRET:'s'.repeat(40),APP_ORIGIN:'https://tipys.vercel.app'};
 test('API blocks cross-origin writes, non-JSON bodies and unsupported methods before backend access',async()=>{

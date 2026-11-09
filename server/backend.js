@@ -78,7 +78,8 @@ export function createBackend(env,clientFactory=createClient){
    const difficulty=input.difficulty??null;if(difficulty!==null&&(!/^[a-z0-9_-]{1,40}$/.test(difficulty)||!game.config?.levels?.[difficulty]))throw new ApiError(400,'Độ khó chưa hợp lệ.');
    const keys=Array.isArray(input.keys)?[...new Set(input.keys)]:[];if(keys.some(k=>typeof k!=='string'||!/^[A-Z]$/.test(k)))throw new ApiError(400,'Bộ phím chưa hợp lệ.');
    if(game.engine_code==='falling_letters'&&!keys.length)throw new ApiError(400,'Bạn chọn ít nhất một phím nhé.');
-   const {data,error:insertError}=await db.from('play_history').insert({user_id:profile.user_id,game_id:game.game_id,difficulty,metrics:{keys,config_snapshot:game.config}}).select().single();fail(insertError);return data;
+   const stage=input.stageNumber??null;if(stage!==null&&(!Number.isInteger(stage)||stage<1||stage>100000))throw new ApiError(400,'Số màn chưa hợp lệ.');
+   const {data,error:insertError}=await db.from('play_history').insert({user_id:profile.user_id,game_id:game.game_id,difficulty,stage_number:stage,metrics:{keys,config_snapshot:game.config}}).select().single();fail(insertError);return data;
   },
   async progress(profile,input){
    const {data:play,error}=await db.from('play_history').select('*,games(engine_code)').eq('play_id',input.playId).eq('user_id',profile.user_id).single();fail(error,'Không tìm thấy lượt chơi của bạn.');
@@ -99,9 +100,12 @@ export function validateProgress(play,input,now=Date.now()){
  if(!Number.isInteger(seconds)||seconds<play.active_seconds||seconds>86400||!Number.isInteger(score)||score<play.score||score>1000000||!['in_progress','completed','game_over','quit'].includes(result))throw new ApiError(400,'Kết quả lượt chơi chưa hợp lệ.');
  if(seconds>Math.max(0,(now-Date.parse(play.started_at))/1000)+3)throw new ApiError(400,'Thời gian chơi chưa hợp lệ.');
  const old=play.metrics||{},metrics=input.metrics||{};
+ if(typeof metrics!=='object'||Array.isArray(metrics))throw new ApiError(400,'Chỉ số lượt chơi chưa hợp lệ.');
  if(play.games.engine_code==='falling_letters'){
   const {correct,wrong,missed}=metrics;
   if(![correct,wrong,missed].every(n=>Number.isInteger(n)&&n>=0)||correct<(old.correct||0)||wrong<(old.wrong||0)||missed<(old.missed||0)||missed>3||score!==correct*10||correct>seconds*20+20||wrong>seconds*30+30||(result==='game_over'&&missed!==3)||result==='completed')throw new ApiError(400,'Số chữ hoặc điểm chưa hợp lệ.');
  }
- return {score,active_seconds:seconds,result,ended_at:result==='in_progress'?null:new Date(now).toISOString(),metrics:{...old,correct:metrics.correct??0,wrong:metrics.wrong??0,missed:metrics.missed??0}};
+ const stage=input.stageNumber??play.stage_number??null;
+ if(stage!==null&&(!Number.isInteger(stage)||stage<1||stage>100000||stage<(play.stage_number||0)))throw new ApiError(400,'Số màn chưa hợp lệ.');
+ return {score,active_seconds:seconds,stage_number:stage,result,ended_at:result==='in_progress'?null:new Date(now).toISOString(),metrics:play.games.engine_code==='falling_letters'?{...old,correct:metrics.correct??0,wrong:metrics.wrong??0,missed:metrics.missed??0}:{...old,details:metrics}};
 }
