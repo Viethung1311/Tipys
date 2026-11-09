@@ -25,10 +25,6 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
-.main-nav .account-button {
-  margin-left: auto;
-  background: #edf1e5;
-}
 .classroom-page {
   max-width: 1120px;
   margin: 0 auto;
@@ -227,8 +223,7 @@
   contain-intrinsic-size: auto 280px;
 }
 .game-page,
-.admin-main > .panel,
-.modal {
+.admin-main > .panel {
   animation: screen-enter 0.3s ease both;
 }
 @media (max-width: 700px) {
@@ -240,13 +235,6 @@
   .main-nav > button {
     padding: 9px 10px;
     font-size: 12px;
-  }
-  .main-nav .account-button {
-    margin-left: 0;
-    max-width: 160px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .classroom-page {
     padding: 20px 16px 40px;
@@ -271,8 +259,7 @@
 @media (prefers-reduced-motion: reduce) {
   .screen-reveal,
   .game-page,
-  .admin-main > .panel,
-  .modal {
+  .admin-main > .panel {
     animation: none;
     transition: none;
   }

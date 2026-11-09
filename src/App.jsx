@@ -79,7 +79,7 @@ export default function App() {
         <div className="header-right">
           <span className="header-message">Học thật vui. Lớn thật hay.</span>
           <button
-            className="sound-button"
+            className="sound-button audio-trigger"
             aria-label="Cài đặt âm thanh"
             onClick={() => setAudioOpen(true)}
           >
@@ -88,7 +88,7 @@ export default function App() {
             ) : (
               <VolumeX size={18} />
             )}
-            <span>Âm thanh</span>
+            <span className="sound-label">Âm thanh</span>
           </button>
         </div>
       </header>

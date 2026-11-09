@@ -87,3 +87,11 @@ Chỉ xóa vĩnh viễn bản ghi/file sau một quy trình dọn có rà soát;
 `RosterEditor.jsx` giữ lựa chọn và bộ lọc ở client; chọn checkbox không gọi API. Khi thêm/bỏ, `class_members` gửi một danh sách tối đa 200 ID trong một POST. Server kiểm tra admin, lớp và toàn bộ tài khoản rồi upsert tất cả bằng một câu lệnh; không có vòng lặp gọi mạng từng học sinh. Không cần migration database.
 
 `class_roster` chỉ lấy ID thành viên khi mở lớp hoặc bấm làm mới, không tải bài, ảnh hoặc nhân vật. Sau POST thành công, bảng lớp và cột lớp trong bảng học sinh được cập nhật trong bộ nhớ; không gọi lại bootstrap/history/students. Không cập nhật lạc quan trước phản hồi server; lỗi giữ nguyên lựa chọn và dữ liệu cũ. Tài khoản đã khóa không được thêm; vẫn có thể bỏ khỏi lớp nếu đang là thành viên. Nút chọn tất cả chỉ tác động những hàng đang hiển thị.
+
+## Layout, chuyển động và ảnh Scratch
+
+`responsive.css` được import sau CSS feature và chịu trách nhiệm header/nav cùng bố cục dialog. Dialog dùng `.dialog-viewport` cố định theo vùng nhìn thấy, căn giữa bằng grid; `.modal` chỉ là panel tương đối. Không gán animation của màn hình cho `.modal`: keyframe `screen-enter` có transform sẽ phá căn giữa nếu dùng fixed/translate(-50%,-50%). Animation dialog riêng chỉ dịch panel nhẹ trong grid.
+
+`useDialogViewport(open)` lắng nghe resize/scroll của `visualViewport` trong lúc hộp mở, cập nhật CSS variables qua requestAnimationFrame và gỡ listener khi đóng. CSS có fallback vh/dvh và safe-area; form 16 px tránh zoom tự động trên điện thoại, panel cuộn nội bộ khi bàn phím hoặc màn hình ngang làm giảm chiều cao.
+
+`home-motion.css` áp dụng fade/stagger một lần cho tiêu đề, ảnh, CTA; tắt khi prefers-reduced-motion. Ba ảnh Scratch do chủ website cung cấp được lưu tên ổn định trong `src/assets`, khai báo kích thước để giữ tỷ lệ và hạn chế nhảy bố cục. Tổng dung lượng khoảng 53 KB. Vite tạo đường dẫn asset có hash; script standalone nhúng ảnh thành data URL để bản HTML vẫn mở offline.

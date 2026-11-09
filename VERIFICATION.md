@@ -98,3 +98,10 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - 49/49 kiểm thử đạt. Bulk UI xác nhận hai học sinh được thêm bằng đúng một yêu cầu, bỏ một học sinh bằng một yêu cầu, không reload bootstrap/history/students sau thao tác; hai lớp trùng tên vẫn giữ đúng quan hệ theo ID.
 - Bộ lọc/tìm kiếm và chọn tất cả chỉ chọn hàng hiển thị. Khi lỗi mạng, checkbox và nội dung tìm kiếm không mất. Gửi nhanh hai lần không tạo hai yêu cầu.
 - Backend chặn non-admin, ID không hợp lệ/trùng/quá 200 và danh sách có tài khoản không phù hợp trước khi ghi; thêm/bỏ cả danh sách dùng một upsert, không xóa tài khoản.
+
+## Sửa dialog và Trang chủ có ảnh Scratch
+
+- 50/50 kiểm thử đạt; build và format:check thành công. Test mới mô phỏng bàn phím ảo thay đổi viewport từ 844 xuống 320 px, offset 52 px, đổi sang ngang, đóng hộp và kiểm tra listener đã được gỡ cho cả tài khoản/âm thanh.
+- Sửa nguyên nhân animation screen-enter ghi đè transform căn giữa modal ở môi trường bật chuyển động. Bỏ transform định vị, dùng grid wrapper với animation panel riêng.
+- Tách trigger tài khoản khỏi selector sound-button; nav dạng grid, giữ nhãn tài khoản dài bằng ellipsis, ô nhập 16 px và các nút thao tác tối thiểu 44 px.
+- Trang chủ dùng 3 ảnh Scratch của người dùng và fade/stagger tiêu đề → ảnh → nút. Giữ kích thước ảnh, tôn trọng reduced motion, dọn CSS minh họa cũ.

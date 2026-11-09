@@ -1,5 +1,8 @@
 import { ArrowRight, Keyboard, Puzzle, Users, MapPin, Sparkles, Check } from 'lucide-react';
 import Reveal from '../shared/Reveal.jsx';
+import scratchCat from '../assets/scratch-cat.jpg';
+import scratchCondition from '../assets/scratch-condition.png';
+import scratchMotion from '../assets/scratch-motion.png';
 
 /** Public introduction. Game cards and scores belong exclusively to GameLibrary. */
 export default function HomePage({ onPlay, onClassroom, canClassroom }) {
@@ -7,20 +10,22 @@ export default function HomePage({ onPlay, onClassroom, canClassroom }) {
     <main className="welcome-page">
       <section className="hero welcome-hero">
         <div className="hero-copy">
-          <span className="eyebrow">✦ TIPY STEM CẨM LỆ · HỌC VUI MỖI NGÀY</span>
-          <h1>
+          <span className="eyebrow hero-reveal hero-reveal-title">
+            ✦ TIPY STEM CẨM LỆ · HỌC VUI MỖI NGÀY
+          </span>
+          <h1 className="hero-reveal hero-reveal-title">
             Học thật vui.
             <br />
             Sáng tạo <span>thật hay.</span>
           </h1>
-          <p>
+          <p className="hero-reveal hero-reveal-intro">
             Từ những phím gõ đầu tiên đến câu chuyện Scratch của riêng mình. Cùng TIPY STEM khám phá
             công nghệ trong một lớp học đầy niềm vui!
           </p>
-          <button className="primary" onClick={onPlay}>
+          <button className="primary hero-reveal hero-reveal-actions" onClick={onPlay}>
             Khám phá trò chơi <ArrowRight size={19} />
           </button>
-          <div className="hero-meta">
+          <div className="hero-meta hero-reveal hero-reveal-actions">
             <span>
               <Check size={15} /> Học qua thực hành
             </span>
@@ -29,29 +34,45 @@ export default function HomePage({ onPlay, onClassroom, canClassroom }) {
             </span>
           </div>
         </div>
-        <div className="learning-art" aria-label="Minh họa học gõ phím và lập trình Scratch">
-          <span className="learning-sticker sticker-key">A</span>
-          <span className="learning-sticker sticker-star">✦</span>
-          <div className="scratch-scene">
-            <div className="scene-dots">
-              <i />
-              <i />
-              <i />
-              <span>Ý tưởng của mình</span>
-            </div>
-            <div className="scene-content">
-              <span className="scratch-cat">🐱</span>
-              <span className="scene-bubble">Xin chào, thế giới! ✨</span>
-              <div className="scene-ground" />
-            </div>
+        <div
+          className="learning-art scratch-showcase hero-reveal hero-reveal-art"
+          aria-label="Khám phá Scratch qua nhân vật và khối lệnh"
+        >
+          <div className="scratch-showcase-heading">
+            <span className="scratch-dot" /> Một ý tưởng nhỏ. Một thế giới mới.
           </div>
-          <div className="scratch-blocks" aria-hidden="true">
-            <span>🚩 Khi bắt đầu</span>
-            <span>di chuyển 10 bước</span>
-            <span>nói “Mình làm được!”</span>
+          <div className="scratch-sticker">
+            <img
+              src={scratchCat}
+              alt="Mèo Scratch vui nhộn"
+              width="657"
+              height="559"
+              fetchPriority="high"
+              decoding="async"
+            />
+          </div>
+          <div className="scratch-code-card code-card-condition">
+            <span>01 · Thử một điều kiện</span>
+            <img
+              src={scratchCondition}
+              alt="Khối Scratch: nếu chạm Apple thì nói Xin chào"
+              width="535"
+              height="284"
+              decoding="async"
+            />
+          </div>
+          <div className="scratch-code-card code-card-motion">
+            <span>02 · Bắt đầu chuyển động</span>
+            <img
+              src={scratchMotion}
+              alt="Khối Scratch đi tới điểm x 0, y 0"
+              width="203"
+              height="65"
+              decoding="async"
+            />
           </div>
           <span className="learning-caption">
-            <Sparkles size={16} /> Gõ phím · Kéo thả · Khám phá
+            <Sparkles size={16} /> Gõ phím · Kéo thả · Sáng tạo
           </span>
         </div>
       </section>

@@ -1,0 +1,315 @@
+/* Dialog geometry is independent of animation: avoids transform conflicts across devices. */
+.overlay {
+  z-index: 1000;
+}
+.dialog-viewport {
+  position: fixed;
+  z-index: 1001;
+  left: var(--dialog-left, 0px);
+  top: var(--dialog-top, 0px);
+  width: var(--dialog-width, 100%);
+  height: var(--dialog-height, 100vh);
+  height: var(--dialog-height, 100dvh);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  pointer-events: none;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.dialog-viewport > .modal {
+  position: relative;
+  left: auto;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  transform: none;
+  z-index: auto;
+  margin: 0;
+  width: min(440px, 100%);
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
+  box-sizing: border-box;
+  padding: clamp(20px, 4vw, 30px);
+  animation: dialog-enter 0.2s ease-out both;
+  overflow-wrap: anywhere;
+}
+.dialog-viewport > .account-modal.wide {
+  width: min(840px, 100%);
+}
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.dialog-viewport .account-form {
+  min-width: 0;
+}
+.dialog-viewport .account-form label {
+  min-width: 0;
+}
+.dialog-viewport .account-form input,
+.dialog-viewport .account-form textarea {
+  min-width: 0;
+  max-width: 100%;
+  font-size: 16px;
+  min-height: 44px;
+}
+.dialog-viewport .primary,
+.dialog-viewport .secondary,
+.dialog-viewport .account-tabs button,
+.dialog-viewport .centered {
+  min-height: 44px;
+}
+.dialog-viewport .account-tabs {
+  gap: 8px;
+}
+.dialog-viewport .account-tabs a {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.dialog-viewport .audio-settings {
+  margin: 18px 0 14px;
+  min-width: 0;
+}
+.dialog-viewport .audio-channel {
+  padding: 16px;
+  min-width: 0;
+}
+.dialog-viewport .audio-channel-heading {
+  align-items: flex-start;
+  gap: 12px;
+}
+.dialog-viewport .audio-channel-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+.dialog-viewport .audio-channel p {
+  font-size: 12px;
+}
+.dialog-viewport .audio-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 48px;
+  min-width: 48px;
+  height: 28px;
+  min-height: 28px;
+  padding: 3px;
+  flex: 0 0 48px;
+  box-sizing: border-box;
+}
+.dialog-viewport .audio-switch span {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  transform: translateX(0);
+}
+.dialog-viewport .audio-switch.on span {
+  transform: translateX(20px);
+}
+.dialog-viewport .volume-label {
+  gap: 12px;
+  align-items: center;
+  line-height: 1.5;
+  font-size: 12px;
+}
+.dialog-viewport .volume-label output {
+  flex-shrink: 0;
+}
+.dialog-viewport .audio-channel input[type='range'] {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  height: 32px;
+}
+/* One consistent navigation grid, including long account names and larger text sizes. */
+.main-nav {
+  width: min(1180px, calc(100% - 80px));
+  max-width: none;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, max-content) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+.main-nav > button {
+  min-height: 44px;
+  min-width: 0;
+}
+.main-nav > .account-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  justify-self: end;
+  width: auto;
+  max-width: min(100%, 310px);
+  margin: 0;
+  padding: 11px 15px;
+  border: 1px solid #dce3d3;
+  border-radius: 14px;
+  background: #edf1e5;
+  color: #536047;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.account-button svg {
+  flex: 0 0 auto;
+}
+.account-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site-header {
+  height: auto;
+  min-height: 96px;
+  padding-block: 18px;
+  gap: 16px;
+}
+.brand {
+  min-width: 0;
+  flex-shrink: 1;
+}
+.brand-icon {
+  flex-shrink: 0;
+}
+.brand > span:last-child {
+  min-width: 0;
+}
+.header-right {
+  flex-shrink: 0;
+  gap: 20px;
+}
+.audio-trigger {
+  min-height: 44px;
+  min-width: 44px;
+  flex-shrink: 0;
+  justify-content: center;
+}
+.audio-trigger .sound-label {
+  display: inline;
+  white-space: nowrap;
+}
+@media (max-width: 1000px) {
+  .main-nav {
+    width: calc(100% - 48px);
+  }
+  .header-message {
+    display: none;
+  }
+}
+@media (max-width: 680px) {
+  .main-nav {
+    width: calc(100% - 32px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 auto;
+    padding: 12px 0;
+  }
+  .main-nav > button {
+    padding: 10px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .main-nav > .account-button {
+    grid-column: 1/-1;
+    justify-self: stretch;
+    max-width: 100%;
+    width: 100%;
+    padding: 10px 14px !important;
+    font-size: 13px;
+  }
+  .site-header {
+    min-height: 80px;
+    padding-block: 14px;
+    gap: 12px;
+  }
+  .site-header .brand {
+    font-size: 20px;
+    gap: 9px;
+  }
+  .brand small {
+    letter-spacing: 1.5px;
+  }
+  .audio-trigger {
+    padding: 10px;
+  }
+  .dialog-viewport {
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+  .dialog-viewport > .modal {
+    border-radius: 20px;
+    padding: 20px 18px;
+  }
+  .dialog-viewport .modal h2 {
+    font-size: 23px;
+    line-height: 1.3;
+  }
+  .dialog-viewport .audio-channel {
+    padding: 14px;
+  }
+}
+@media (max-width: 420px) {
+  .audio-trigger .sound-label {
+    display: none;
+  }
+  .site-header .brand small {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+}
+@media (max-height: 500px) {
+  .dialog-viewport {
+    padding-block: 8px;
+  }
+  .dialog-viewport > .modal {
+    padding: 18px;
+  }
+  .dialog-viewport .modal h2 {
+    font-size: 21px;
+  }
+  .dialog-viewport .modal > p {
+    margin-bottom: 12px;
+  }
+  .dialog-viewport .audio-settings {
+    margin-top: 12px;
+  }
+  .dialog-viewport .audio-channel {
+    margin-bottom: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog-viewport > .modal {
+    animation: none;
+  }
+}

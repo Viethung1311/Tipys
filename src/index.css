@@ -311,9 +311,6 @@
   font-size: 13px;
   line-height: 2;
 }
-.account-modal.wide {
-  width: min(840px, calc(100% - 24px));
-}
 .table-scroll {
   overflow-x: auto;
   text-align: left;
@@ -358,21 +355,9 @@
   font-size: 11px;
   padding: 10px;
 }
-.account-button {
-  max-width: 170px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block !important;
-}
 @media (max-width: 680px) {
   .header-right {
     gap: 8px !important;
-  }
-  .account-button {
-    max-width: 125px;
-    font-size: 10px;
-    padding: 10px 12px !important;
   }
   .account-modal {
     padding: 24px 18px;
@@ -1420,18 +1405,10 @@ footer i {
   z-index: 10;
 }
 .modal {
-  position: fixed;
-  z-index: 11;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   background: #fffef9;
   border: 1px solid #f3f2e7;
   border-radius: 24px;
   padding: 30px;
-  width: min(440px, calc(100% - 30px));
-  max-height: calc(100dvh - 30px);
-  overflow: auto;
   text-align: center;
   box-shadow: 0 30px 90px #18271a44;
 }
@@ -1592,9 +1569,6 @@ footer i {
   }
   .sound-button {
     padding: 10px;
-  }
-  .sound-button span {
-    display: none;
   }
   .hero {
     grid-template-columns: 1fr;
