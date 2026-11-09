@@ -73,3 +73,7 @@ Nav mới: Trang chủ / Gõ chữ / Lớp học / Tài khoản. Tab Lớp học
 Quản trị: vào `/admin` → Lớp học → tạo lớp → chọn lớp → thêm học sinh. Từ link Vào lớp, giáo viên đăng bài với ảnh/tài liệu/link. Học sinh chọn nhân vật 12 con giáp, phụ kiện và màu ở lớp của mình. Xóa lớp có thể khôi phục ngay trong trang quản trị.
 
 Hướng dẫn bảo trì, quan hệ dữ liệu, phân quyền, giới hạn và test: xem [ARCHITECTURE.md](ARCHITECTURE.md). Loading dùng một phím A xoay trong lúc tải; hiệu ứng màn hình chỉ chạy một lần khi xuất hiện.
+
+## Trang chủ TIPY STEM Cẩm Lệ
+
+Trang chủ giới thiệu học Typing, Scratch và lớp học vui nhộn, kèm địa chỉ 68 Phạm Tứ, Cẩm Lệ, Đà Nẵng. Mục Gõ chữ mở kho trò chơi và bảng top; chọn Chữ rơi rồi mới vào phần cài đặt game. Khu vực này nhận danh sách game từ catalog để mở rộng sau này.

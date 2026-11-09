@@ -17,7 +17,7 @@ export default function Setup({ settings, setSettings, onStart, onHome }) {
   return (
     <main className="setup-page">
       <button className="text-button" onClick={onHome}>
-        <ArrowLeft size={17} /> Về trang chủ
+        <ArrowLeft size={17} /> Về kho trò chơi
       </button>
       <div className="page-title">
         <span className="eyebrow">SẴN SÀNG KHÁM PHÁ</span>

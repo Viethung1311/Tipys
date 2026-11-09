@@ -5,6 +5,7 @@ import AdminPage from './screens/AdminPage.jsx';
 import './index.css';
 import './styles/loading.css';
 import './styles/classroom.css';
+import './styles/home.css';
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {window.location.pathname.startsWith('/admin') ? <AdminPage /> : <App />}

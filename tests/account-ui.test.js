@@ -32,10 +32,13 @@ test('child account signup needs no email and accepts a one-character PIN; histo
       this.callback = callback;
     }
     observe(el) {
-      if (el.classList.contains('leaderboard')) reveal = this.callback;
+      if (el.classList.contains('leaderboard')) {
+        reveal = this.callback;
+        this.isLeaderboard = true;
+      }
     }
     disconnect() {
-      disconnected = true;
+      if (this.isLeaderboard) disconnected = true;
     }
   };
   w.fetch = async (url, options = {}) => {
@@ -74,6 +77,12 @@ test('child account signup needs no email and accepts a one-character PIN; histo
     await sleep(25);
   };
   try {
+    await until(() => d.querySelector('.main-nav'));
+    (
+      await until(() =>
+        [...d.querySelectorAll('.main-nav button')].find((b) => b.textContent === 'Gõ chữ'),
+      )
+    ).click();
     await until(() => reveal);
     assert.equal(d.querySelector('.leaderboard').classList.contains('is-revealed'), false);
     reveal([{ isIntersecting: false }]);

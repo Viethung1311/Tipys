@@ -75,3 +75,9 @@ File: tối đa 3 tệp/bài, 5 MB/tệp; PNG/JPG/WEBP/PDF/TXT/DOCX/XLSX/PPTX. B
 5. Test RLS, quyền endpoint, dữ liệu và UI trước khi push. Vercel cũng chạy build + test trước khi phát hành.
 
 Chỉ xóa vĩnh viễn bản ghi/file sau một quy trình dọn có rà soát; nút xóa lớp thông thường chỉ lưu trữ.
+
+## Trang chủ giới thiệu và kho game
+
+`src/screens/HomePage.jsx` giới thiệu Typing, Scratch, lớp học và địa chỉ TIPY STEM Cẩm Lệ. Không mount bảng top hoặc danh sách trò chơi trên trang này.
+
+`src/screens/GameLibrary.jsx` nằm tại `#typing`, đọc catalog game đang mở từ API; chọn Chữ rơi chuyển tới `#typing/setup`. Game chưa có client engine sẽ hiển thị trạng thái Đang chuẩn bị. Thêm metadata game trong DB và đăng ký engine/screen trong `src/game/catalog.js` khi triển khai một game mới; không cho cấu hình DB thực thi mã hoặc điều hướng tới URL tùy ý.

@@ -3,6 +3,7 @@ import { Keyboard, Volume2, VolumeX } from 'lucide-react';
 import Account from './components/Account.jsx';
 import AudioSettings from './components/AudioSettings.jsx';
 import HomePage from './screens/HomePage.jsx';
+import GameLibrary from './screens/GameLibrary.jsx';
 import TypingSetup from './features/typing/TypingSetup.jsx';
 import TypingGame from './features/typing/TypingGame.jsx';
 import ClassroomPage from './features/classroom/ClassroomPage.jsx';
@@ -13,7 +14,13 @@ import { LEVELS, load, save, readSettings, recordKey } from './game/config.js';
 /** App shell owns navigation and identity. Each feature owns its own data and UI. */
 export default function App() {
   const [screen, setScreen] = useState(() =>
-    location.hash === '#typing' ? 'setup' : location.hash === '#classroom' ? 'classroom' : 'home',
+    location.hash === '#typing'
+      ? 'library'
+      : location.hash === '#typing/setup'
+        ? 'setup'
+        : location.hash === '#classroom'
+          ? 'classroom'
+          : 'home',
   );
   const [settings, setSettings] = useState(readSettings),
     [runSettings, setRunSettings] = useState(settings);
@@ -26,15 +33,18 @@ export default function App() {
   const canClassroom = Boolean(
     user && (user.role === 'admin' || classes.some((c) => !c.archived_at)),
   );
-  const gameEnabled =
-    catalog === null ||
-    catalog.some((game) => game.game_code === 'falling_letters' && game.is_active);
   const navigate = (next) => {
     setScreen(next);
     history.replaceState(
       null,
       '',
-      next === 'home' ? '#home' : next === 'setup' ? '#typing' : `#${next}`,
+      next === 'home'
+        ? '#home'
+        : next === 'library'
+          ? '#typing'
+          : next === 'setup'
+            ? '#typing/setup'
+            : `#${next}`,
     );
   };
   const { preferences, setPreferences, play } = useGameAudio(
@@ -90,8 +100,8 @@ export default function App() {
           Trang chủ
         </button>
         <button
-          aria-current={['setup', 'game'].includes(screen) ? 'page' : undefined}
-          onClick={() => navigate('setup')}
+          aria-current={['library', 'setup', 'game'].includes(screen) ? 'page' : undefined}
+          onClick={() => navigate('library')}
         >
           Gõ chữ
         </button>
@@ -125,14 +135,27 @@ export default function App() {
         </Reveal>
       ) : screen === 'home' ? (
         <Reveal key="home">
-          <HomePage user={user} onPlay={() => navigate('setup')} gameEnabled={gameEnabled} />
+          <HomePage
+            onPlay={() => navigate('library')}
+            onClassroom={() => navigate('classroom')}
+            canClassroom={canClassroom}
+          />
+        </Reveal>
+      ) : screen === 'library' ? (
+        <Reveal key="library">
+          <GameLibrary
+            catalog={catalog}
+            user={user}
+            onChoose={navigate}
+            onHome={() => navigate('home')}
+          />
         </Reveal>
       ) : screen === 'setup' ? (
         <Reveal key="setup">
           <TypingSetup
             settings={settings}
             setSettings={setSettings}
-            onHome={() => navigate('home')}
+            onHome={() => navigate('library')}
             onStart={start}
           />
         </Reveal>

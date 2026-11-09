@@ -86,3 +86,9 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - Viewport 390 × 844: nav và lớp không tràn ngang (document.scrollWidth=375, innerWidth=390). Ảnh bằng chứng ở thư mục outputs của workspace.
 - Các kiểm thử tự động đã xác nhận sơ đồ lớp, lưu con giáp, ngăn người ngoài lớp, ghi bài nguyên tử và phục hồi membership. Chưa kiểm tra đăng nhập học sinh bằng trình duyệt ở lượt này: tài khoản synthetic cũ đang bị khóa; xét duyệt tự động từ chối mở khóa vì chưa có cho phép riêng cho thay đổi trạng thái. Trạng thái khóa được giữ nguyên.
 - Đã đăng xuất admin, đưa portal về trang chủ và khôi phục viewport mặc định.
+
+## Tách trang giới thiệu và kho game
+
+- Build thành công; 45 kiểm thử đạt. Luồng game vẫn chạy qua kho → thiết lập → chơi → kết quả.
+- Test UI xác nhận Trang chủ có Scratch và địa chỉ, không render game-card/bảng top. Test catalog xác nhận game inactive bị ẩn và engine chưa đăng ký không được chạy.
+- Top, kiểm tra reveal và luồng tài khoản được kiểm tra tại kho game mới; các test lớp học và lưu dữ liệu vẫn đạt.
