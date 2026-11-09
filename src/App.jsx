@@ -122,13 +122,17 @@ export default function App() {
           onClasses={setClasses}
           onOpen={setAccountOpen}
           onReady={setBootstrapReady}
-          onAvatarChanged={setMyAvatar}
+          onAvatarChanged={(value) => setMyAvatar({ userId: user?.user_id, value })}
         />
       </nav>
       {screen === 'classroom' ? (
         <Reveal key={user?.user_id || 'guest'}>
           {canClassroom ? (
-            <ClassroomPage user={user} onMembershipChange={setClasses} avatarOverride={myAvatar} />
+            <ClassroomPage
+              user={user}
+              onMembershipChange={setClasses}
+              avatarOverride={myAvatar?.userId === user.user_id ? myAvatar.value : null}
+            />
           ) : (
             <main className="classroom-page">
               <section className="panel">

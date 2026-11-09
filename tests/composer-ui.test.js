@@ -88,3 +88,72 @@ test('teacher sees side-by-side local draft preview; images are revoked and unsa
     w.close();
   }
 });
+
+test('switching teacher classes removes the old grid, top and draft instead of retaining duplicate panels', async () => {
+  const errors = [],
+    vc = new VirtualConsole();
+  vc.on('jsdomError', (e) => errors.push(e.message));
+  vc.on('error', (e) => errors.push(String(e)));
+  const dom = new JSDOM('<div id="root"></div>', {
+    url: 'https://tipy.test/#classroom',
+    pretendToBeVisual: true,
+    runScripts: 'outside-only',
+    virtualConsole: vc,
+  });
+  const w = dom.window,
+    d = w.document;
+  const classes = [
+    { class_id: 'a', name: 'Lớp A', archived_at: null },
+    { class_id: 'b', name: 'Lớp B', archived_at: null },
+  ];
+  w.fetch = async (url) => {
+    const params = new URL(url, 'https://tipy.test').searchParams,
+      action = params.get('action'),
+      id = params.get('classId') || 'a',
+      c = classes.find((x) => x.class_id === id);
+    const values = {
+      bootstrap: {
+        configured: true,
+        user: { user_id: 'admin', role: 'admin', full_name: 'Giáo viên' },
+        games: [],
+        classes,
+      },
+      classes: { classes },
+      classroom: {
+        classroom: c,
+        members: [
+          {
+            user_id: id,
+            name: 'Học sinh ' + id,
+            avatar: { animal: 'cat', color: 'sun', accessory: 'none' },
+          },
+        ],
+        achievements: [],
+        posts: [],
+      },
+    };
+    return { ok: true, json: async () => values[action] };
+  };
+  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+    x.endsWith('.js'),
+  );
+  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  try {
+    await until(() => d.querySelector('.classroom-layout'));
+    for (const id of ['b', 'a', 'b']) {
+      const select = d.querySelector('.classroom-page .class-select select');
+      select.value = id;
+      select.dispatchEvent(new w.Event('change', { bubbles: true }));
+      await until(
+        () => d.querySelector('#class-roster-heading')?.textContent === 'Lớp ' + id.toUpperCase(),
+      );
+      assert.equal(d.querySelectorAll('.classroom-layout').length, 1);
+      assert.equal(d.querySelectorAll('.student-desk').length, 1);
+      assert.equal(d.querySelectorAll('.class-composer').length, 1);
+      assert.equal(d.querySelectorAll('#class-top-heading').length, 1);
+    }
+    assert.deepEqual(errors, []);
+  } finally {
+    w.close();
+  }
+});

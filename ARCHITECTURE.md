@@ -105,3 +105,5 @@ Chỉ xóa vĩnh viễn bản ghi/file sau một quy trình dọn có rà soát;
 `AvatarPicker` chỉ mount trong tab Nhân vật của Account. GET avatar và POST avatar_save luôn dùng user_id từ session, không nhận userId đích từ client và không yêu cầu đã vào lớp. Save cập nhật override cá nhân ở App để ô học sinh/Top đang mở đổi ngay, không tải lại cả lớp.
 
 `PostComposer` chỉ mount cho admin và API vẫn kiểm tra admin. Layout form + preview riêng: preview là state client, link chỉ HTTP(S), text do React escape. Ảnh preview dùng object URL và revoke khi thay file/rời component; chỉ nút Đăng mới gọi upload/post. Học sinh chỉ thấy bài đã gửi. Không cần migration database cho thay đổi này.
+
+Lưới học sinh và form giáo viên dùng key khác nhau (`roster-...`, `composer-...`) khi đổi lớp. Không tái sử dụng cùng key cho các phần tử anh em khác loại: React có thể giữ DOM mồ côi của lớp trước. Các refresh bất đồng bộ cũng đối chiếu latestClassId trước khi ghi vào màn hình hiện tại.

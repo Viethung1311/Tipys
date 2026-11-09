@@ -118,3 +118,8 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - Top lớp chỉ chứa thành viên của lớp được phép đọc; không dùng điểm các game khác làm điểm typing; giữ tổng thời gian luyện. GET leaderboard cũ trả 404 cho cả user đã đăng nhập.
 - Test preview giáo viên xác nhận text HTML được escape, link javascript không tạo anchor, file/ảnh chỉ preview local trước khi Đăng và object URL được revoke.
 - Avatar API dùng ID phiên đăng nhập, bỏ qua ID giả từ client và hoạt động khi tài khoản chưa được thêm vào lớp.
+
+### Kiểm thử chuyển lớp
+
+- Sửa trùng key giữa lưới và composer gây giữ DOM lớp cũ. Regression test đổi A → B → A → B xác nhận luôn đúng một lưới, một Top và một composer; ghi nhận cả cảnh báo console React.
+- Chặn refresh/phân trang cũ cập nhật nhầm lớp mới; gắn override avatar với đúng user_id để phản hồi cũ không hiển thị cho tài khoản khác.

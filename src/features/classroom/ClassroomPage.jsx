@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
 import Loading from '../../components/Loading.jsx';
 import Reveal from '../../shared/Reveal.jsx';
@@ -14,6 +14,8 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
     [error, setError] = useState(''),
     [saving, setSaving] = useState(false),
     [hasMore, setHasMore] = useState(false);
+  const latestClassId = useRef(classId);
+  latestClassId.current = classId;
   useEffect(() => {
     let live = true;
     setBusy(true);
@@ -62,7 +64,9 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
     };
   }, [classId, user.user_id]);
   const refresh = async () => {
+    const requestedClass = classId;
     const data = await api('classroom', undefined, { classId });
+    if (latestClassId.current !== requestedClass) return;
     setDetail(data);
     setHasMore(data.posts.length === 20);
   };
@@ -114,7 +118,7 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
           </label>
           {detail && (
             <>
-              <Reveal key={classId}>
+              <Reveal key={`roster-${classId}`}>
                 <div className="classroom-layout">
                   <section className="panel classroom-board" aria-labelledby="class-roster-heading">
                     <div className="classroom-board-heading">
@@ -159,7 +163,7 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
                 </div>
               </Reveal>
               {user.role === 'admin' && (
-                <PostComposer key={classId} classId={classId} onPosted={refresh} />
+                <PostComposer key={`composer-${classId}`} classId={classId} onPosted={refresh} />
               )}
               <h2 className="class-feed-title">📚 Bảng tin & bài học</h2>
               {!detail.posts.length && (
@@ -215,6 +219,7 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
                         classId,
                         offset: detail.posts.length,
                       });
+                      if (latestClassId.current !== classId) return;
                       setDetail({ ...detail, posts: [...detail.posts, ...next.posts] });
                       setHasMore(next.posts.length === 20);
                     })
