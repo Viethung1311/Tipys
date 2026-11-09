@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../game/backend.js';
 import Loading from '../../components/Loading.jsx';
+import RosterEditor from './RosterEditor.jsx';
 /** Admin owns roster changes. Students have no enrollment write action. */
-export default function AdminClasses({ students, onChanged }) {
+export default function AdminClasses({ students, onChanged, onMembersChanged }) {
   const [classes, setClasses] = useState([]),
     [selected, setSelected] = useState(''),
-    [members, setMembers] = useState([]),
     [busy, setBusy] = useState(true),
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
@@ -20,27 +20,6 @@ export default function AdminClasses({ students, onChanged }) {
       .catch((e) => setError(e.message))
       .finally(() => setBusy(false));
   }, []);
-  useEffect(() => {
-    if (!current || current.archived_at) {
-      setMembers([]);
-      return;
-    }
-    let live = true;
-    setBusy(true);
-    api('classroom', undefined, { classId: selected })
-      .then((data) => {
-        if (live) setMembers(data.members);
-      })
-      .catch((e) => {
-        if (live) setError(e.message);
-      })
-      .finally(() => {
-        if (live) setBusy(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [selected, current?.archived_at]);
   const run = async (task) => {
     setBusy(true);
     setError('');
@@ -54,12 +33,6 @@ export default function AdminClasses({ students, onChanged }) {
       setBusy(false);
     }
   };
-  const changeMember = (userId, active) =>
-    run(async () => {
-      await api('class_member', { classId: selected, userId, active });
-      setMembers((await api('classroom', undefined, { classId: selected })).members);
-      await onChanged();
-    });
   return (
     <section className="panel admin-classes">
       <h2>🏫 Lớp học & thành viên</h2>
@@ -143,43 +116,13 @@ export default function AdminClasses({ students, onChanged }) {
           </p>
           {!current.archived_at && (
             <>
-              <h3>Thành viên · {members.length} học sinh</h3>
-              <p>
-                Thêm/bỏ từng học sinh bằng nút bên dưới. Giáo viên quản trị xem được tất cả lớp.
-              </p>
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Học sinh</th>
-                      <th>Tên đăng nhập</th>
-                      <th>Trong lớp</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {students.map((student) => {
-                      const joined = members.some((m) => m.user_id === student.user_id);
-                      return (
-                        <tr key={student.user_id}>
-                          <td>{student.full_name}</td>
-                          <td>{student.username}</td>
-                          <td>{joined ? '✓ Đã thêm' : 'Chưa thêm'}</td>
-                          <td>
-                            <button
-                              className="secondary"
-                              disabled={busy || !student.is_active}
-                              onClick={() => changeMember(student.user_id, !joined)}
-                            >
-                              {joined ? 'Bỏ khỏi lớp' : 'Thêm vào lớp'}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <RosterEditor
+                key={selected}
+                classId={selected}
+                className={current.name}
+                students={students}
+                onMembersChanged={onMembersChanged}
+              />
               <a className="lesson-link" href="/#classroom">
                 Vào lớp để gửi bài, ảnh, file hoặc link →
               </a>

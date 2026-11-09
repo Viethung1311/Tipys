@@ -48,7 +48,7 @@ export function createGames(db) {
       const { data, error } = await db
         .from('profiles')
         .select(
-          'user_id,username,full_name,role,is_active,created_at,class_members(is_active,classes(name,archived_at)),player_game_stats(total_active_seconds,total_plays,last_played_at)',
+          'user_id,username,full_name,role,is_active,created_at,class_members(class_id,is_active,classes(class_id,name,archived_at)),player_game_stats(total_active_seconds,total_plays,last_played_at)',
         )
         .eq('role', 'student')
         .order('created_at', { ascending: false })

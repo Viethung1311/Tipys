@@ -60,6 +60,24 @@ export default function AdminPage() {
       setBusy(false);
     }
   };
+  // Patch only the affected students after a successful bulk write; no bootstrap/history reload.
+  const patchMembers = ({ classId, className, userIds, active }) => {
+    const changed = new Set(userIds);
+    setStudents((previous) =>
+      previous.map((student) => {
+        if (!changed.has(student.user_id)) return student;
+        const memberships = (student.class_members || []).filter(
+          (m) => m.class_id !== classId && m.classes.class_id !== classId,
+        );
+        if (active)
+          memberships.push({
+            is_active: true,
+            classes: { class_id: classId, name: className, archived_at: null },
+          });
+        return { ...student, class_members: memberships };
+      }),
+    );
+  };
   const login = (event) => {
     event.preventDefault();
     const form = Object.fromEntries(new FormData(event.currentTarget));
@@ -188,7 +206,9 @@ export default function AdminPage() {
                 Làm mới
               </button>
             </nav>
-            {tab === 'classes' && <AdminClasses students={students} onChanged={load} />}
+            {tab === 'classes' && (
+              <AdminClasses students={students} onChanged={load} onMembersChanged={patchMembers} />
+            )}
             {tab === 'students' && (
               <section className="panel">
                 <h2>Thời gian luyện tập của từng học sinh</h2>

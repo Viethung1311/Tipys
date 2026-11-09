@@ -284,3 +284,93 @@
 .reveal-pending {
   animation: none;
 }
+/* Keep roster selection and save feedback in place; never replace the table during a write. */
+.roster-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.roster-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.roster-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 180px;
+}
+.roster-filters input,
+.roster-filters select {
+  padding: 11px;
+  border: 1px solid #dbe0cf;
+  border-radius: 10px;
+  background: #fff;
+  color: #34402c;
+  font: inherit;
+}
+.roster-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #f8f5e9;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+.roster-actions > span {
+  font-size: 13px;
+}
+.roster-editor input[type='checkbox'] {
+  width: 19px;
+  height: 19px;
+  accent-color: #e98735;
+  cursor: pointer;
+}
+.roster-editor input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+.roster-selected {
+  background: #fff4dc;
+}
+.roster-inactive {
+  display: block;
+  color: #9a8c77;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.roster-pending {
+  font-size: 13px;
+  color: #95723f;
+}
+.roster-pending::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #e5a34b;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+@media (max-width: 600px) {
+  .roster-actions > .primary,
+  .roster-actions > .secondary {
+    flex: 1;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .roster-actions {
+    gap: 10px;
+  }
+  .roster-actions > span {
+    flex-basis: 100%;
+  }
+}

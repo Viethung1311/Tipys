@@ -82,6 +82,10 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
       const { profile, access } = await current();
       if (req.method === 'GET' && action === 'classes')
         return res.status(200).json({ classes: await backend.classes(profile) });
+      if (req.method === 'GET' && action === 'class_roster')
+        return res
+          .status(200)
+          .json({ userIds: await backend.classRoster(profile, { classId: req.query?.classId }) });
       if (req.method === 'GET' && action === 'classroom') {
         const offset = Number(req.query?.offset || 0);
         if (!Number.isInteger(offset) || offset < 0 || offset > 100000)
@@ -109,6 +113,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         class_save: 'classSave',
         class_archive: 'classArchive',
         class_member: 'classMember',
+        class_members: 'classMembers',
         avatar_save: 'avatarSave',
         class_upload: 'classUpload',
         class_post: 'classPost',

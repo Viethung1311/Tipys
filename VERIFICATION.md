@@ -92,3 +92,9 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - Build thành công; 45 kiểm thử đạt. Luồng game vẫn chạy qua kho → thiết lập → chơi → kết quả.
 - Test UI xác nhận Trang chủ có Scratch và địa chỉ, không render game-card/bảng top. Test catalog xác nhận game inactive bị ẩn và engine chưa đăng ký không được chạy.
 - Top, kiểm tra reveal và luồng tài khoản được kiểm tra tại kho game mới; các test lớp học và lưu dữ liệu vẫn đạt.
+
+## Thành viên lớp theo lô
+
+- 49/49 kiểm thử đạt. Bulk UI xác nhận hai học sinh được thêm bằng đúng một yêu cầu, bỏ một học sinh bằng một yêu cầu, không reload bootstrap/history/students sau thao tác; hai lớp trùng tên vẫn giữ đúng quan hệ theo ID.
+- Bộ lọc/tìm kiếm và chọn tất cả chỉ chọn hàng hiển thị. Khi lỗi mạng, checkbox và nội dung tìm kiếm không mất. Gửi nhanh hai lần không tạo hai yêu cầu.
+- Backend chặn non-admin, ID không hợp lệ/trùng/quá 200 và danh sách có tài khoản không phù hợp trước khi ghi; thêm/bỏ cả danh sách dùng một upsert, không xóa tài khoản.

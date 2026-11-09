@@ -81,3 +81,9 @@ Chỉ xóa vĩnh viễn bản ghi/file sau một quy trình dọn có rà soát;
 `src/screens/HomePage.jsx` giới thiệu Typing, Scratch, lớp học và địa chỉ TIPY STEM Cẩm Lệ. Không mount bảng top hoặc danh sách trò chơi trên trang này.
 
 `src/screens/GameLibrary.jsx` nằm tại `#typing`, đọc catalog game đang mở từ API; chọn Chữ rơi chuyển tới `#typing/setup`. Game chưa có client engine sẽ hiển thị trạng thái Đang chuẩn bị. Thêm metadata game trong DB và đăng ký engine/screen trong `src/game/catalog.js` khi triển khai một game mới; không cho cấu hình DB thực thi mã hoặc điều hướng tới URL tùy ý.
+
+## Chọn thành viên theo lô
+
+`RosterEditor.jsx` giữ lựa chọn và bộ lọc ở client; chọn checkbox không gọi API. Khi thêm/bỏ, `class_members` gửi một danh sách tối đa 200 ID trong một POST. Server kiểm tra admin, lớp và toàn bộ tài khoản rồi upsert tất cả bằng một câu lệnh; không có vòng lặp gọi mạng từng học sinh. Không cần migration database.
+
+`class_roster` chỉ lấy ID thành viên khi mở lớp hoặc bấm làm mới, không tải bài, ảnh hoặc nhân vật. Sau POST thành công, bảng lớp và cột lớp trong bảng học sinh được cập nhật trong bộ nhớ; không gọi lại bootstrap/history/students. Không cập nhật lạc quan trước phản hồi server; lỗi giữ nguyên lựa chọn và dữ liệu cũ. Tài khoản đã khóa không được thêm; vẫn có thể bỏ khỏi lớp nếu đang là thành viên. Nút chọn tất cả chỉ tác động những hàng đang hiển thị.

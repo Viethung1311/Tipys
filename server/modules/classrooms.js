@@ -124,6 +124,58 @@ export function createClassrooms(db) {
       fail(error);
       return data;
     },
+    // One validation query and one atomic upsert for the whole selection.
+    async classMembers(profile, input) {
+      requireAdmin(profile);
+      const ids = input.userIds;
+      if (
+        !Array.isArray(ids) ||
+        !ids.length ||
+        ids.length > 200 ||
+        new Set(ids).size !== ids.length ||
+        typeof input.active !== 'boolean'
+      )
+        throw new ApiError(400, 'Chọn từ 1 đến 200 học sinh, không trùng nhau.');
+      ids.forEach(uuid);
+      await access(profile, input.classId, true);
+      let query = db.from('profiles').select('user_id').in('user_id', ids).eq('role', 'student');
+      if (input.active) query = query.eq('is_active', true);
+      const students = await query;
+      fail(students.error);
+      if (students.data.length !== ids.length)
+        throw new ApiError(
+          400,
+          'Danh sách có tài khoản không hợp lệ hoặc đã khóa. Chưa thay đổi thành viên nào.',
+        );
+      const { data, error } = await db
+        .from('class_members')
+        .upsert(
+          ids.map((userId) => ({
+            class_id: input.classId,
+            user_id: userId,
+            is_active: input.active,
+          })),
+          { onConflict: 'class_id,user_id' },
+        )
+        .select('user_id,is_active');
+      fail(error);
+      return {
+        classId: input.classId,
+        active: input.active,
+        userIds: data.map((row) => row.user_id),
+      };
+    },
+    async classRoster(profile, input) {
+      await access(profile, input.classId, true);
+      const { data, error } = await db
+        .from('class_members')
+        .select('user_id')
+        .eq('class_id', input.classId)
+        .eq('is_active', true)
+        .limit(1000);
+      fail(error);
+      return data.map((row) => row.user_id);
+    },
     async classMember(profile, input) {
       await access(profile, input.classId, true);
       uuid(input.userId);
