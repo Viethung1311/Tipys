@@ -40,7 +40,7 @@ const detail = {
     },
   ],
 };
-test('member navigates classroom, sees desks/posts and saves own zodiac avatar', async () => {
+test('member sees square roster and class top, then changes avatar through account', async () => {
   const errors = [],
     requests = [];
   const vc = new VirtualConsole();
@@ -61,8 +61,8 @@ test('member navigates classroom, sees desks/posts and saves own zodiac avatar',
       bootstrap: { configured: true, user: child, games: [], classes: [classroom] },
       classes: { classes: [classroom] },
       classroom: detail,
-      leaderboard: { leaderboard: [] },
-      avatar_save: { data: {} },
+      avatar: { avatar: detail.members[0].avatar },
+      avatar_save: { data: { animal: 'dragon', accessory: 'book', color: 'sky' } },
     };
     return { ok: true, json: async () => values[action] };
   };
@@ -79,14 +79,24 @@ test('member navigates classroom, sees desks/posts and saves own zodiac avatar',
     assert.match(d.querySelector('.student-desk').textContent, /Bạn An/);
     assert.match(d.querySelector('.class-post').textContent, /Bài luyện số 1/);
     assert.equal(d.querySelector('.class-post a').href, 'https://example.com/lesson');
-    assert.equal(d.querySelectorAll('.avatar-editor select')[0].options.length, 12);
-    const select = d.querySelector('.avatar-editor select');
-    select.value = 'dragon';
-    select.dispatchEvent(new w.Event('change', { bubbles: true }));
+    assert.equal(d.querySelectorAll('.class-desks > li').length, 1);
+    assert.match(d.querySelector('.class-achievements').textContent, /Top thành tích/);
+    assert.equal(d.querySelector('.avatar-editor'), null);
+    button('Tài khoản · Bạn An').click();
+    await until(() => button('Nhân vật'));
+    button('Nhân vật').click();
+    await until(() => d.querySelectorAll('.zodiac-options input').length === 12);
+    await until(() => !d.querySelector('.account-avatar-editor fieldset').disabled);
+    d.querySelector('.zodiac-options input[value="dragon"]').click();
     await sleep(20);
     button('Lưu nhân vật').click();
     await until(() => requests.some((r) => r.action === 'avatar_save'));
+    await until(() => d.body.textContent.includes('Đã lưu nhân vật'));
     assert.equal(requests.find((r) => r.action === 'avatar_save').animal, 'dragon');
+    assert.equal(requests.find((r) => r.action === 'avatar_save').classId, undefined);
+    button('Đóng').click();
+    await until(() => !d.querySelector('[role=dialog]'));
+    assert.equal(d.querySelector('.student-desk .student-avatar > span').textContent, '🐲');
     assert.equal(d.querySelector('.class-composer'), null);
     assert.deepEqual(errors, []);
   } finally {

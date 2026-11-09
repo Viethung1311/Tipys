@@ -62,7 +62,7 @@ Toàn bộ âm được tạo bằng Web Audio, không tải file âm thanh bên
 - src/game/audio.js và src/hooks/useGameAudio.js: tổng hợp âm, giới hạn âm chồng, nhạc nền và lưu tùy chọn.
 - tests/: kiểm thử logic và tương tác ứng dụng.
 
-Hướng dẫn database, biến môi trường, phân quyền và thêm game: xem [BACKEND.md](BACKEND.md). Bảng top 50 của lớp dành cho tài khoản đã đăng nhập, mỗi học sinh một kỷ lục; tài khoản admin và tài khoản bị khóa không xếp hạng. Bản HTML độc lập chỉ hỗ trợ chơi khách, không dùng tính năng tài khoản.
+Hướng dẫn database, biến môi trường, phân quyền và thêm game: xem [BACKEND.md](BACKEND.md). Top thành tích chỉ nằm trong Lớp học, lấy tối đa 10 thành viên của lớp đang mở; không còn bảng xếp hạng chung ở Gõ chữ. Bản HTML độc lập chỉ hỗ trợ chơi khách, không dùng tính năng tài khoản.
 
 Trang admin riêng: https://tipys.vercel.app/admin. Có chỉnh tốc độ từng độ khó và xem tổng thời gian luyện của học sinh. Kết quả chỉ giữ cao nhất và gần nhất trên mỗi học sinh/game; tổng thời gian vẫn cộng dồn.
 
@@ -70,10 +70,10 @@ Trang admin riêng: https://tipys.vercel.app/admin. Có chỉnh tốc độ từ
 
 Nav mới: Trang chủ / Gõ chữ / Lớp học / Tài khoản. Tab Lớp học mở cho tài khoản đã được admin thêm vào lớp; admin xem toàn bộ lớp.
 
-Quản trị: vào `/admin` → Lớp học → tạo lớp → chọn lớp → thêm học sinh. Từ link Vào lớp, giáo viên đăng bài với ảnh/tài liệu/link. Học sinh chọn nhân vật 12 con giáp, phụ kiện và màu ở lớp của mình. Xóa lớp có thể khôi phục ngay trong trang quản trị.
+Quản trị: vào `/admin` → Lớp học → tạo lớp → chọn lớp → thêm học sinh. Từ link Vào lớp, giáo viên đăng bài với ảnh/tài liệu/link. Mỗi tài khoản chọn nhân vật 12 con giáp, phụ kiện và màu tại Tài khoản → Nhân vật. Xóa lớp có thể khôi phục ngay trong trang quản trị.
 
 Hướng dẫn bảo trì, quan hệ dữ liệu, phân quyền, giới hạn và test: xem [ARCHITECTURE.md](ARCHITECTURE.md). Loading dùng một phím A xoay trong lúc tải; hiệu ứng màn hình chỉ chạy một lần khi xuất hiện.
 
 ## Trang chủ TIPY STEM Cẩm Lệ
 
-Trang chủ giới thiệu học Typing, Scratch và lớp học vui nhộn, kèm địa chỉ 68 Phạm Tứ, Cẩm Lệ, Đà Nẵng. Mục Gõ chữ mở kho trò chơi và bảng top; chọn Chữ rơi rồi mới vào phần cài đặt game. Khu vực này nhận danh sách game từ catalog để mở rộng sau này.
+Trang chủ giới thiệu học Typing, Scratch và lớp học vui nhộn, kèm địa chỉ 68 Phạm Tứ, Cẩm Lệ, Đà Nẵng. Mục Gõ chữ chỉ mở kho trò chơi; chọn Chữ rơi rồi mới vào phần cài đặt game. Khu vực này nhận danh sách game từ catalog để mở rộng sau này.

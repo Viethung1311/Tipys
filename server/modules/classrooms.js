@@ -54,6 +54,36 @@ export function validateFile(input) {
     throw new ApiError(400, 'File tối đa 5 MB: PNG, JPG, WEBP, PDF, TXT, DOCX, XLSX hoặc PPTX.');
   return { name, mime, extension, size: input.size };
 }
+/** Only rows already scoped by class membership may enter the class achievement list. */
+export function classMembersView(rows) {
+  return rows.map((row) => {
+    const stats = row.profiles.player_game_stats || [];
+    return {
+      user_id: row.user_id,
+      name: row.profiles.full_name,
+      avatar: row.profiles.student_avatars || { animal: 'rat', accessory: 'none', color: 'sun' },
+      best_score: Math.max(
+        0,
+        ...stats
+          .filter((s) => s.games?.game_code === 'falling_letters')
+          .map((s) => Number(s.best_play?.score || 0)),
+      ),
+      total_active_seconds: stats.reduce((sum, s) => sum + Number(s.total_active_seconds || 0), 0),
+    };
+  });
+}
+export function classTop(members) {
+  return members
+    .filter((m) => m.best_score > 0)
+    .sort(
+      (a, b) =>
+        b.best_score - a.best_score ||
+        b.total_active_seconds - a.total_active_seconds ||
+        a.user_id.localeCompare(b.user_id),
+    )
+    .slice(0, 10)
+    .map((m, index) => ({ ...m, rank: index + 1 }));
+}
 export function createClassrooms(db) {
   const access = async (profile, classId, adminOnly = false) => {
     uuid(classId);
@@ -205,7 +235,7 @@ export function createClassrooms(db) {
         db
           .from('class_members')
           .select(
-            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color))',
+            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color),player_game_stats(total_active_seconds,best_play,games(game_code)))',
           )
           .eq('class_id', input.classId)
           .eq('is_active', true)
@@ -224,15 +254,22 @@ export function createClassrooms(db) {
       ]);
       fail(members.error);
       fail(posts.error);
+      const visibleMembers = classMembersView(members.data);
       return {
         classroom,
-        members: members.data.map((m) => ({
-          user_id: m.user_id,
-          name: m.profiles.full_name,
-          avatar: m.profiles.student_avatars || { animal: 'rat', accessory: 'none', color: 'sun' },
-        })),
+        members: visibleMembers,
+        achievements: classTop(visibleMembers),
         posts: posts.data,
       };
+    },
+    async avatar(profile) {
+      const { data, error } = await db
+        .from('student_avatars')
+        .select('animal,accessory,color')
+        .eq('user_id', profile.user_id)
+        .maybeSingle();
+      fail(error);
+      return data || { animal: 'rat', accessory: 'none', color: 'sun' };
     },
     async avatarSave(profile, input) {
       const { animal, accessory, color } = input;
@@ -242,7 +279,7 @@ export function createClassrooms(db) {
         !COLORS.includes(color)
       )
         throw new ApiError(400, 'Nhân vật chưa hợp lệ.');
-      await access(profile, input.classId);
+      // Identity is taken exclusively from the authenticated session, never the request.
       const { data, error } = await db
         .from('student_avatars')
         .upsert({ user_id: profile.user_id, animal, accessory, color })

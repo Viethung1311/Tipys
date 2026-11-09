@@ -98,8 +98,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         return res
           .status(200)
           .json(await backend.classFile(profile, { attachmentId: req.query?.attachmentId }));
-      if (req.method === 'GET' && action === 'leaderboard')
-        return res.status(200).json({ leaderboard: await backend.leaderboard() });
+      if (req.method === 'GET' && action === 'avatar')
+        return res.status(200).json({ avatar: await backend.avatar(profile) });
       if (req.method === 'GET' && action === 'history')
         return res.status(200).json({ history: await backend.history(profile) });
       if (req.method === 'GET' && action === 'students')

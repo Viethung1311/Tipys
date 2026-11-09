@@ -111,3 +111,10 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - Đã đo 18 trường hợp dialog trên trình duyệt thật ở viewport 320×568, 375×667, 390×844, 768×1024, 1024×768, 1440×900 và 844×390. Các hộp nằm trọn vùng nhìn thấy, lệch tâm đo được 0 px, ô đăng nhập/đăng ký đều 16 px; hộp thấp có cuộn nội bộ.
 - Bổ sung gate hero-ready sau khi bootstrap/loading kết thúc; kiểm thử loading xác nhận không chạy sớm và mở lại khi cả API thành công hoặc lỗi. Nút switch âm thanh có vùng bấm 48×44 px, track giữ chiều cao 28 px.
 - Kiểm tra theo kích thước mô phỏng không thay cho thử trên toàn bộ thiết bị/trình duyệt vật lý.
+
+## Thiết kế lớp theo bản vẽ 10/11/2026
+
+- Build và 53/53 test đạt. UI xác nhận một ô/một thành viên, học sinh thấy bài đã đăng nhưng không thấy editor/preview, chọn 12 con giáp trong Account và lưu cập nhật ngay ô cá nhân.
+- Top lớp chỉ chứa thành viên của lớp được phép đọc; không dùng điểm các game khác làm điểm typing; giữ tổng thời gian luyện. GET leaderboard cũ trả 404 cho cả user đã đăng nhập.
+- Test preview giáo viên xác nhận text HTML được escape, link javascript không tạo anchor, file/ảnh chỉ preview local trước khi Đăng và object URL được revoke.
+- Avatar API dùng ID phiên đăng nhập, bỏ qua ID giả từ client và hoạt động khi tài khoản chưa được thêm vào lớp.

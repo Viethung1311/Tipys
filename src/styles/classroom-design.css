@@ -1,0 +1,561 @@
+/* Classroom wireframe: one real pupil per square; class-only achievements alongside. */
+.classroom-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 20px;
+  margin: 22px 0 30px;
+}
+.classroom-board {
+  min-width: 0;
+  padding: 18px;
+  background: #fffdf7;
+}
+.classroom-board-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.classroom-board-heading h2 {
+  font-size: 22px;
+  line-height: 1.4;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+}
+.classroom-board-heading .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.class-count {
+  font-size: 11px;
+  color: #899476;
+  white-space: nowrap;
+}
+.classroom-board .class-desks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.classroom-board .student-desk {
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 14px 7px 9px;
+  gap: 7px;
+  justify-content: center;
+  border: 1px solid #e6dfcb;
+  border-bottom: 3px solid #d6b67f;
+  background: #fff7e7;
+  border-radius: 15px;
+  overflow: hidden;
+}
+.classroom-board .student-desk b {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.35;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+.classroom-board .student-avatar {
+  width: 51px;
+  height: 51px;
+  font-size: 33px;
+  border-radius: 17px;
+  flex-shrink: 0;
+}
+.classroom-board .student-avatar small {
+  font-size: 18px;
+}
+.seat-number {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 9px;
+  color: #bca982;
+}
+.classroom-board .own-desk {
+  background: #ffedc3;
+  border-color: #e5ad50;
+  outline: 2px solid #efc576;
+  outline-offset: -2px;
+}
+.own-seat-label {
+  position: absolute;
+  right: 7px;
+  top: 6px;
+  font-size: 8px;
+  background: #f5cb75;
+  padding: 2px 5px;
+  border-radius: 5px;
+  color: #875a17;
+}
+.empty-desks {
+  font-size: 13px;
+  color: #8c967e;
+  line-height: 1.8;
+  padding: 25px 0;
+}
+.class-achievements {
+  padding: 22px 18px;
+  background: linear-gradient(140deg, #fff6d9, #fffdf7);
+  border-color: #ecd6a5;
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+}
+.class-achievements > .eyebrow {
+  font-size: 8px;
+  letter-spacing: 0.9px;
+}
+.class-achievements h2 {
+  font-size: 23px;
+  color: #e4702e;
+  line-height: 1.4;
+  margin: 10px 0;
+}
+.class-achievements > p {
+  font-size: 11px;
+  color: #958469;
+  line-height: 1.8;
+}
+.class-top-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  max-height: 62vh;
+  overflow: auto;
+}
+.class-top-list li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 1px solid #eee0c2;
+}
+.class-top-list .class-rank {
+  font-size: 18px;
+  flex: 0 0 23px;
+  text-align: center;
+}
+.class-top-list .student-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  font-size: 22px;
+  flex: 0 0 32px;
+}
+.class-top-list .student-avatar small {
+  font-size: 12px;
+  right: -2px;
+}
+.class-top-list li > div {
+  min-width: 0;
+  flex: 1;
+}
+.class-top-list b {
+  font-size: 11px;
+  line-height: 1.45;
+  display: block;
+  overflow-wrap: anywhere;
+}
+.class-top-list small {
+  font-size: 9px;
+  color: #998b71;
+  display: block;
+  line-height: 1.6;
+  margin-top: 3px;
+}
+.class-top-list strong {
+  font-size: 15px;
+  color: #b46924;
+  white-space: nowrap;
+  text-align: right;
+}
+.class-top-list strong small {
+  font-size: 8px;
+}
+.class-top-list .is-you {
+  background: #fff0ca;
+}
+.class-top-empty {
+  padding: 28px 0 12px;
+  text-align: center;
+}
+.class-top-empty > span {
+  font-size: 36px;
+}
+.class-top-empty p {
+  color: #9a9279;
+  line-height: 1.8;
+  font-size: 12px;
+  margin-top: 12px;
+}
+/* Teacher editor and local preview are never mounted for students. */
+.class-composer {
+  padding: 24px;
+}
+.composer-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.composer-heading h2 {
+  font-size: 23px;
+  margin-top: 7px;
+}
+.teacher-only-badge {
+  font-size: 10px;
+  color: #a46a20;
+  background: #fff1d0;
+  border-radius: 20px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+.composer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: stretch;
+}
+.composer-form {
+  margin: 0;
+  min-width: 0;
+}
+.composer-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 15px;
+  min-width: 0;
+}
+.composer-form input,
+.composer-form textarea {
+  min-width: 0;
+  font-size: 16px;
+  min-height: 44px;
+}
+.composer-preview {
+  min-width: 0;
+  background: linear-gradient(145deg, #ffbe76, #ffa75a);
+  border-radius: 18px;
+  padding: 20px;
+  overflow-wrap: anywhere;
+}
+.preview-eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+  color: #895120;
+}
+.preview-paper {
+  margin-top: 15px;
+  background: #fffdf8;
+  border-radius: 13px;
+  padding: 20px;
+  min-height: 270px;
+  box-shadow: 0 9px 20px #9a602412;
+}
+.preview-paper > small {
+  font-size: 10px;
+  color: #a29278;
+}
+.preview-paper h3 {
+  font-size: 21px;
+  line-height: 1.5;
+  margin: 12px 0;
+  color: #43533c;
+}
+.preview-paper > p {
+  font-size: 13px;
+  white-space: pre-wrap;
+  line-height: 1.8;
+  color: #878471;
+}
+.preview-paper > a,
+.preview-invalid {
+  font-size: 12px;
+  line-height: 1.7;
+  display: block;
+  margin: 14px 0;
+  color: #a76d2d;
+  overflow-wrap: anywhere;
+}
+.preview-placeholder {
+  padding: 25px 12px;
+  margin-top: 18px;
+  background: #f7f2e7;
+  border: 1px dashed #d9ccb1;
+  border-radius: 12px;
+  text-align: center;
+}
+.preview-placeholder > span {
+  font-size: 30px;
+}
+.preview-placeholder p {
+  font-size: 11px;
+  color: #aaa08c;
+  line-height: 1.8;
+  margin-top: 9px;
+}
+.preview-image {
+  margin-top: 15px;
+}
+.preview-image img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: 9px;
+}
+.preview-file {
+  font-size: 12px;
+  margin: 12px 0;
+  padding: 10px;
+  background: #f7f1e4;
+  border-radius: 8px;
+}
+.composer-preview > small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.8;
+  margin-top: 15px;
+  color: #975e25;
+}
+/* Personal avatar editor lives in the account dialog, not the classroom. */
+.account-avatar-editor {
+  margin: 20px 0;
+  text-align: left;
+}
+.avatar-picker-preview {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  background: #f5f4e8;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.avatar-picker-preview > .student-avatar {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  font-size: 40px;
+}
+.avatar-picker-preview h3 {
+  font-size: 17px;
+}
+.avatar-picker-preview p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #8b947c;
+  margin-top: 7px;
+}
+.account-avatar-editor fieldset {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.account-avatar-editor legend {
+  font-size: 13px;
+  font-weight: 750;
+  margin-bottom: 12px;
+}
+.zodiac-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.zodiac-option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 10px 5px;
+  border: 1px solid #e3e3d4;
+  border-radius: 12px;
+  background: #fafbf5;
+  min-height: 70px;
+  cursor: pointer;
+}
+.zodiac-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+}
+.zodiac-option > span {
+  font-size: 25px;
+}
+.zodiac-option > b {
+  font-size: 10px;
+  color: #8e957e;
+}
+.zodiac-option.is-selected {
+  background: #fff0cf;
+  border-color: #e2b15c;
+  box-shadow: 0 0 0 1px #e2b15c;
+}
+.zodiac-option:focus-within {
+  outline: 2px solid #257761;
+  outline-offset: 2px;
+}
+.avatar-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+.avatar-controls label {
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.avatar-controls select {
+  font: inherit;
+  font-size: 16px;
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #dce3d3;
+  border-radius: 9px;
+  background: #fff;
+  color: #44533b;
+}
+.account-avatar-editor > p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+@media (max-width: 1100px) and (min-width: 901px) {
+  .classroom-board .class-desks {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .classroom-board {
+    padding: 14px;
+  }
+  .classroom-layout {
+    grid-template-columns: minmax(0, 1fr) 275px;
+  }
+}
+@media (max-width: 900px) {
+  .classroom-layout {
+    grid-template-columns: 1fr;
+  }
+  .class-achievements {
+    position: static;
+  }
+  .class-top-list {
+    max-height: none;
+  }
+  .class-top-list b {
+    font-size: 13px;
+  }
+  .class-top-list small {
+    font-size: 11px;
+  }
+  .class-top-list strong {
+    font-size: 18px;
+  }
+  .class-top-list .student-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 26px;
+    flex-basis: 40px;
+  }
+}
+@media (max-width: 680px) {
+  .classroom-page {
+    padding-inline: 0;
+  }
+  .classroom-board {
+    padding: 13px;
+  }
+  .classroom-board .class-desks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .classroom-board .student-desk {
+    padding: 13px 6px 8px;
+    gap: 5px;
+    border-radius: 12px;
+  }
+  .classroom-board .student-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 29px;
+    border-radius: 14px;
+  }
+  .classroom-board .student-desk b {
+    font-size: 11px;
+  }
+  .classroom-board-heading {
+    align-items: start;
+    gap: 8px;
+  }
+  .classroom-board-heading h2 {
+    font-size: 19px;
+  }
+  .class-count {
+    font-size: 10px;
+    margin-top: 5px;
+  }
+  .composer-layout {
+    grid-template-columns: 1fr;
+  }
+  .class-composer {
+    padding: 19px 16px;
+  }
+  .composer-heading {
+    flex-wrap: wrap;
+  }
+  .composer-heading h2 {
+    font-size: 21px;
+  }
+  .composer-preview {
+    padding: 16px;
+  }
+  .preview-paper {
+    padding: 16px;
+  }
+  .class-feed-title {
+    font-size: 22px;
+  }
+  .zodiac-options {
+    gap: 7px;
+  }
+  .avatar-picker-preview {
+    gap: 12px;
+    padding: 13px;
+  }
+  .avatar-picker-preview h3 {
+    font-size: 15px;
+  }
+}
+@media (max-width: 380px) {
+  .classroom-board .class-desks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .avatar-controls {
+    grid-template-columns: 1fr;
+  }
+  .zodiac-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

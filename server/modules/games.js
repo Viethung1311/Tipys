@@ -22,27 +22,6 @@ export function createGames(db) {
       fail(error);
       return resultRows(data);
     },
-    async leaderboard() {
-      const { data, error } = await db
-        .from('player_game_stats')
-        .select('user_id,best_play,profiles!inner(full_name,role,is_active),games!inner(game_code)')
-        .eq('games.game_code', 'falling_letters')
-        .eq('profiles.role', 'student')
-        .eq('profiles.is_active', true)
-        .not('best_play', 'is', null)
-        .order('best_play->score', { ascending: false })
-        .order('user_id')
-        .limit(50);
-      fail(error);
-      return data.map((row, index) => ({
-        rank: index + 1,
-        user_id: row.user_id,
-        name: row.profiles.full_name,
-        score: Number(row.best_play.score),
-        seconds: Number(row.best_play.active_seconds || 0),
-        difficulty: row.best_play.difficulty,
-      }));
-    },
     async students(profile) {
       requireAdmin(profile);
       const { data, error } = await db

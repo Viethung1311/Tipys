@@ -1,10 +1,9 @@
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
-import Leaderboard from '../components/Leaderboard.jsx';
 import Reveal from '../shared/Reveal.jsx';
 import { availableGames, gameScreen, GAME_ENGINES } from '../game/catalog.js';
 
 /** Catalog metadata comes from the API; only registered engines are launchable. */
-export default function GameLibrary({ catalog, user, onChoose, onHome }) {
+export default function GameLibrary({ catalog, onChoose, onHome }) {
   const games = availableGames(catalog);
   return (
     <main className="game-library">
@@ -71,7 +70,6 @@ export default function GameLibrary({ catalog, user, onChoose, onHome }) {
           </div>
         </div>
       </section>
-      <Leaderboard user={user} />
     </main>
   );
 }

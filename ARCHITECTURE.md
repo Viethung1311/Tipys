@@ -14,7 +14,7 @@
 | `api/tipy.js`                       | HTTP, cookie phiên, origin, giới hạn body và phân phối action   |
 | `server/backend.js`                 | Ghép các service với một Supabase client chỉ có ở server        |
 | `server/modules/identity.js`        | Đăng ký/đăng nhập, HMAC PIN ngắn, phiên và kiểm tra hồ sơ       |
-| `server/modules/games.js`           | Game, top, thống kê học sinh và kết quả giới hạn dung lượng     |
+| `server/modules/games.js`           | Game, thống kê học sinh và kết quả giới hạn dung lượng          |
 | `server/modules/game-validation.js` | Quy tắc điểm, thời gian, trạng thái và cấu hình                 |
 | `server/modules/classrooms.js`      | Kiểm tra thành viên, CRUD mềm và ký URL Storage                 |
 | `db/`                               | Schema PostgreSQL, migration cộng thêm, RLS và RPC transaction  |
@@ -44,14 +44,14 @@ erDiagram
 
 ## Quyền truy cập
 
-| Thao tác                          | Khách | Học sinh                 | Admin               |
-| --------------------------------- | ----- | ------------------------ | ------------------- |
-| Luyện gõ thử                      | Có    | Có                       | Có                  |
-| Lưu kết quả, xem top              | Không | Có                       | Có                  |
-| Xem lớp/bài/thành viên/file       | Không | Chỉ lớp được thêm        | Tất cả lớp đang mở  |
-| Đổi nhân vật                      | Không | Chỉ của mình, khi có lớp | API hỗ trợ của mình |
-| Tạo/đổi tên/lưu trữ/khôi phục lớp | Không | Không                    | Có                  |
-| Thêm/bỏ thành viên, gửi/gỡ bài    | Không | Không                    | Có                  |
+| Thao tác                          | Khách | Học sinh          | Admin              |
+| --------------------------------- | ----- | ----------------- | ------------------ |
+| Luyện gõ thử                      | Có    | Có                | Có                 |
+| Lưu kết quả, xem top              | Không | Có                | Có                 |
+| Xem lớp/bài/thành viên/file       | Không | Chỉ lớp được thêm | Tất cả lớp đang mở |
+| Đổi nhân vật                      | Không | Chỉ của mình      | Chỉ của mình       |
+| Tạo/đổi tên/lưu trữ/khôi phục lớp | Không | Không             | Có                 |
+| Thêm/bỏ thành viên, gửi/gỡ bài    | Không | Không             | Có                 |
 
 Backend kiểm tra role từ DB và membership trước khi phục vụ dữ liệu hoặc ký URL. RLS và quyền RPC là lớp chặn độc lập; không dựa vào nút disabled ở giao diện. Không cấp quyền sửa bảng trực tiếp cho authenticated/anon. Server key không đi vào bundle.
 
@@ -97,3 +97,11 @@ Chỉ xóa vĩnh viễn bản ghi/file sau một quy trình dọn có rà soát;
 `home-motion.css` áp dụng fade/stagger một lần cho tiêu đề, ảnh, CTA; tắt khi prefers-reduced-motion. Ba ảnh Scratch do chủ website cung cấp được lưu tên ổn định trong `src/assets`, khai báo kích thước để giữ tỷ lệ và hạn chế nhảy bố cục. Tổng dung lượng khoảng 53 KB. Vite tạo đường dẫn asset có hash; script standalone nhúng ảnh thành data URL để bản HTML vẫn mở offline.
 
 `bootstrapReady` từ callback khởi tạo tài khoản cho phép HomePage bắt đầu stagger sau khi loading đóng. Trang chủ không cần đăng nhập: cả thành công và lỗi bootstrap đều kết thúc loading và mở hiệu ứng. Không chạy animation phía sau overlay rồi để người dùng bỏ lỡ nó.
+
+## Thiết kế lớp học và nhân vật trong Tài khoản
+
+`ClassroomPage` có lưới ô vuông: mỗi ô là một thành viên thật, không tạo ô học sinh giả. Desktop đặt `ClassAchievements` bên phải, màn hình nhỏ xếp xuống dưới. Thành tích được dựng từ các thành viên đã qua kiểm tra quyền của lớp; điểm lấy best_play của Chữ rơi, thời gian cộng dồn tất cả game. Top tối đa 10, không có truy vấn xếp hạng toàn trung tâm. Endpoint leaderboard chung đã gỡ, kết quả best/latest không bị xóa.
+
+`AvatarPicker` chỉ mount trong tab Nhân vật của Account. GET avatar và POST avatar_save luôn dùng user_id từ session, không nhận userId đích từ client và không yêu cầu đã vào lớp. Save cập nhật override cá nhân ở App để ô học sinh/Top đang mở đổi ngay, không tải lại cả lớp.
+
+`PostComposer` chỉ mount cho admin và API vẫn kiểm tra admin. Layout form + preview riêng: preview là state client, link chỉ HTTP(S), text do React escape. Ảnh preview dùng object URL và revoke khi thay file/rời component; chỉ nút Đăng mới gọi upload/post. Học sinh chỉ thấy bài đã gửi. Không cần migration database cho thay đổi này.

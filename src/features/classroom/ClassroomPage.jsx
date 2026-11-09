@@ -5,15 +5,13 @@ import Reveal from '../../shared/Reveal.jsx';
 import Avatar from './Avatar.jsx';
 import Attachment from './Attachment.jsx';
 import PostComposer from './PostComposer.jsx';
-import { ANIMALS, ACCESSORIES, COLORS } from './constants.js';
-const DEFAULT_AVATAR = { animal: 'rat', accessory: 'none', color: 'sun' };
-export default function ClassroomPage({ user, onMembershipChange }) {
+import ClassAchievements from './ClassAchievements.jsx';
+export default function ClassroomPage({ user, onMembershipChange, avatarOverride }) {
   const [classes, setClasses] = useState([]),
     [classId, setClassId] = useState(''),
     [detail, setDetail] = useState(null),
     [busy, setBusy] = useState(true),
     [error, setError] = useState(''),
-    [avatar, setAvatar] = useState(DEFAULT_AVATAR),
     [saving, setSaving] = useState(false),
     [hasMore, setHasMore] = useState(false);
   useEffect(() => {
@@ -51,7 +49,6 @@ export default function ClassroomPage({ user, onMembershipChange }) {
         if (live) {
           setDetail(data);
           setHasMore(data.posts.length === 20);
-          setAvatar(data.members.find((m) => m.user_id === user.user_id)?.avatar || DEFAULT_AVATAR);
         }
       })
       .catch((e) => {
@@ -118,94 +115,49 @@ export default function ClassroomPage({ user, onMembershipChange }) {
           {detail && (
             <>
               <Reveal key={classId}>
-                <section className="panel classroom-board">
-                  <div className="class-blackboard">
-                    <span>✨ CHÀO MỪNG ĐẾN LỚP</span>
-                    <h2>{detail.classroom.name}</h2>
-                    <p>{detail.members.length} người bạn · Mỗi bạn một màu sắc</p>
-                    <b>👩‍🏫 Giáo viên TIPY</b>
-                  </div>
-                  <div className="class-desks">
-                    {detail.members.map((member, index) => (
-                      <div
-                        className={`student-desk ${member.user_id === user.user_id ? 'own-desk' : ''}`}
-                        key={member.user_id}
-                      >
-                        <Avatar value={member.avatar} name={member.name} />
-                        <b>
-                          {member.name}
-                          {member.user_id === user.user_id ? ' · Bạn' : ''}
-                        </b>
-                        <small>Bàn {index + 1}</small>
+                <div className="classroom-layout">
+                  <section className="panel classroom-board" aria-labelledby="class-roster-heading">
+                    <div className="classroom-board-heading">
+                      <div>
+                        <span className="eyebrow">LỚP HỌC CỦA CHÚNG MÌNH</span>
+                        <h2 id="class-roster-heading">{detail.classroom.name}</h2>
                       </div>
-                    ))}
-                  </div>
-                  {!detail.members.length && <p>Giáo viên đang chuẩn bị chỗ ngồi cho lớp.</p>}
-                </section>
-              </Reveal>
-              {user.role !== 'admin' && (
-                <Reveal>
-                  <section className="panel avatar-editor">
-                    <div>
-                      <h2>Nhân vật của mình</h2>
-                      <Avatar value={avatar} name={user.full_name} />
+                      <span className="class-count">{detail.members.length} học sinh</span>
                     </div>
-                    <div className="account-form">
-                      <label>
-                        12 con giáp
-                        <select
-                          value={avatar.animal}
-                          onChange={(e) => setAvatar({ ...avatar, animal: e.target.value })}
+                    <ul className="class-desks" aria-label="Các học sinh trong lớp">
+                      {detail.members.map((member, index) => (
+                        <li
+                          className={`student-desk ${member.user_id === user.user_id ? 'own-desk' : ''}`}
+                          key={member.user_id}
+                          title={member.name}
                         >
-                          {ANIMALS.map(([id, emoji, name]) => (
-                            <option key={id} value={id}>
-                              {emoji} {name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Phụ kiện
-                        <select
-                          value={avatar.accessory}
-                          onChange={(e) => setAvatar({ ...avatar, accessory: e.target.value })}
-                        >
-                          {ACCESSORIES.map(([id, emoji, name]) => (
-                            <option key={id} value={id}>
-                              {emoji} {name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Màu nền
-                        <select
-                          value={avatar.color}
-                          onChange={(e) => setAvatar({ ...avatar, color: e.target.value })}
-                        >
-                          {COLORS.map((id, i) => (
-                            <option key={id} value={id}>
-                              {['Vàng nắng', 'Xanh lá', 'Xanh trời', 'Hồng', 'Tím'][i]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <button
-                        className="primary"
-                        disabled={saving}
-                        onClick={() =>
-                          run(async () => {
-                            await api('avatar_save', { classId, ...avatar });
-                            await refresh();
-                          })
-                        }
-                      >
-                        Lưu nhân vật
-                      </button>
-                    </div>
+                          <span className="seat-number">{String(index + 1).padStart(2, '0')}</span>
+                          <Avatar
+                            value={
+                              member.user_id === user.user_id
+                                ? avatarOverride || member.avatar
+                                : member.avatar
+                            }
+                            name={member.name}
+                          />
+                          <b>{member.name}</b>
+                          {member.user_id === user.user_id && (
+                            <span className="own-seat-label">Bạn</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    {!detail.members.length && (
+                      <p className="empty-desks">Giáo viên đang chuẩn bị chỗ ngồi cho lớp.</p>
+                    )}
                   </section>
-                </Reveal>
-              )}
+                  <ClassAchievements
+                    rows={detail.achievements}
+                    user={user}
+                    avatarOverride={avatarOverride}
+                  />
+                </div>
+              </Reveal>
               {user.role === 'admin' && (
                 <PostComposer key={classId} classId={classId} onPosted={refresh} />
               )}

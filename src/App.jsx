@@ -27,6 +27,8 @@ export default function App() {
   const [user, setUser] = useState(null),
     [catalog, setCatalog] = useState(null),
     [classes, setClasses] = useState([]);
+  const [myAvatar, setMyAvatar] = useState(null);
+  useEffect(() => setMyAvatar(null), [user?.user_id]);
   const [bootstrapReady, setBootstrapReady] = useState(false);
   const [audioOpen, setAudioOpen] = useState(false),
     [accountOpen, setAccountOpen] = useState(false),
@@ -120,12 +122,13 @@ export default function App() {
           onClasses={setClasses}
           onOpen={setAccountOpen}
           onReady={setBootstrapReady}
+          onAvatarChanged={setMyAvatar}
         />
       </nav>
       {screen === 'classroom' ? (
         <Reveal key={user?.user_id || 'guest'}>
           {canClassroom ? (
-            <ClassroomPage user={user} onMembershipChange={setClasses} />
+            <ClassroomPage user={user} onMembershipChange={setClasses} avatarOverride={myAvatar} />
           ) : (
             <main className="classroom-page">
               <section className="panel">
@@ -146,12 +149,7 @@ export default function App() {
         </Reveal>
       ) : screen === 'library' ? (
         <Reveal key="library">
-          <GameLibrary
-            catalog={catalog}
-            user={user}
-            onChoose={navigate}
-            onHome={() => navigate('home')}
-          />
+          <GameLibrary catalog={catalog} onChoose={navigate} onHome={() => navigate('home')} />
         </Reveal>
       ) : screen === 'setup' ? (
         <Reveal key="setup">

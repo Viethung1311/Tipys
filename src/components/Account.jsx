@@ -4,9 +4,17 @@ import { api } from '../game/backend.js';
 import Loading from './Loading.jsx';
 import useDialogViewport from '../hooks/useDialogViewport.js';
 import { UserRound } from 'lucide-react';
+import AvatarPicker from '../features/classroom/AvatarPicker.jsx';
 import ResultsTable from './ResultsTable.jsx';
 import { practiceTime } from '../game/results.js';
-export default function Account({ onUser, onCatalog, onClasses, onOpen, onReady }) {
+export default function Account({
+  onUser,
+  onCatalog,
+  onClasses,
+  onOpen,
+  onReady,
+  onAvatarChanged,
+}) {
   const [open, setOpen] = useState(false),
     [user, setUser] = useState(null),
     [configured, setConfigured] = useState(false),
@@ -159,6 +167,7 @@ export default function Account({ onUser, onCatalog, onClasses, onOpen, onReady 
                 <>
                   <div className="account-tabs">
                     <button onClick={() => setMode('account')}>Tài khoản</button>
+                    <button onClick={() => setMode('avatar')}>Nhân vật</button>
                     <button
                       disabled={busy}
                       onClick={() =>
@@ -195,6 +204,7 @@ export default function Account({ onUser, onCatalog, onClasses, onOpen, onReady 
                       </button>
                     </div>
                   )}
+                  {mode === 'avatar' && <AvatarPicker user={user} onSaved={onAvatarChanged} />}
                   {mode === 'history' && (
                     <>
                       <p className="practice-total">

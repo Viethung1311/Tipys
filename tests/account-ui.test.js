@@ -25,22 +25,6 @@ test('child account signup needs no email and accepts a one-character PIN; histo
   });
   const w = dom.window,
     d = w.document;
-  let reveal,
-    disconnected = false;
-  w.IntersectionObserver = class {
-    constructor(callback) {
-      this.callback = callback;
-    }
-    observe(el) {
-      if (el.classList.contains('leaderboard')) {
-        reveal = this.callback;
-        this.isLeaderboard = true;
-      }
-    }
-    disconnect() {
-      if (this.isLeaderboard) disconnected = true;
-    }
-  };
   w.fetch = async (url, options = {}) => {
     const body = options.body ? JSON.parse(options.body) : null;
     requests.push(body || url);
@@ -56,13 +40,7 @@ test('child account signup needs no email and accepts a one-character PIN; histo
     } else if (body?.action === 'logout') {
       user = null;
       value = { ok: true };
-    } else if (url.includes('leaderboard'))
-      value = {
-        leaderboard: [
-          { rank: 1, user_id: 'child', name: 'Bạn An', score: 500, difficulty: 'easy' },
-        ],
-      };
-    else if (url.includes('history')) value = { history: [] };
+    } else if (url.includes('history')) value = { history: [] };
     else value = { configured: true, user, games: [] };
     return { ok: true, json: async () => value };
   };
@@ -83,13 +61,7 @@ test('child account signup needs no email and accepts a one-character PIN; histo
         [...d.querySelectorAll('.main-nav button')].find((b) => b.textContent === 'Gõ chữ'),
       )
     ).click();
-    await until(() => reveal);
-    assert.equal(d.querySelector('.leaderboard').classList.contains('is-revealed'), false);
-    reveal([{ isIntersecting: false }]);
-    assert.equal(disconnected, false);
-    reveal([{ isIntersecting: true }]);
-    await until(() => d.querySelector('.leaderboard').classList.contains('is-revealed'));
-    assert.equal(disconnected, true);
+    assert.equal(d.querySelector('.leaderboard'), null);
     await click('Đăng nhập');
     await click('Đăng ký');
     assert.equal(d.querySelector('[name="email"]'), null);
@@ -103,8 +75,10 @@ test('child account signup needs no email and accepts a one-character PIN; histo
     await until(() => d.body.textContent.includes('Xin chào, Bạn An!'));
     assert.equal(requests.find((r) => r.action === 'signup').password, '1');
     assert.equal(d.body.textContent.includes('Quản lý game'), false);
-    await until(() => d.querySelector('.ranking-list'));
-    assert.match(d.querySelector('.ranking-list').textContent, /Bạn An.*500/s);
+    assert.equal(
+      requests.some((r) => typeof r === 'string' && r.includes('leaderboard')),
+      false,
+    );
     await click('Lịch sử chơi');
     await until(() => d.body.textContent.includes('Chưa có lượt chơi'));
     await click('Tài khoản');
