@@ -2,6 +2,13 @@
 
 Ngày: 09/11/2026.
 
+## Cập nhật âm thanh
+
+- Build mới thành công; 19/19 kiểm thử đạt (11 bài trước và 8 bài mới cho âm thanh).
+- Kiểm thử Web Audio bằng context giả: không tự phát trước thao tác người dùng; giới hạn âm chồng; chặn spam; mute và âm lượng 0; giai điệu kỷ lục thay hiệu ứng cũ; dừng/hủy nhạc khi tạm nghỉ hoặc rời game.
+- Kiểm thử giao diện React với Web Audio giả: hiệu ứng bật, nhạc nền tắt mặc định; hai bộ điều chỉnh độc lập; lưu lựa chọn; đếm ngược đúng một âm cho mỗi nhịp; mở cài đặt trong game sẽ tạm dừng và dừng nhạc nền.
+- Các kiểm thử giả lập xác nhận lập lịch và điều khiển âm, không đánh giá cảm nhận âm thanh bằng tai hoặc loa điện thoại vật lý.
+
 ## Đã đạt
 
 - Build production bằng Vite thành công.

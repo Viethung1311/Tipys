@@ -39,6 +39,14 @@ Lệnh cuối tạo một file HTML độc lập ở thư mục cha, có thể m
 - Esc/nút tạm dừng; tự dừng khi chuyển tab, mất tiêu điểm hoặc đổi kích thước cửa sổ.
 - Lưu cài đặt, âm thanh và kỷ lục riêng theo độ khó + bộ phím bằng localStorage. Kỷ lục chỉ thuộc trình duyệt này.
 
+## Âm thanh
+
+Mở nút **Âm thanh** ở góc trên để bật/tắt và chỉnh âm lượng độc lập cho **Hiệu ứng** và **Nhạc nền**. Hiệu ứng bật sẵn (55%), nhạc nền tắt sẵn (âm lượng khi bật là 25%). Tùy chọn được lưu trong trình duyệt; lựa chọn tắt âm từ bản cũ được giữ lại.
+
+Hiệu ứng gồm click mềm, tick chọn/bỏ phím, ba tiếng đếm ngược, tiếng bắt đầu, pop khi gõ đúng, tiếng sai nhẹ hơn, mất mạng, tăng tốc, ba nốt kết thúc và giai điệu kỷ lục mới. Nhạc nền là giai điệu tổng hợp không lời, chỉ phát lúc đang chơi. Tạm dừng, mở cài đặt, đổi tab hoặc rời màn chơi sẽ dừng nhạc. Giới hạn tối đa bốn nhóm hiệu ứng đồng thời và chặn âm bấm quá dày; nhiều chữ rơi chạm đáy trong cùng khung hình chỉ phát một âm mất mạng.
+
+Toàn bộ âm được tạo bằng Web Audio, không tải file âm thanh bên ngoài. Trình duyệt cần một thao tác bấm hoặc gõ đầu tiên để cho phép phát âm. Trò chơi vẫn chạy khi trình duyệt không hỗ trợ Web Audio.
+
 ## Triển khai
 
 Đã có vercel.json: framework Vite, build `npm run build && npm test`, output dist. Chỉ hoàn tất deployment khi build và kiểm thử thành công.
@@ -51,6 +59,7 @@ Lệnh cuối tạo một file HTML độc lập ở thư mục cha, có thể m
 - src/hooks/useFallingGame.js: vòng lặp duy nhất và sự kiện bàn phím.
 - src/game/config.js: cấu hình và lưu trình duyệt.
 - src/game/engine.js: luật chơi độc lập, kiểm thử bằng Node.
+- src/game/audio.js và src/hooks/useGameAudio.js: tổng hợp âm, giới hạn âm chồng, nhạc nền và lưu tùy chọn.
 - tests/: kiểm thử logic và tương tác ứng dụng.
 
 Chưa có đăng nhập, đồng bộ dữ liệu hoặc bảng xếp hạng trực tuyến theo đúng phạm vi bản đầu.
