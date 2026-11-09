@@ -240,3 +240,14 @@
     animation: none;
   }
 }
+
+/* Start the entrance only after the initial loading overlay has finished. */
+.welcome-hero:not(.hero-ready) .hero-reveal {
+  animation: none;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-hero:not(.hero-ready) .hero-reveal {
+    opacity: 1;
+  }
+}

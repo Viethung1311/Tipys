@@ -40,9 +40,11 @@ test('animated loader stays visible while bootstrap is pending and disappears on
       assert.equal(d.querySelectorAll('.loading-letters span').length, 1);
       assert.equal(d.querySelectorAll('.loading-key').length, 1);
       assert.equal(d.querySelectorAll('.loading-space').length, 0);
+      assert.equal(d.querySelector('.welcome-hero').classList.contains('hero-ready'), false);
       finish();
       await until(() => !d.querySelector('.loading-fullscreen'));
       assert.ok(d.querySelector('h1'));
+      await until(() => d.querySelector('.welcome-hero').classList.contains('hero-ready'));
     } finally {
       w.close();
     }

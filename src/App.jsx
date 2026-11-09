@@ -27,6 +27,7 @@ export default function App() {
   const [user, setUser] = useState(null),
     [catalog, setCatalog] = useState(null),
     [classes, setClasses] = useState([]);
+  const [bootstrapReady, setBootstrapReady] = useState(false);
   const [audioOpen, setAudioOpen] = useState(false),
     [accountOpen, setAccountOpen] = useState(false),
     [gamePlaying, setGamePlaying] = useState(false);
@@ -118,6 +119,7 @@ export default function App() {
           onCatalog={setCatalog}
           onClasses={setClasses}
           onOpen={setAccountOpen}
+          onReady={setBootstrapReady}
         />
       </nav>
       {screen === 'classroom' ? (
@@ -136,6 +138,7 @@ export default function App() {
       ) : screen === 'home' ? (
         <Reveal key="home">
           <HomePage
+            ready={bootstrapReady}
             onPlay={() => navigate('library')}
             onClassroom={() => navigate('classroom')}
             canClassroom={canClassroom}

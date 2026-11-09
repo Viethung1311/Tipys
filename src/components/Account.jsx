@@ -6,7 +6,7 @@ import useDialogViewport from '../hooks/useDialogViewport.js';
 import { UserRound } from 'lucide-react';
 import ResultsTable from './ResultsTable.jsx';
 import { practiceTime } from '../game/results.js';
-export default function Account({ onUser, onCatalog, onClasses, onOpen }) {
+export default function Account({ onUser, onCatalog, onClasses, onOpen, onReady }) {
   const [open, setOpen] = useState(false),
     [user, setUser] = useState(null),
     [configured, setConfigured] = useState(false),
@@ -27,7 +27,10 @@ export default function Account({ onUser, onCatalog, onClasses, onOpen }) {
   useEffect(() => {
     bootstrap()
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        onReady?.(true);
+      });
   }, []);
   const show = (value) => {
     setOpen(value);

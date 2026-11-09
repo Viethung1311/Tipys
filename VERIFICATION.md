@@ -105,3 +105,9 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - Sửa nguyên nhân animation screen-enter ghi đè transform căn giữa modal ở môi trường bật chuyển động. Bỏ transform định vị, dùng grid wrapper với animation panel riêng.
 - Tách trigger tài khoản khỏi selector sound-button; nav dạng grid, giữ nhãn tài khoản dài bằng ellipsis, ô nhập 16 px và các nút thao tác tối thiểu 44 px.
 - Trang chủ dùng 3 ảnh Scratch của người dùng và fade/stagger tiêu đề → ảnh → nút. Giữ kích thước ảnh, tôn trọng reduced motion, dọn CSS minh họa cũ.
+
+### Đo bố cục production
+
+- Đã đo 18 trường hợp dialog trên trình duyệt thật ở viewport 320×568, 375×667, 390×844, 768×1024, 1024×768, 1440×900 và 844×390. Các hộp nằm trọn vùng nhìn thấy, lệch tâm đo được 0 px, ô đăng nhập/đăng ký đều 16 px; hộp thấp có cuộn nội bộ.
+- Bổ sung gate hero-ready sau khi bootstrap/loading kết thúc; kiểm thử loading xác nhận không chạy sớm và mở lại khi cả API thành công hoặc lỗi. Nút switch âm thanh có vùng bấm 48×44 px, track giữ chiều cao 28 px.
+- Kiểm tra theo kích thước mô phỏng không thay cho thử trên toàn bộ thiết bị/trình duyệt vật lý.

@@ -5,10 +5,10 @@ import scratchCondition from '../assets/scratch-condition.png';
 import scratchMotion from '../assets/scratch-motion.png';
 
 /** Public introduction. Game cards and scores belong exclusively to GameLibrary. */
-export default function HomePage({ onPlay, onClassroom, canClassroom }) {
+export default function HomePage({ onPlay, onClassroom, canClassroom, ready = true }) {
   return (
     <main className="welcome-page">
-      <section className="hero welcome-hero">
+      <section className={`hero welcome-hero ${ready ? 'hero-ready' : ''}`}>
         <div className="hero-copy">
           <span className="eyebrow hero-reveal hero-reveal-title">
             ✦ TIPY STEM CẨM LỆ · HỌC VUI MỖI NGÀY

@@ -95,3 +95,5 @@ Chỉ xóa vĩnh viễn bản ghi/file sau một quy trình dọn có rà soát;
 `useDialogViewport(open)` lắng nghe resize/scroll của `visualViewport` trong lúc hộp mở, cập nhật CSS variables qua requestAnimationFrame và gỡ listener khi đóng. CSS có fallback vh/dvh và safe-area; form 16 px tránh zoom tự động trên điện thoại, panel cuộn nội bộ khi bàn phím hoặc màn hình ngang làm giảm chiều cao.
 
 `home-motion.css` áp dụng fade/stagger một lần cho tiêu đề, ảnh, CTA; tắt khi prefers-reduced-motion. Ba ảnh Scratch do chủ website cung cấp được lưu tên ổn định trong `src/assets`, khai báo kích thước để giữ tỷ lệ và hạn chế nhảy bố cục. Tổng dung lượng khoảng 53 KB. Vite tạo đường dẫn asset có hash; script standalone nhúng ảnh thành data URL để bản HTML vẫn mở offline.
+
+`bootstrapReady` từ callback khởi tạo tài khoản cho phép HomePage bắt đầu stagger sau khi loading đóng. Trang chủ không cần đăng nhập: cả thành công và lỗi bootstrap đều kết thúc loading và mở hiệu ứng. Không chạy animation phía sau overlay rồi để người dùng bỏ lỡ nó.

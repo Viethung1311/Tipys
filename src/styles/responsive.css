@@ -110,9 +110,10 @@
   justify-content: flex-start;
   width: 48px;
   min-width: 48px;
-  height: 28px;
-  min-height: 28px;
+  height: 44px;
+  min-height: 44px;
   padding: 3px;
+  background: transparent;
   flex: 0 0 48px;
   box-sizing: border-box;
 }
@@ -312,4 +313,22 @@
   .dialog-viewport > .modal {
     animation: none;
   }
+}
+
+.dialog-viewport .audio-switch::before {
+  content: '';
+  position: absolute;
+  inset: 8px 0;
+  border-radius: 20px;
+  background: #d2d9c8;
+}
+.dialog-viewport .audio-switch.on {
+  background: transparent;
+}
+.dialog-viewport .audio-switch.on::before {
+  background: #f66b32;
+}
+.dialog-viewport .audio-switch span {
+  position: relative;
+  z-index: 1;
 }
