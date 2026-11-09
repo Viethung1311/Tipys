@@ -77,3 +77,12 @@ Chưa thử trên thiết bị iPhone/Android vật lý hoặc xác nhận âm t
 - UI kiểm tra nav khách không vào lớp, học sinh được thêm nhìn thấy lớp/bàn học/bài/link và đổi nhân vật của riêng mình. Bộ test game, âm thanh và kết quả trước đây vẫn đạt sau refactor.
 - Supabase xác nhận `Success. No rows returned` khi áp dụng `db/classrooms.sql` ngày 09/11/2026; phiên bản cuối không có DROP/DELETE/TRUNCATE.
 - Tách game/setup/home/audio và các service identity/games/classrooms/validation; thêm ARCHITECTURE.md, comment tại ranh giới và lệnh format/format:check.
+
+## Xác minh production sau triển khai portal
+
+- Vercel production commit `5feebe280552282c78c4dc1ac69277ff2be9a88d` đã thành công.
+- Admin tạo lớp thử, đăng bài kèm TXT/link và bài kèm PNG trên web thật. API trả liên kết file riêng, ảnh PNG tải thành công (naturalWidth=77), không có thông báo lỗi ở luồng gửi/mở file.
+- Đã lưu trữ → khôi phục lớp và xác nhận còn 2 bài; sau đó lưu trữ lớp thử lần nữa. Không thêm tài khoản học sinh thật vào lớp thử.
+- Viewport 390 × 844: nav và lớp không tràn ngang (document.scrollWidth=375, innerWidth=390). Ảnh bằng chứng ở thư mục outputs của workspace.
+- Các kiểm thử tự động đã xác nhận sơ đồ lớp, lưu con giáp, ngăn người ngoài lớp, ghi bài nguyên tử và phục hồi membership. Chưa kiểm tra đăng nhập học sinh bằng trình duyệt ở lượt này: tài khoản synthetic cũ đang bị khóa; xét duyệt tự động từ chối mở khóa vì chưa có cho phép riêng cho thay đổi trạng thái. Trạng thái khóa được giữ nguyên.
+- Đã đăng xuất admin, đưa portal về trang chủ và khôi phục viewport mặc định.
