@@ -95,11 +95,8 @@
   font: 800 16px/1.5 var(--tipy-font-family);
 }
 .character-confirm {
-  position: sticky;
-  bottom: 0;
-  padding: 16px 0 8px;
+  padding: 24px 0 32px;
   background: var(--tipy-surface-raised);
-  z-index: 1;
 }
 .account-avatar-editor {
   font-family: var(--tipy-font-family);
@@ -131,4 +128,58 @@
 
 .class-preview > .student-avatar {
   flex: 0 0 auto;
+}
+
+.dialog-viewport > .character-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.character-modal-header {
+  position: relative;
+  flex-shrink: 0;
+  padding-right: 60px;
+  padding-bottom: 16px;
+}
+.character-modal-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 2px solid var(--tipy-learn);
+  border-radius: 16px;
+  background: var(--tipy-surface);
+  color: var(--tipy-learn);
+  cursor: pointer;
+}
+.character-modal-close:hover {
+  background: var(--tipy-surface-raised);
+}
+.character-modal-close:active {
+  transform: translateY(2px);
+}
+.character-modal-close:focus-visible,
+.character-modal-body:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 2px;
+}
+.character-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-padding-block: 12px;
+  padding: 4px 4px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.character-modal-body::-webkit-scrollbar {
+  display: none;
+}
+.character-modal .character-options {
+  padding-bottom: 12px;
 }

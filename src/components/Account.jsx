@@ -6,7 +6,7 @@ import { api } from '../game/backend.js';
 import Loading from './Loading.jsx';
 import useDialogViewport from '../hooks/useDialogViewport.js';
 import TipyButton from './TipyButton.jsx';
-import { UserRound, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { UserRound, LogIn, UserPlus, LogOut, X } from 'lucide-react';
 import AvatarPicker from '../features/classroom/AvatarPicker.jsx';
 import ResultsTable from './ResultsTable.jsx';
 import { practiceTime } from '../game/results.js';
@@ -134,174 +134,198 @@ export default function Account({
           <Dialog.Overlay className="overlay" />
           <div className="dialog-viewport" style={viewportStyle}>
             <Dialog.Content
-              className={`modal account-modal ${mode === 'history' || mode === 'avatar' ? 'wide' : ''}`}
+              className={`modal account-modal ${mode === 'history' || mode === 'avatar' ? 'wide' : ''} ${mode === 'avatar' ? 'character-modal' : ''}`}
               onPointerDownOutside={(e) => e.preventDefault()}
             >
-              <Dialog.Title>
-                {mode === 'avatar'
-                  ? 'Chọn nhân vật'
-                  : user
-                    ? `Xin chào, ${user.full_name}!`
-                    : mode === 'signup'
-                      ? 'Tạo tài khoản nhỏ'
-                      : 'Chào bạn trở lại!'}
-              </Dialog.Title>
-              <Dialog.Description>
-                {mode === 'avatar'
-                  ? 'Chọn người bạn mà bạn thích nhé.'
-                  : user
-                    ? 'Cùng luyện tập và xem mình tiến bộ nhé.'
-                    : 'Dùng tên đăng nhập và mật khẩu của bạn, không cần email.'}
-              </Dialog.Description>
-              {!user && mode !== 'avatar' && (
-                <>
-                  <div className="account-tabs">
+              <div className={mode === 'avatar' ? 'character-modal-header' : undefined}>
+                {mode === 'avatar' && (
+                  <Dialog.Close asChild>
                     <button
-                      onClick={() => setMode('login')}
-                      className={mode === 'login' ? 'active' : ''}
+                      className="character-modal-close"
+                      type="button"
+                      aria-label="Đóng chọn nhân vật"
                     >
-                      Đăng nhập
+                      <X size={24} aria-hidden="true" />
                     </button>
-                    <button
-                      onClick={() => setMode('signup')}
-                      className={mode === 'signup' ? 'active' : ''}
-                    >
-                      Đăng ký
-                    </button>
-                  </div>
-                  <form onSubmit={submit} className="account-form">
-                    {mode === 'signup' && (
+                  </Dialog.Close>
+                )}
+                <Dialog.Title>
+                  {mode === 'avatar'
+                    ? 'Chọn nhân vật'
+                    : user
+                      ? `Xin chào, ${user.full_name}!`
+                      : mode === 'signup'
+                        ? 'Tạo tài khoản nhỏ'
+                        : 'Chào bạn trở lại!'}
+                </Dialog.Title>
+                <Dialog.Description>
+                  {mode === 'avatar'
+                    ? 'Chọn người bạn mà bạn thích nhé.'
+                    : user
+                      ? 'Cùng luyện tập và xem mình tiến bộ nhé.'
+                      : 'Dùng tên đăng nhập và mật khẩu của bạn, không cần email.'}
+                </Dialog.Description>
+              </div>
+              <div
+                className={mode === 'avatar' ? 'character-modal-body' : undefined}
+                role={mode === 'avatar' ? 'region' : undefined}
+                aria-label={mode === 'avatar' ? 'Danh sách nhân vật' : undefined}
+                tabIndex={mode === 'avatar' ? 0 : undefined}
+              >
+                {!user && mode !== 'avatar' && (
+                  <>
+                    <div className="account-tabs">
+                      <button
+                        onClick={() => setMode('login')}
+                        className={mode === 'login' ? 'active' : ''}
+                      >
+                        Đăng nhập
+                      </button>
+                      <button
+                        onClick={() => setMode('signup')}
+                        className={mode === 'signup' ? 'active' : ''}
+                      >
+                        Đăng ký
+                      </button>
+                    </div>
+                    <form onSubmit={submit} className="account-form">
+                      {mode === 'signup' && (
+                        <label>
+                          Tên của bạn
+                          <input name="fullName" autoComplete="name" required maxLength={100} />
+                        </label>
+                      )}
                       <label>
-                        Tên của bạn
-                        <input name="fullName" autoComplete="name" required maxLength={100} />
+                        Tên đăng nhập
+                        <input
+                          name="username"
+                          autoComplete="username"
+                          autoCapitalize="none"
+                          spellCheck="false"
+                          required
+                          maxLength={40}
+                          placeholder="Ví dụ: banan"
+                        />
                       </label>
-                    )}
-                    <label>
-                      Tên đăng nhập
-                      <input
-                        name="username"
-                        autoComplete="username"
-                        autoCapitalize="none"
-                        spellCheck="false"
-                        required
-                        maxLength={40}
-                        placeholder="Ví dụ: banan"
-                      />
-                    </label>
-                    <label>
-                      Mật khẩu
-                      <input
-                        name="password"
-                        type="password"
-                        autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                        required
-                        placeholder="Bạn tự chọn mật khẩu dễ nhớ"
-                      />
-                    </label>
-                    <p className="muted">
-                      Không bắt buộc chữ hoa, ký tự đặc biệt hoặc độ dài tối thiểu.
-                    </p>
-                    <TipyButton
-                      type="submit"
-                      icon={mode === 'signup' ? UserPlus : LogIn}
-                      className="full"
-                      loading={busy}
-                      loadingLabel="Đang xử lý…"
-                      disabled={!configured}
-                    >
-                      {mode === 'signup' ? 'Tạo tài khoản' : 'Vào chơi nào'}
-                    </TipyButton>
-                  </form>
-                  {!configured && (
-                    <p className="account-message">
-                      Phần tài khoản đang được thiết lập. Bạn vẫn có thể chơi thử.
-                    </p>
-                  )}
-                </>
-              )}
-              {user && (
-                <>
-                  <div className="account-tabs">
-                    <button onClick={() => setMode('account')}>Tài khoản</button>
-                    <button onClick={() => setMode('avatar')}>Nhân vật</button>
-                    <button
-                      disabled={busy}
-                      onClick={() =>
-                        run(async () => {
-                          setHistory((await api('history')).history);
-                          setMode('history');
-                        })
-                      }
-                    >
-                      Lịch sử chơi
-                    </button>
-                    {user.role === 'admin' && <a href="/admin">Trang quản trị riêng →</a>}
-                  </div>
-                  {mode === 'account' && (
-                    <div className="account-summary">
-                      <Avatar value={avatar} name={user.full_name} />
-                      <p>
-                        Tên đăng nhập: <b>{user.username}</b>
-                      </p>
-                      <p>
-                        Vai trò: <b>{user.role === 'admin' ? 'Giáo viên quản trị' : 'Học sinh'}</b>
+                      <label>
+                        Mật khẩu
+                        <input
+                          name="password"
+                          type="password"
+                          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                          required
+                          placeholder="Bạn tự chọn mật khẩu dễ nhớ"
+                        />
+                      </label>
+                      <p className="muted">
+                        Không bắt buộc chữ hoa, ký tự đặc biệt hoặc độ dài tối thiểu.
                       </p>
                       <TipyButton
-                        emphasis="secondary"
-                        icon={LogOut}
+                        type="submit"
+                        icon={mode === 'signup' ? UserPlus : LogIn}
                         className="full"
                         loading={busy}
-                        loadingLabel="Đang thoát…"
+                        loadingLabel="Đang xử lý…"
+                        disabled={!configured}
+                      >
+                        {mode === 'signup' ? 'Tạo tài khoản' : 'Vào chơi nào'}
+                      </TipyButton>
+                    </form>
+                    {!configured && (
+                      <p className="account-message">
+                        Phần tài khoản đang được thiết lập. Bạn vẫn có thể chơi thử.
+                      </p>
+                    )}
+                  </>
+                )}
+                {user && (
+                  <>
+                    <div className="account-tabs">
+                      <button onClick={() => setMode('account')}>Tài khoản</button>
+                      <button onClick={() => setMode('avatar')}>Nhân vật</button>
+                      <button
+                        disabled={busy}
                         onClick={() =>
                           run(async () => {
-                            await api('logout', {});
-                            await bootstrap();
-                            setMode('login');
+                            setHistory((await api('history')).history);
+                            setMode('history');
                           })
                         }
                       >
-                        Đăng xuất
-                      </TipyButton>
+                        Lịch sử chơi
+                      </button>
+                      {user.role === 'admin' && <a href="/admin">Trang quản trị riêng →</a>}
                     </div>
-                  )}
-                  {mode === 'history' && (
-                    <>
-                      <p className="practice-total">
-                        Tổng thời gian luyện: <b>{practiceTime(total)}</b>
-                      </p>
-                      <p className="muted">
-                        Chỉ giữ cao nhất và gần nhất cho mỗi game; tổng thời gian vẫn được cộng dồn.
-                      </p>
-                      <ResultsTable rows={history} />
-                    </>
-                  )}
-                </>
-              )}
-              {mode === 'avatar' && (
-                <AvatarPicker
-                  key={user?.user_id || 'guest'}
-                  user={user}
-                  initialValue={avatar}
-                  loading={avatarLoading}
-                  loadError={avatarError}
-                  onRetry={() => setAvatarRetry((value) => value + 1)}
-                  onLogin={() => setMode('login')}
-                  onSaved={(value) => {
-                    if (currentUserId.current !== user?.user_id) return;
-                    setAvatar(normalizeAvatar(value));
-                    onAvatarChanged?.(value);
-                  }}
-                />
-              )}
-              {busy && <Loading label="Đang tải…" />}
-              {error && (
-                <p role="alert" className="account-error">
-                  {error}
-                </p>
-              )}
-              <Dialog.Close asChild>
-                <button className="text-button centered">Đóng</button>
-              </Dialog.Close>
+                    {mode === 'account' && (
+                      <div className="account-summary">
+                        <Avatar value={avatar} name={user.full_name} />
+                        <p>
+                          Tên đăng nhập: <b>{user.username}</b>
+                        </p>
+                        <p>
+                          Vai trò:{' '}
+                          <b>{user.role === 'admin' ? 'Giáo viên quản trị' : 'Học sinh'}</b>
+                        </p>
+                        <TipyButton
+                          emphasis="secondary"
+                          icon={LogOut}
+                          className="full"
+                          loading={busy}
+                          loadingLabel="Đang thoát…"
+                          onClick={() =>
+                            run(async () => {
+                              await api('logout', {});
+                              await bootstrap();
+                              setMode('login');
+                            })
+                          }
+                        >
+                          Đăng xuất
+                        </TipyButton>
+                      </div>
+                    )}
+                    {mode === 'history' && (
+                      <>
+                        <p className="practice-total">
+                          Tổng thời gian luyện: <b>{practiceTime(total)}</b>
+                        </p>
+                        <p className="muted">
+                          Chỉ giữ cao nhất và gần nhất cho mỗi game; tổng thời gian vẫn được cộng
+                          dồn.
+                        </p>
+                        <ResultsTable rows={history} />
+                      </>
+                    )}
+                  </>
+                )}
+                {mode === 'avatar' && (
+                  <AvatarPicker
+                    key={user?.user_id || 'guest'}
+                    user={user}
+                    initialValue={avatar}
+                    loading={avatarLoading}
+                    loadError={avatarError}
+                    onRetry={() => setAvatarRetry((value) => value + 1)}
+                    onLogin={() => setMode('login')}
+                    onSaved={(value) => {
+                      if (currentUserId.current !== user?.user_id) return;
+                      setAvatar(normalizeAvatar(value));
+                      onAvatarChanged?.(value);
+                    }}
+                  />
+                )}
+                {busy && <Loading label="Đang tải…" />}
+                {error && (
+                  <p role="alert" className="account-error">
+                    {error}
+                  </p>
+                )}
+                {mode !== 'avatar' && (
+                  <Dialog.Close asChild>
+                    <button className="text-button centered">Đóng</button>
+                  </Dialog.Close>
+                )}
+              </div>
             </Dialog.Content>
           </div>
         </Dialog.Portal>

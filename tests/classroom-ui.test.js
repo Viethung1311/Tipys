@@ -138,7 +138,7 @@ test('member sees square roster and class top, then changes avatar through accou
     await until(() => d.body.textContent.includes('Đã lưu nhân vật'));
     assert.equal(requests.find((r) => r.action === 'avatar_save').animal, 'icon_29');
     assert.equal(requests.find((r) => r.action === 'avatar_save').classId, undefined);
-    button('Đóng').click();
+    d.querySelector('[aria-label="Đóng chọn nhân vật"]').click();
     await until(() => !d.querySelector('[role=dialog]'));
     assert.ok(
       d

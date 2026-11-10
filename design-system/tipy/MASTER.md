@@ -123,3 +123,5 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 ## Nhân vật dùng chung
 
 Danh mục duy nhất src/characters/catalog.js dùng 36 PNG nguyên bản trong public/characters; không dùng emoji con giáp. Avatar cạnh tài khoản là nút 56 px, tên truy cập “Chọn nhân vật”. Hộp chọn dùng radio, ảnh contain đúng tỉ lệ, nhãn ngắn và dấu “Đang chọn”, TipyButton xác nhận. Khách được xem, đăng nhập trước khi lưu. Dùng chung Avatar cho header, hồ sơ, lớp và game; ảnh danh mục chỉ tải khi mở hộp, dùng lazy.
+
+Modal chọn nhân vật dùng header cố định trong khung với nút X 48 × 48 px; chỉ phần nội dung cuộn, ẩn thanh cuộn nhưng giữ chuột/cảm ứng/bàn phím. X và Esc đóng, bỏ bản chọn chưa lưu. Nút lưu nằm trong luồng sau danh sách, không sticky/che hàng cuối; có đệm cuối 24–32 px.
