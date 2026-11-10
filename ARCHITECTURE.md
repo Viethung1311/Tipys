@@ -38,7 +38,7 @@ erDiagram
 
 - `class_members` có khóa ghép `(class_id,user_id)`; tránh thành viên trùng và cho phép một học sinh tham gia nhiều lớp. Tên lớp không sao chép vào hồ sơ.
 - `classes.archived_at` dùng xóa mềm/khôi phục. Các liên kết, thành viên, bài và file được giữ nguyên. `class_members.is_active` bỏ/khôi phục thành viên.
-- `student_avatars` có một hàng/tài khoản; chỉ chấp nhận 12 con giáp Việt Nam và tập phụ kiện/màu cố định. API chỉ cập nhật tài khoản của phiên đăng nhập.
+- `student_avatars` có một hàng/tài khoản; dùng mã icon_01–icon_36 từ src/characters/catalog.js; giữ cột animal và phụ kiện/màu cũ để không mất dữ liệu. API chỉ cập nhật tài khoản của phiên đăng nhập.
 - Bài viết lưu text thuần, link HTTP(S); React escape nội dung. Tệp lưu trong bucket riêng, metadata ở bảng liên kết; không lưu base64 trong database.
 - RPC `tipy_publish_post` kiểm tra admin, lớp, file đã có trong Storage và ghi bài + liên kết file trong một transaction.
 

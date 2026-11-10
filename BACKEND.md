@@ -110,3 +110,9 @@ Top lớp dùng cùng hàm và chỉ nhận các thành viên đã được ki�
 ## Bản đồ chọn thế giới
 
 WorldMap chỉ hiển thị ô thế giới ở màn đầu; chọn một thế giới mới mount danh sách bài của thế giới đó. Không thêm API hoặc truy vấn khi chuyển thế giới, không thay dữ liệu/điểm/điều kiện mở khóa. Bỏ gợi ý bài hôm nay; luyện lại vẫn xen kẽ các câu từng sai trong engine hiện có. Kiểu chơi chuyển vào phần bài của thế giới.
+
+## Avatar ảnh dùng chung
+
+Chạy db/character_avatars.sql sau classrooms.sql trên database hiện có. Migration chuyển CHECK/default và 12 mã cũ sang icon_01–icon_36, không thêm bảng/cột hay xóa dữ liệu khác. Giữ nguyên RLS và API avatar/avatar_save: chỉ phiên hiện tại được ghi, mã phải thuộc danh mục chung. Giữ cột animal và metadata phụ kiện/màu để tương thích dữ liệu cũ.
+
+CHECK vẫn chấp nhận 12 mã cũ để tab đang mở và deployment cũ còn ghi được trong lúc chuyển đổi/rollback. API mới chỉ cho chọn/lưu 36 mã ảnh; mọi nơi đọc dùng cùng ánh xạ nên không hiện lại emoji.

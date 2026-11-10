@@ -10,6 +10,7 @@ import './styles/home.css';
 import './styles/home-motion.css';
 import './styles/responsive.css';
 import './styles/classroom-design.css';
+import './styles/characters.css';
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Suspense fallback={<Loading fullscreen label="Đang mở trang…" />}>

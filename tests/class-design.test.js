@@ -105,16 +105,16 @@ test('avatar settings work without enrollment and cannot target another user', a
           calls.push(['write', value]);
           return q;
         },
-        single: async () => ({ data: { animal: 'cat', accessory: 'star', color: 'sun' } }),
+        single: async () => ({ data: { animal: 'icon_24', accessory: 'star', color: 'sun' } }),
       };
       return q;
     },
   };
   const service = createClassrooms(db);
-  assert.equal((await service.avatar({ user_id: owned })).animal, 'rat');
+  assert.equal((await service.avatar({ user_id: owned })).animal, 'icon_01');
   await service.avatarSave(
     { user_id: owned },
-    { animal: 'cat', accessory: 'star', color: 'sun', userId: 'forged' },
+    { animal: 'icon_24', accessory: 'star', color: 'sun', userId: 'forged' },
   );
   assert.equal(calls.find((c) => c[0] === 'write')[1].user_id, owned);
   assert.equal(

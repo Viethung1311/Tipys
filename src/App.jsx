@@ -135,7 +135,10 @@ export default function App() {
           onClasses={setClasses}
           onOpen={setAccountOpen}
           onReady={setBootstrapReady}
-          onAvatarChanged={(value) => setMyAvatar({ userId: user?.user_id, value })}
+          onAvatarChanged={(value) => {
+            classroomCache.current.clear();
+            setMyAvatar({ userId: user?.user_id, value });
+          }}
         />
       </nav>
       <Suspense fallback={<Loading label="Đang mở trang…" />}>

@@ -74,7 +74,7 @@ test('member sees square roster and class top, then changes avatar through accou
         previewUrl: 'https://files.test/preview.webp',
       },
       avatar: { avatar: detail.members[0].avatar },
-      avatar_save: { data: { animal: 'dragon', accessory: 'book', color: 'sky' } },
+      avatar_save: { data: { animal: 'icon_29', accessory: 'book', color: 'sky' } },
     };
     return { ok: true, json: async () => values[action] };
   };
@@ -129,18 +129,23 @@ test('member sees square roster and class top, then changes avatar through accou
     button('Tài khoản · Bạn An').click();
     await until(() => button('Nhân vật'));
     button('Nhân vật').click();
-    await until(() => d.querySelectorAll('.zodiac-options input').length === 12);
+    await until(() => d.querySelectorAll('.character-options input').length === 36);
     await until(() => !d.querySelector('.account-avatar-editor fieldset').disabled);
-    d.querySelector('.zodiac-options input[value="dragon"]').click();
+    d.querySelector('.character-options input[value="icon_29"]').click();
     await sleep(20);
     button('Lưu nhân vật').click();
     await until(() => requests.some((r) => r.action === 'avatar_save'));
     await until(() => d.body.textContent.includes('Đã lưu nhân vật'));
-    assert.equal(requests.find((r) => r.action === 'avatar_save').animal, 'dragon');
+    assert.equal(requests.find((r) => r.action === 'avatar_save').animal, 'icon_29');
     assert.equal(requests.find((r) => r.action === 'avatar_save').classId, undefined);
     button('Đóng').click();
     await until(() => !d.querySelector('[role=dialog]'));
-    assert.equal(d.querySelector('.student-desk .student-avatar > span').textContent, '🐲');
+    assert.ok(
+      d
+        .querySelector('.student-desk .student-avatar > img')
+        .src.endsWith('/characters/icon_29.png'),
+    );
+    assert.ok(d.querySelector('.avatar-button img').src.endsWith('/characters/icon_29.png'));
     assert.equal(d.querySelector('.class-composer'), null);
     assert.deepEqual(errors, []);
   } finally {

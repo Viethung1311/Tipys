@@ -119,3 +119,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 - Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount 5 ô thế giới; sau khi chọn mới mount 5–8 bài tương ứng, không render 30 bài ẩn.
 - “Các thế giới” trở về danh sách ô; “Bản đồ” trên thanh điều hướng cũng về danh sách này. Trở lại từ một bài chơi giữ thế giới hiện tại, chuyển bài sang thế giới khác cập nhật đúng thế giới. Focus về tiêu đề khi đổi cấp.
 - Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Điều kiện mở khóa, sao và điểm chung giữ nguyên.
+
+## Nhân vật dùng chung
+
+Danh mục duy nhất src/characters/catalog.js dùng 36 PNG nguyên bản trong public/characters; không dùng emoji con giáp. Avatar cạnh tài khoản là nút 56 px, tên truy cập “Chọn nhân vật”. Hộp chọn dùng radio, ảnh contain đúng tỉ lệ, nhãn ngắn và dấu “Đang chọn”, TipyButton xác nhận. Khách được xem, đăng nhập trước khi lưu. Dùng chung Avatar cho header, hồ sơ, lớp và game; ảnh danh mục chỉ tải khi mở hộp, dùng lazy.

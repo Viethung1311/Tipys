@@ -1,3 +1,4 @@
+import { CHARACTERS, normalizeAvatar } from '../../src/characters/catalog.js';
 /** Classroom service: server-side authorization precedes every read/write/sign. */
 import { randomUUID } from 'node:crypto';
 import { ApiError, requireAdmin, fail } from '../errors.js';
@@ -5,7 +6,6 @@ import { QUEST_CODE, findLesson } from '../../src/features/keyboard-quest/curric
 import { learningSummary } from '../../src/features/keyboard-quest/progress.js';
 import { accountPoints } from '../../src/game/points.js';
 import {
-  ANIMALS,
   ACCESSORIES,
   COLORS,
   FILE_TYPES,
@@ -64,7 +64,7 @@ export function classMembersView(rows) {
     return {
       user_id: row.user_id,
       name: row.profiles.full_name,
-      avatar: row.profiles.student_avatars || { animal: 'rat', accessory: 'none', color: 'sun' },
+      avatar: normalizeAvatar(row.profiles.student_avatars),
       best_score: accountPoints(stats, row.profiles.player_lesson_progress || []),
       total_active_seconds: stats.reduce((sum, s) => sum + Number(s.total_active_seconds || 0), 0),
     };
@@ -319,12 +319,12 @@ export function createClassrooms(db) {
         .eq('user_id', profile.user_id)
         .maybeSingle();
       fail(error);
-      return data || { animal: 'rat', accessory: 'none', color: 'sun' };
+      return normalizeAvatar(data);
     },
     async avatarSave(profile, input) {
       const { animal, accessory, color } = input;
       if (
-        !ANIMALS.some((x) => x[0] === animal) ||
+        !CHARACTERS.some((x) => x.id === animal) ||
         !ACCESSORIES.some((x) => x[0] === accessory) ||
         !COLORS.includes(color)
       )

@@ -1,0 +1,134 @@
+.account-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+  justify-self: end;
+}
+.account-controls .account-button {
+  min-height: 48px;
+  min-width: 0;
+}
+.avatar-button {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  padding: 2px;
+  border: 2px solid var(--tipy-play);
+  border-radius: 18px;
+  background: var(--tipy-surface);
+  cursor: pointer;
+}
+.avatar-button .student-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: transparent;
+}
+.student-avatar > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.avatar-button:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 4px;
+}
+.avatar-button:hover {
+  background: var(--tipy-surface-raised);
+}
+.avatar-button:active {
+  transform: translateY(2px);
+}
+.character-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.character-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  border: 2px solid #ded8cd;
+  border-radius: 18px;
+  background: var(--tipy-surface-raised);
+  cursor: pointer;
+  min-width: 0;
+  color: var(--tipy-text);
+}
+.character-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+}
+.character-option img {
+  width: 100%;
+  max-width: 128px;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+.character-option b {
+  font: 800 18px/1.5 var(--tipy-font-family);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.character-option.is-selected {
+  border-color: var(--tipy-play);
+  background: var(--tipy-surface);
+}
+.character-option:focus-within {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 3px;
+}
+.character-selected {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--tipy-play);
+  font: 800 16px/1.5 var(--tipy-font-family);
+}
+.character-confirm {
+  position: sticky;
+  bottom: 0;
+  padding: 16px 0 8px;
+  background: var(--tipy-surface-raised);
+  z-index: 1;
+}
+.account-avatar-editor {
+  font-family: var(--tipy-font-family);
+}
+.account-avatar-editor legend,
+.avatar-picker-preview p {
+  font-size: 18px;
+  color: var(--tipy-text);
+}
+.account-avatar-editor fieldset:disabled .character-option {
+  cursor: wait;
+}
+@media (max-width: 680px) {
+  .main-nav > .account-controls {
+    grid-column: 1/-1;
+    justify-self: stretch;
+  }
+  .account-controls .account-button {
+    flex: 1;
+    width: auto;
+    max-width: none;
+  }
+}
+@media (max-width: 480px) {
+  .character-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.class-preview > .student-avatar {
+  flex: 0 0 auto;
+}

@@ -372,46 +372,6 @@
   font-weight: 750;
   margin-bottom: 12px;
 }
-.zodiac-options {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-.zodiac-option {
-  position: relative;
-  display: grid;
-  place-items: center;
-  gap: 4px;
-  padding: 10px 5px;
-  border: 1px solid #e3e3d4;
-  border-radius: 12px;
-  background: #fafbf5;
-  min-height: 70px;
-  cursor: pointer;
-}
-.zodiac-option input {
-  position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
-  min-height: 0;
-}
-.zodiac-option > span {
-  font-size: 25px;
-}
-.zodiac-option > b {
-  font-size: 10px;
-  color: #8e957e;
-}
-.zodiac-option.is-selected {
-  background: #fff0cf;
-  border-color: #e2b15c;
-  box-shadow: 0 0 0 1px #e2b15c;
-}
-.zodiac-option:focus-within {
-  outline: 2px solid #257761;
-  outline-offset: 2px;
-}
 .avatar-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -537,9 +497,6 @@
   .class-feed-title {
     font-size: 22px;
   }
-  .zodiac-options {
-    gap: 7px;
-  }
   .avatar-picker-preview {
     gap: 12px;
     padding: 13px;
@@ -554,8 +511,5 @@
   }
   .avatar-controls {
     grid-template-columns: 1fr;
-  }
-  .zodiac-options {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

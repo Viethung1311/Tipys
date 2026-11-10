@@ -1,13 +1,20 @@
-import { ANIMALS, ACCESSORIES } from './constants.js';
-export default function Avatar({ value = {}, name = '' }) {
+import { characterFor } from '../../characters/catalog.js';
+export default function Avatar({ value, name = '', eager = false }) {
+  const character = characterFor(value?.animal);
   return (
     <span
-      className={`student-avatar avatar-${value.color || 'sun'}`}
+      className="student-avatar"
       role="img"
-      aria-label={`Nhân vật của ${name}`}
+      aria-label={name ? 'Nhân vật của ' + name + ': ' + character.name : character.name}
     >
-      <span>{ANIMALS.find((a) => a[0] === value.animal)?.[1] || '🐭'}</span>
-      <small>{ACCESSORIES.find((a) => a[0] === value.accessory)?.[1]}</small>
+      <img
+        src={character.src}
+        alt=""
+        width="256"
+        height="256"
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+      />
     </span>
   );
 }

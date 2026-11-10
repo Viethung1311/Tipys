@@ -156,7 +156,7 @@
   min-height: 44px;
   min-width: 0;
 }
-.main-nav > .account-button {
+.main-nav .account-button {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -238,7 +238,7 @@
     font-size: 12px;
     white-space: nowrap;
   }
-  .main-nav > .account-button {
+  .main-nav .account-button {
     grid-column: 1/-1;
     justify-self: stretch;
     max-width: 100%;

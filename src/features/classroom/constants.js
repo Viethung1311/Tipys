@@ -1,18 +1,4 @@
 /** Safe shared constants for the classroom UI and API validation. No secrets here. */
-export const ANIMALS = [
-  ['rat', '🐭', 'Tý'],
-  ['ox', '🐮', 'Sửu'],
-  ['tiger', '🐯', 'Dần'],
-  ['cat', '🐱', 'Mão'],
-  ['dragon', '🐲', 'Thìn'],
-  ['snake', '🐍', 'Tỵ'],
-  ['horse', '🐴', 'Ngọ'],
-  ['goat', '🐐', 'Mùi'],
-  ['monkey', '🐵', 'Thân'],
-  ['rooster', '🐔', 'Dậu'],
-  ['dog', '🐶', 'Tuất'],
-  ['pig', '🐷', 'Hợi'],
-];
 export const ACCESSORIES = [
   ['none', '', 'Không'],
   ['star', '⭐', 'Ngôi sao'],

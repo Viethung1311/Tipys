@@ -1,3 +1,4 @@
+import Avatar from '../features/classroom/Avatar.jsx';
 import { ArrowRight, Keyboard, Puzzle, Users, MapPin, Sparkles, Check } from 'lucide-react';
 import Reveal from '../shared/Reveal.jsx';
 import TipyButton from '../components/TipyButton.jsx';
@@ -133,10 +134,9 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
             </p>
           </div>
           <div className="class-preview" aria-hidden="true">
-            <span>🐯</span>
-            <span>🐱</span>
-            <span>🐲</span>
-            <span>🐵</span>
+            {['icon_10', 'icon_24', 'icon_29', 'icon_06'].map((animal) => (
+              <Avatar key={animal} value={{ animal }} />
+            ))}
           </div>
           <TipyButton
             variant="learn"

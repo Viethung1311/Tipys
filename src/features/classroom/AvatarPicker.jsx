@@ -1,45 +1,41 @@
-import { Save } from 'lucide-react';
-import TipyButton from '../../components/TipyButton.jsx';
+import { Check, LogIn, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import TipyButton from '../../components/TipyButton.jsx';
 import { api } from '../../game/backend.js';
 import Avatar from './Avatar.jsx';
-import { ANIMALS, ACCESSORIES, COLORS } from './constants.js';
-
-/** Account-level preferences: owned by the current user, independent of enrollment. */
-export default function AvatarPicker({ user, onSaved }) {
-  const [value, setValue] = useState({ animal: 'rat', accessory: 'none', color: 'sun' }),
-    [loading, setLoading] = useState(true),
-    [saving, setSaving] = useState(false),
+import { CHARACTERS, normalizeAvatar } from '../../characters/catalog.js';
+export default function AvatarPicker({
+  user,
+  initialValue,
+  loading,
+  loadError,
+  onRetry,
+  onSaved,
+  onLogin,
+}) {
+  const [value, setValue] = useState(() => normalizeAvatar(initialValue));
+  const [saving, setSaving] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
   useEffect(() => {
-    let live = true;
-    api('avatar')
-      .then((data) => {
-        if (live) setValue(data.avatar);
-      })
-      .catch((e) => {
-        if (live) setError(e.message);
-      })
-      .finally(() => {
-        if (live) setLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [user.user_id]);
-  const submit = async (e) => {
-    e.preventDefault();
+    setValue(normalizeAvatar(initialValue));
+  }, [initialValue]);
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!user) {
+      onLogin();
+      return;
+    }
     setSaving(true);
     setError('');
     setNotice('');
     try {
       const { data } = await api('avatar_save', value);
-      setValue(data);
-      onSaved?.(data);
+      setValue(normalizeAvatar(data));
+      onSaved(data);
       setNotice('Đã lưu nhân vật của bạn.');
-    } catch (e) {
-      setError(e.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setSaving(false);
     }
@@ -47,73 +43,72 @@ export default function AvatarPicker({ user, onSaved }) {
   return (
     <section className="account-avatar-editor" aria-label="Chọn nhân vật của mình">
       <div className="avatar-picker-preview">
-        <Avatar value={value} name={user.full_name} />
+        <Avatar value={value} name={user?.full_name || 'bạn'} />
         <div>
-          <h3>Nhân vật của mình</h3>
-          <p>Chọn một người bạn đồng hành cho ô của mình trong lớp.</p>
+          <h3>Người bạn đồng hành</h3>
+          <p>Dùng chung trong lớp và các trò chơi.</p>
         </div>
       </div>
+      {loading && <p role="status">Đang tải nhân vật…</p>}
+      {loadError && (
+        <p role="alert">
+          {loadError}{' '}
+          <TipyButton emphasis="secondary" icon={RotateCcw} onClick={onRetry}>
+            Thử lại
+          </TipyButton>
+        </p>
+      )}
       <form onSubmit={submit}>
-        <fieldset disabled={loading || saving}>
-          <legend>12 con giáp</legend>
-          <div className="zodiac-options">
-            {ANIMALS.map(([id, emoji, name]) => (
+        <fieldset disabled={loading || saving || !!loadError}>
+          <legend>Chọn một nhân vật</legend>
+          <div className="character-options">
+            {CHARACTERS.map((character) => (
               <label
-                className={`zodiac-option ${value.animal === id ? 'is-selected' : ''}`}
-                key={id}
+                key={character.id}
+                className={
+                  'character-option ' + (value.animal === character.id ? 'is-selected' : '')
+                }
               >
                 <input
                   type="radio"
                   name="animal"
-                  value={id}
-                  checked={value.animal === id}
-                  onChange={() => setValue({ ...value, animal: id })}
+                  value={character.id}
+                  checked={value.animal === character.id}
+                  onChange={() => {
+                    setValue({ ...value, animal: character.id });
+                    setNotice('');
+                  }}
                 />
-                <span aria-hidden="true">{emoji}</span>
-                <b>{name}</b>
+                <img
+                  src={character.src}
+                  alt=""
+                  width="256"
+                  height="256"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <b>{character.name}</b>
+                {value.animal === character.id && (
+                  <span className="character-selected">
+                    <Check size={16} aria-hidden="true" /> Đang chọn
+                  </span>
+                )}
               </label>
             ))}
           </div>
-          <div className="avatar-controls">
-            <label>
-              Phụ kiện
-              <select
-                value={value.accessory}
-                onChange={(e) => setValue({ ...value, accessory: e.target.value })}
-              >
-                {ACCESSORIES.map(([id, emoji, name]) => (
-                  <option key={id} value={id}>
-                    {emoji} {name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Màu nền
-              <select
-                value={value.color}
-                onChange={(e) => setValue({ ...value, color: e.target.value })}
-              >
-                {COLORS.map((id, i) => (
-                  <option key={id} value={id}>
-                    {['Vàng nắng', 'Xanh lá', 'Xanh trời', 'Hồng', 'Tím'][i]}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="character-confirm">
+            <TipyButton
+              className="full"
+              type="submit"
+              icon={user ? Check : LogIn}
+              loading={saving}
+              loadingLabel="Đang lưu…"
+            >
+              {user ? 'Lưu nhân vật' : 'Đăng nhập để lưu'}
+            </TipyButton>
           </div>
-          <TipyButton
-            icon={Save}
-            className="full"
-            type="submit"
-            loading={saving}
-            loadingLabel="Đang lưu…"
-          >
-            Lưu nhân vật
-          </TipyButton>
         </fieldset>
       </form>
-      {loading && <p role="status">Đang tải nhân vật…</p>}
       {error && (
         <p role="alert" className="account-error">
           {error}

@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import Avatar from '../features/classroom/Avatar.jsx';
+import { normalizeAvatar } from '../characters/catalog.js';
+import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { api } from '../game/backend.js';
 import Loading from './Loading.jsx';
@@ -25,6 +27,32 @@ export default function Account({
     [busy, setBusy] = useState(false),
     [history, setHistory] = useState([]),
     [loading, setLoading] = useState(true);
+  const [avatar, setAvatar] = useState(null),
+    [avatarLoading, setAvatarLoading] = useState(false),
+    [avatarError, setAvatarError] = useState(''),
+    [avatarRetry, setAvatarRetry] = useState(0);
+  useEffect(() => {
+    let live = true;
+    setAvatar(null);
+    setAvatarError('');
+    setAvatarLoading(!!user);
+    if (user)
+      api('avatar')
+        .then((data) => {
+          if (live) setAvatar(normalizeAvatar(data.avatar));
+        })
+        .catch((error) => {
+          if (live) setAvatarError(error.message);
+        })
+        .finally(() => {
+          if (live) setAvatarLoading(false);
+        });
+    return () => {
+      live = false;
+    };
+  }, [user?.user_id, avatarRetry]);
+  const currentUserId = useRef(user?.user_id);
+  currentUserId.current = user?.user_id;
   const viewportStyle = useDialogViewport(open);
   const bootstrap = async () => {
     const data = await api('bootstrap');
@@ -73,41 +101,59 @@ export default function Account({
   return (
     <>
       {loading && <Loading fullscreen label="Đang mở vườn phím…" />}
-      <button
-        className="account-button"
-        title={user ? `Tài khoản · ${user.full_name}` : 'Tài khoản · Đăng nhập'}
-        onClick={() => {
-          setMode(user ? 'account' : 'login');
-          show(true);
-        }}
-      >
-        <UserRound size={17} aria-hidden="true" />
-        <span className="account-label">
-          {user ? `Tài khoản · ${user.full_name}` : 'Tài khoản · Đăng nhập'}
-        </span>
-      </button>
+      <div className="account-controls">
+        <button
+          className="account-button"
+          title={user ? `Tài khoản · ${user.full_name}` : 'Tài khoản · Đăng nhập'}
+          onClick={() => {
+            setMode(user ? 'account' : 'login');
+            show(true);
+          }}
+        >
+          <UserRound size={17} aria-hidden="true" />
+          <span className="account-label">
+            {user ? `Tài khoản · ${user.full_name}` : 'Tài khoản · Đăng nhập'}
+          </span>
+        </button>
+        <button
+          className="avatar-button"
+          type="button"
+          aria-label="Chọn nhân vật"
+          aria-haspopup="dialog"
+          onClick={() => {
+            setMode('avatar');
+            show(true);
+          }}
+        >
+          <Avatar value={avatar} name={user?.full_name || 'bạn'} eager />
+        </button>
+      </div>
       <AccountPoints key={user?.user_id || 'guest'} user={user} />
       <Dialog.Root open={open} onOpenChange={show}>
         <Dialog.Portal>
           <Dialog.Overlay className="overlay" />
           <div className="dialog-viewport" style={viewportStyle}>
             <Dialog.Content
-              className={`modal account-modal ${mode === 'history' ? 'wide' : ''}`}
+              className={`modal account-modal ${mode === 'history' || mode === 'avatar' ? 'wide' : ''}`}
               onPointerDownOutside={(e) => e.preventDefault()}
             >
               <Dialog.Title>
-                {user
-                  ? `Xin chào, ${user.full_name}!`
-                  : mode === 'signup'
-                    ? 'Tạo tài khoản nhỏ'
-                    : 'Chào bạn trở lại!'}
+                {mode === 'avatar'
+                  ? 'Chọn nhân vật'
+                  : user
+                    ? `Xin chào, ${user.full_name}!`
+                    : mode === 'signup'
+                      ? 'Tạo tài khoản nhỏ'
+                      : 'Chào bạn trở lại!'}
               </Dialog.Title>
               <Dialog.Description>
-                {user
-                  ? 'Cùng luyện tập và xem mình tiến bộ nhé.'
-                  : 'Dùng tên đăng nhập và mật khẩu của bạn, không cần email.'}
+                {mode === 'avatar'
+                  ? 'Chọn người bạn mà bạn thích nhé.'
+                  : user
+                    ? 'Cùng luyện tập và xem mình tiến bộ nhé.'
+                    : 'Dùng tên đăng nhập và mật khẩu của bạn, không cần email.'}
               </Dialog.Description>
-              {!user && (
+              {!user && mode !== 'avatar' && (
                 <>
                   <div className="account-tabs">
                     <button
@@ -193,6 +239,7 @@ export default function Account({
                   </div>
                   {mode === 'account' && (
                     <div className="account-summary">
+                      <Avatar value={avatar} name={user.full_name} />
                       <p>
                         Tên đăng nhập: <b>{user.username}</b>
                       </p>
@@ -217,7 +264,6 @@ export default function Account({
                       </TipyButton>
                     </div>
                   )}
-                  {mode === 'avatar' && <AvatarPicker user={user} onSaved={onAvatarChanged} />}
                   {mode === 'history' && (
                     <>
                       <p className="practice-total">
@@ -230,6 +276,22 @@ export default function Account({
                     </>
                   )}
                 </>
+              )}
+              {mode === 'avatar' && (
+                <AvatarPicker
+                  key={user?.user_id || 'guest'}
+                  user={user}
+                  initialValue={avatar}
+                  loading={avatarLoading}
+                  loadError={avatarError}
+                  onRetry={() => setAvatarRetry((value) => value + 1)}
+                  onLogin={() => setMode('login')}
+                  onSaved={(value) => {
+                    if (currentUserId.current !== user?.user_id) return;
+                    setAvatar(normalizeAvatar(value));
+                    onAvatarChanged?.(value);
+                  }}
+                />
               )}
               {busy && <Loading label="Đang tải…" />}
               {error && (
