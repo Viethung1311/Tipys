@@ -201,7 +201,7 @@ export default function LessonPlayer({
     if (typeof destination === 'function') destination();
     else onBack();
   };
-  // External map/menu navigation uses the same queued quit as the in-lesson Back button.
+  // External map navigation uses the same queued quit as the in-lesson Back button.
   useImperativeHandle(navigationRef, () => leave);
   useEffect(() => {
     onNavigationLockChange?.(

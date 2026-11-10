@@ -109,7 +109,7 @@ Top lớp dùng cùng hàm và chỉ nhận các thành viên đã được ki�
 
 ## Bản đồ chọn thế giới
 
-WorldMap hiển thị ảnh đảo với năm vùng bấm thật; tọa độ phần trăm và ảnh nằm trong `features/keyboard-quest/adventure.js`. Chi tiết màn mở Modal chung, sau đó mới mount danh sách bài. AdventureScene chỉ tải nền/nhân vật của màn đang xem, không đổi avatar tài khoản. MapGuide chỉ tải sprite khi vào vùng cuộn. Menu chọn màn dùng cùng dữ liệu bài và `isUnlocked`, không thêm API hoặc thay dữ liệu/điểm/điều kiện mở khóa. LessonPlayer cung cấp điều hướng qua ref để chờ hàng đợi quit hiện có; header/menu khóa khi bắt đầu hoặc đang lưu kết quả. Không đổi engine, IME, session hay schema Supabase.
+WorldMap hiển thị ảnh đảo với năm vùng bấm thật; tọa độ phần trăm và ảnh nằm trong `features/keyboard-quest/adventure.js`. Chi tiết màn mở Modal chung, sau đó mới mount danh sách bài. AdventureScene chỉ tải nền/nhân vật của màn đang xem, không đổi avatar tài khoản. MapGuide chỉ tải sprite khi vào vùng cuộn. Danh sách màn dùng cùng dữ liệu bài và `isUnlocked`, không thêm API hoặc thay dữ liệu/điểm/điều kiện mở khóa. LessonPlayer cung cấp điều hướng qua ref để chờ hàng đợi quit hiện có; header khóa khi bắt đầu hoặc đang lưu kết quả. Không đổi engine, IME, session hay schema Supabase.
 
 ## Avatar ảnh dùng chung
 

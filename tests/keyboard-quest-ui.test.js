@@ -141,14 +141,15 @@ test('external navigation waits for final save and signed-in reload reads the sa
       await sleep(12);
     }
     await until(() => calls.some((call) => call.action === 'quest_finish'));
-    await until(() => d.querySelector('.adventure-world-switch').disabled);
-    assert.ok(d.querySelector('.adventure-world-switch').disabled);
+    await until(() =>
+      [...d.querySelectorAll('.adventure-breadcrumbs button')].every((button) => button.disabled),
+    );
     assert.ok(
       [...d.querySelectorAll('.adventure-breadcrumbs button')].every((button) => button.disabled),
     );
     release();
     await until(() => d.body.textContent.includes('Đã lưu vào tài khoản TIPY'));
-    await until(() => !d.querySelector('.adventure-world-switch').disabled);
+    await until(() => !d.querySelector('.adventure-breadcrumbs button').disabled);
     await click('Bản đồ đảo');
     assert.match(d.querySelector('[data-world-id="1"]').getAttribute('aria-label'), /1\/5/);
   } finally {
@@ -211,7 +212,7 @@ const seedLesson = (lesson) => ({
   last_accuracy: 100,
 });
 
-test('map details close without navigation; locked worlds stay locked and menu opens only allowed lessons', async () => {
+test('map details close without navigation; locked worlds stay locked without the removed world menu', async () => {
   const { dom, w, d, click, calls } = await setup();
   try {
     d.querySelector('[data-world-id="5"]').click();
@@ -222,22 +223,14 @@ test('map details close without navigation; locked worlds stay locked and menu o
     d.querySelector('[aria-label="Đóng"]').click();
     await until(() => !d.querySelector('[role="dialog"]'));
     assert.equal(d.querySelectorAll('.quest-lesson').length, 0);
-    d.querySelector('[aria-label="Chọn màn"]').click();
-    await until(() => d.querySelector('.adventure-menu-worlds'));
-    assert.equal(d.querySelectorAll('.adventure-menu-worlds details').length, 5);
-    assert.ok(d.querySelector('.adventure-menu-worlds details:nth-child(5) button').disabled);
-    const lesson = d.querySelector('.adventure-menu-lesson:not(:disabled)');
-    lesson.click();
+    assert.equal(d.querySelector('.adventure-world-switch'), null);
+    assert.equal(d.querySelector('.adventure-menu-worlds'), null);
+    d.querySelector('[data-world-id="1"]').click();
+    await click('Bắt đầu');
+    assert.equal(d.querySelector('.adventure-world-lessons h2'), null);
+    await click('Vào học');
     await until(() => d.querySelector('.quest-target'));
-    d.querySelector('.adventure-world-switch').click();
-    await until(() => d.querySelector('.adventure-menu-worlds'));
-    assert.ok(d.querySelector('.adventure-menu-lesson[aria-current="step"]'));
-    w.dispatchEvent(new w.KeyboardEvent('keydown', { code: 'KeyA' }));
-    await sleep(25);
-    assert.equal(d.querySelector('.quest-target').textContent, LESSONS[0].items[0].target);
-    d.querySelector('[aria-label="Đóng"]').click();
-    await click('Tiếp tục');
-    d.querySelector('.adventure-breadcrumbs button:nth-child(2)').click();
+    await click('Bản đồ đảo');
     await until(() => d.querySelector('.adventure-map'));
     assert.equal(d.querySelector('.quest-target'), null);
     assert.ok(!calls.some((call) => call.action === 'avatar_save'));

@@ -121,24 +121,6 @@ try {
     await fit();
     await page.getByRole('button', { name: 'Vào học', exact: true }).click();
     await page.locator('.quest-target').waitFor();
-    await page.locator('.adventure-world-switch').click();
-    dialog = page.getByRole('dialog');
-    await dialog.locator('.adventure-menu-worlds').waitFor();
-    assert.equal(await dialog.locator('details').count(), 5);
-    assert.equal(await dialog.locator('.adventure-menu-lesson[aria-current="step"]').count(), 1);
-    await dialog.locator('details').last().locator('summary').click();
-    assert.ok(
-      await dialog.locator('details').last().locator('.adventure-menu-lesson').first().isDisabled(),
-    );
-    const bounds = await dialog.boundingBox();
-    assert.ok(
-      bounds.x >= 0 &&
-        bounds.y >= 0 &&
-        bounds.x + bounds.width <= width + 1 &&
-        bounds.y + bounds.height <= 901,
-    );
-    await dialog.getByRole('button', { name: 'Đóng', exact: true }).click();
-    await page.getByRole('button', { name: 'Tiếp tục', exact: true }).click();
     for (const item of LESSONS[0].items) {
       await page.getByRole('button', { name: `Gõ ${item.target}`, exact: true }).click();
     }
@@ -165,13 +147,18 @@ try {
         LESSONS.map((lesson) => ({ lesson_id: lesson.id, completed: true, best_stars: 3 })),
       );
       await page.reload();
-      await page.locator('.adventure-world-switch:not(:disabled)').click();
-      const detail = page
-        .getByRole('dialog')
-        .locator('details')
-        .nth(world.id - 1);
-      await detail.locator('summary').click();
-      await detail.getByRole('button', { name: 'Xem các bài', exact: true }).click();
+      await page.locator('.adventure-map-image').evaluate((image) => image.decode());
+      await page.locator('.adventure-map-loading').waitFor({ state: 'hidden' });
+      await page.locator('[data-world-id="' + world.id + '"]').click();
+      await page.getByRole('dialog').getByRole('button', { name: 'Bắt đầu', exact: true }).click();
+      assert.equal(await page.locator('.adventure-world-switch').count(), 0);
+      assert.equal(await page.locator('.adventure-world-lessons h2').count(), 0);
+      assert.equal(
+        await page
+          .locator('.adventure-world-lessons')
+          .evaluate((element) => getComputedStyle(element).backgroundColor),
+        'rgba(0, 0, 0, 0)',
+      );
       await page.locator('.adventure-guide img').evaluate((image) => image.decode());
       assert.equal(await page.locator('.adventure-guide img').getAttribute('src'), world.guide.src);
       assert.ok(
@@ -194,7 +181,7 @@ try {
         width,
         markerAlignment: 5,
         worlds: 5,
-        menu: true,
+        menuRemoved: true,
         locked: true,
         completionAndReload: true,
         errors,

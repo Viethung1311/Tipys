@@ -19,7 +19,6 @@ import WorldMap from './WorldMap.jsx';
 import { learningSummary, practiceLesson } from './progress.js';
 import AdventureHeader from './AdventureHeader.jsx';
 import AdventureScene from './AdventureScene.jsx';
-import WorldMenu from './WorldMenu.jsx';
 import { adventureWorld } from './adventure.js';
 import './adventure.css';
 
@@ -42,8 +41,7 @@ export default function KeyboardQuest({
     [mode, setMode] = useState('learn'),
     [worldId, setWorldId] = useState(null),
     [avatar, setAvatar] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false),
-    [navigating, setNavigating] = useState(false),
+  const [navigating, setNavigating] = useState(false),
     [navigationLocked, setNavigationLocked] = useState(false);
   const navigationRef = useRef(null);
   const available =
@@ -144,7 +142,6 @@ export default function KeyboardQuest({
     setRun(null);
     setWorldId(null);
     setView('map');
-    setMenuOpen(false);
   };
   const header = (
     <AdventureHeader
@@ -152,38 +149,12 @@ export default function KeyboardQuest({
       lesson={run?.lesson}
       completed={learningSummary(progress).completed}
       busy={navigating || navigationLocked || loading || !available}
-      menuOpen={menuOpen}
-      onMenu={() => setMenuOpen(true)}
       onBack={() => navigate(onBack)}
       onMap={() => navigate(map)}
       onList={() =>
         navigate(() => {
           setRun(null);
           setView('map');
-        })
-      }
-    />
-  );
-  const menu = menuOpen && (
-    <WorldMenu
-      progress={progress}
-      worldId={run?.lesson.world || worldId}
-      lessonId={run?.lesson.id}
-      busy={navigating || navigationLocked}
-      onClose={() => setMenuOpen(false)}
-      onWorld={(id) =>
-        navigate(() => {
-          setRun(null);
-          setWorldId(id);
-          setView('map');
-          setMenuOpen(false);
-        })
-      }
-      onLesson={(id) =>
-        navigate(() => {
-          open(id);
-          setView('map');
-          setMenuOpen(false);
         })
       }
     />
@@ -198,7 +169,7 @@ export default function KeyboardQuest({
             lesson={run.lesson}
             user={user}
             sound={sound}
-            blocked={blocked || menuOpen || navigating}
+            blocked={blocked || navigating}
             navigationRef={navigationRef}
             onNavigationLockChange={setNavigationLocked}
             onPlayingChange={onPlayingChange}
@@ -213,7 +184,6 @@ export default function KeyboardQuest({
             )}
           />
         </AdventureScene>
-        {menu}
       </main>
     );
   return (
@@ -287,7 +257,6 @@ export default function KeyboardQuest({
           )}
         </>
       )}
-      {menu}
     </main>
   );
 }

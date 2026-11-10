@@ -60,13 +60,12 @@ export default function WorldMap({ worldId, onChooseWorld, progress, onOpen, mod
     const status = worldProgress(world.id, progress);
     return (
       <AdventureScene world={world}>
-        <section className="adventure-world-lessons" aria-labelledby="quest-map-heading">
-          <h2 id="quest-map-heading" tabIndex={-1} ref={heading}>
-            Màn {world.id} · {world.title}
-          </h2>
-          <p>
-            {world.description} · {status.completed}/{status.total} bài hoàn thành
-          </p>
+        <section
+          className="adventure-world-lessons"
+          aria-label={`Bài học màn ${world.id}`}
+          tabIndex={-1}
+          ref={heading}
+        >
           <div className="quest-world-controls">
             <label>
               Kiểu chơi
@@ -115,9 +114,7 @@ export default function WorldMap({ worldId, onChooseWorld, progress, onOpen, mod
       <h2 className="sr-only" id="quest-map-heading" tabIndex={-1} ref={heading}>
         Bản đồ phiêu lưu năm màn
       </h2>
-      <p className="adventure-map-help">
-        Bấm nhân vật để khám phá. Vuốt ngang để xem hết đảo, hoặc dùng Chọn màn.
-      </p>
+      <p className="adventure-map-help">Bấm nhân vật để khám phá. Vuốt ngang để xem hết đảo.</p>
       <div
         className="adventure-map-viewport"
         ref={viewport}

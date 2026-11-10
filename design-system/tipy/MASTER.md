@@ -112,20 +112,20 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 - Chỉ một điểm chung của tài khoản trên toàn website, hiển thị bằng AccountPoints cạnh tài khoản và ở trang quản trị. Điểm = tổng điểm cao nhất mỗi game (không cộng snapshot accuracy của keyboard_quest) + 10 × sao tốt nhất mỗi bài học. Top lớp dùng cùng công thức, vẫn giới hạn trong lớp được phép xem.
 - Điểm lấy từ server, tự cập nhật sau khi lưu lượt/bài và khi quay lại tab; không dùng số client gửi lên hoặc cộng lặp theo lần chơi. Chưa có store, số dư tiêu dùng hay ví riêng.
 - Không có nút Đặt lại hoặc đường API xóa tiến độ cho học sinh. Các hàm SQL bảo trì chỉ service_role được gọi vẫn giữ để tương thích, không có thao tác xóa dữ liệu trong lần sửa này.
-- Bản đồ ảnh giữ đúng tỉ lệ 1672/941, dùng tọa độ phần trăm trong `adventure.js`. Trên điện thoại, vùng bản đồ cuộn ngang riêng với chiều rộng tối thiểu 960 px; trang không tràn ngang. Nút bảng gỗ mở menu để chọn đủ năm màn mà không cần vuốt. Danh sách bài chỉ hiện sau khi chọn màn; điện thoại dùng một cột.
+- Bản đồ ảnh giữ đúng tỉ lệ 1672/941, dùng tọa độ phần trăm trong `adventure.js`. Trên điện thoại, vùng bản đồ cuộn ngang riêng với chiều rộng tối thiểu 960 px; trang không tràn ngang. Chọn màn bằng nhân vật/điểm bấm trên đảo; không dùng nút bảng gỗ hoặc menu chọn màn. Danh sách bài chỉ hiện sau khi chọn màn; điện thoại dùng một cột.
 
 ### Bản đồ hai cấp
 
-- Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount ảnh đảo và 5 vùng bấm; sau khi chọn mới mount 5–8 bài tương ứng. Menu chỉ mount khi mở, dùng disclosure để xem bài từng màn.
+- Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount ảnh đảo và 5 vùng bấm; sau khi chọn mới mount 5–8 bài tương ứng. Thẻ bài hiện trực tiếp trên nền cảnh, giữ nền riêng từng thẻ; không có khung trắng lớn hoặc tiêu đề/mô tả màn phía trên. Kiểu chơi là điều khiển nhỏ có nền đọc rõ, đặt ngoài thẻ.
 - “Bản đồ đảo” và “Bản đồ” trên thanh điều hướng về đảo; “Danh sách bài” trở về màn đang học. Trở lại từ một bài chơi giữ thế giới hiện tại, chuyển bài sang thế giới khác cập nhật đúng thế giới. Focus về tiêu đề khi đổi cấp.
 - Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Điều kiện mở khóa, sao và điểm chung giữ nguyên.
 
 ### Minh họa phiêu lưu
 
 - `adventure.js` là danh mục chung: tọa độ trên đảo, nền và nhân vật hướng dẫn của năm màn. Nhân vật hướng dẫn độc lập với avatar tài khoản. Sprite dùng `object-fit: contain`, không cắt hoặc kéo méo; không thêm nhãn đè chữ có sẵn trên đảo.
-- Bảng gỗ là nền của nút thật, nhãn “Chọn màn”/“Màn N”. Menu và chi tiết dùng Modal chung có X 48 px, Esc, focus về nút mở và vùng nội dung cuộn riêng. Không cho điều hướng rời bài khi đang bắt đầu hoặc lưu kết quả; chuyển bài chờ hàng đợi ghi lượt hiện có.
+- Chi tiết màn dùng Modal chung có X 48 px, Esc và focus về nút mở. Không có bảng gỗ/menu. Giữ nút về bản đồ và danh sách bài; không rời bài khi đang bắt đầu hoặc lưu kết quả, chuyển màn chờ hàng đợi ghi lượt hiện có.
 - Chỉ nền của màn đang xem được mount. Nhân vật bản đồ tải khi đi vào vùng cuộn; PNG được nén lossless, giữ kích thước, alpha và dữ liệu điểm ảnh. `prepare-quest-art.mjs` kiểm tra điểm ảnh không đổi; không đưa ảnh ngoài bộ dùng vào public.
-- Kiểm tra riêng bằng `node scripts/check-adventure.mjs`: vùng bấm, khóa/mở, menu/X/Esc, làm bài, tiến độ sau reload và cả năm nền tại 320/768/1440 px. Kịch bản dùng API giả lập, không ghi Supabase thật.
+- Kiểm tra riêng bằng `node scripts/check-adventure.mjs`: vùng bấm, khóa/mở, chi tiết/X/Esc, làm bài, tiến độ sau reload và cả năm nền tại 320/768/1440 px. Kịch bản dùng API giả lập, không ghi Supabase thật.
 
 ## Nhân vật dùng chung
 
