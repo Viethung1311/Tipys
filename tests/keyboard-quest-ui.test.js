@@ -12,7 +12,7 @@ async function until(check) {
   }
   throw Error('Quest UI timed out');
 }
-async function setup(user = null, progress = [], options = {}) {
+async function setup(user = null, progress = [], fixtureOptions = {}) {
   const dom = new JSDOM('<div id="root"></div>', {
     url: 'https://tipy.test/#typing/quest',
     runScripts: 'outside-only',
@@ -43,7 +43,7 @@ async function setup(user = null, progress = [], options = {}) {
     if (action === 'quest_progress') data = { progress };
     if (action === 'start') data = { data: { play_id: '11111111-1111-4111-8111-111111111111' } };
     if (action === 'quest_finish') {
-      await options.finish?.();
+      await fixtureOptions.finish?.();
       data = { data: { progress: { lesson_id: 'keys-as', completed: true, best_stars: 3 } } };
     }
     return { ok: true, json: async () => data };
