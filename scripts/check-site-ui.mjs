@@ -292,6 +292,13 @@ try {
         return [s.color, s.backgroundColor];
       });
     assert.ok(contrast(...secondary) >= 4.5, 'secondary hover text contrast');
+    assert.equal(
+      await page
+        .getByRole('button', { name: 'Làm mới lớp học', exact: true })
+        .evaluate((e) => getComputedStyle(e).filter),
+      'none',
+      'secondary hover preserves its token colors',
+    );
     await page.locator('.account-button').click();
     await page.locator('.account-summary').waitFor();
     assert.equal(await page.getByRole('button', { name: 'Lịch sử chơi', exact: true }).count(), 0);
