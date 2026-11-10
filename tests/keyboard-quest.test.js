@@ -96,9 +96,7 @@ test('quest API requires an existing session; locked lessons and reset cannot ta
     { stageNumber: 16, lessonId: 'telex-demo', userId: 'someone-else' },
   );
   assert.equal(calls[0].args.p_user, 'session-owner');
-  await assert.rejects(createKeyboardQuest(db).questReset(profile, {}));
-  await createKeyboardQuest(db).questReset(profile, { confirm: true, userId: 'someone-else' });
-  assert.equal(calls[1].args.p_user, 'session-owner');
+  assert.equal(createKeyboardQuest(db).questReset, undefined);
 });
 test('quest grading preserves Unicode, case and spacing; unlocks use completed lessons', () => {
   assert.ok(matchesTarget('a\u0301', 'á'));

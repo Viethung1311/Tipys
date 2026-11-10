@@ -102,7 +102,14 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 ### Mở rộng hành trình
 
-- Các góc Bản đồ, Tiến bộ, Từ vựng, Kho báu chỉ mount góc đang xem. Nút dùng TipyButton; bảng Telex dùng disclosure native, summary cao tối thiểu 48 px.
-- Huy hiệu/sticker luôn có chữ “Đã nhận”, “Đã mở” hoặc điều kiện sao; không chỉ đổi màu. Đeo sticker dùng nhân vật tài khoản hiện có. Xu là số đã kiếm từ sao tốt nhất, không có cửa hàng hoặc thanh toán.
-- Xe chỉ di chuyển khi hoàn thành một lượt đúng, không chạy hiệu ứng liên tục; kho báu hiển thị số lượt đúng. Không gây áp lực thời gian. Hồ sơ hiển thị 5 bài gần đây và chứng nhận khi đủ 30 màn.
+- Các góc Bản đồ, Tiến bộ, Từ vựng chỉ mount góc đang xem. Nút dùng TipyButton; bảng Telex dùng disclosure native, summary cao tối thiểu 48 px.
+- Huy hiệu học tập luôn có chữ “Đã nhận” hoặc điều kiện; không chỉ đổi màu. Kho báu, sticker và chế độ săn kho báu đã bỏ; chưa triển khai store. Sao chỉ theo dõi tiến độ, không hiển thị thêm một loại tiền riêng.
+- Xe chỉ di chuyển khi hoàn thành một lượt đúng, không chạy hiệu ứng liên tục. Không gây áp lực thời gian. Hồ sơ hiển thị 5 bài gần đây và chứng nhận khi đủ 30 màn.
 - Báo cáo giáo viên là bảng riêng, có vùng cuộn bàn phím trên máy hẹp, loading/lỗi/thử lại rõ. Báo cáo không xuất hiện với học sinh; quyền còn được kiểm tra ở backend.
+
+### Điểm chung và bản đồ căn giữa
+
+- Chỉ một điểm chung của tài khoản trên toàn website, hiển thị bằng AccountPoints cạnh tài khoản và ở trang quản trị. Điểm = tổng điểm cao nhất mỗi game (không cộng snapshot accuracy của keyboard_quest) + 10 × sao tốt nhất mỗi bài học. Top lớp dùng cùng công thức, vẫn giới hạn trong lớp được phép xem.
+- Điểm lấy từ server, tự cập nhật sau khi lưu lượt/bài và khi quay lại tab; không dùng số client gửi lên hoặc cộng lặp theo lần chơi. Chưa có store, số dư tiêu dùng hay ví riêng.
+- Không có nút Đặt lại hoặc đường API xóa tiến độ cho học sinh. Các hàm SQL bảo trì chỉ service_role được gọi vẫn giữ để tương thích, không có thao tác xóa dữ liệu trong lần sửa này.
+- Các thế giới trên bản đồ rộng tối đa 960 px, căn giữa. Tiêu đề thế giới, tên bài và nút hành động xếp dọc, căn giữa; thẻ bài rộng tối đa 760 px. Điện thoại giữ một cột, vùng bấm đủ lớn.

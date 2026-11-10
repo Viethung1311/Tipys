@@ -8,6 +8,7 @@ import { UserRound, LogIn, UserPlus, LogOut } from 'lucide-react';
 import AvatarPicker from '../features/classroom/AvatarPicker.jsx';
 import ResultsTable from './ResultsTable.jsx';
 import { practiceTime } from '../game/results.js';
+import AccountPoints from './AccountPoints.jsx';
 export default function Account({
   onUser,
   onCatalog,
@@ -85,6 +86,7 @@ export default function Account({
           {user ? `Tài khoản · ${user.full_name}` : 'Tài khoản · Đăng nhập'}
         </span>
       </button>
+      <AccountPoints key={user?.user_id || 'guest'} user={user} />
       <Dialog.Root open={open} onOpenChange={show}>
         <Dialog.Portal>
           <Dialog.Overlay className="overlay" />

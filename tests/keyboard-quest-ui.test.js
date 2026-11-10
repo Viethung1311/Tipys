@@ -212,7 +212,7 @@ test('missing-letter lesson accepts corrections without replacing the prompt by 
     dom.window.close();
   }
 });
-test('vocabulary opens after all 30 lessons; earned stickers use the existing avatar flow', async () => {
+test('vocabulary opens after all 30 lessons without treasure, store or reset controls', async () => {
   const { dom, w, d, click, calls } = await setup(null, LESSONS.map(seedLesson));
   try {
     await click('Từ vựng');
@@ -220,10 +220,8 @@ test('vocabulary opens after all 30 lessons; earned stickers use the existing av
     assert.ok([...d.querySelectorAll('.quest-lesson button')].every((button) => !button.disabled));
     await click('Tiến bộ');
     assert.match(d.body.textContent, /Chứng nhận chinh phục bàn phím/);
-    assert.match(d.body.textContent, /900/);
-    await click('Kho báu');
-    await click('Đeo');
-    await until(() => d.body.textContent.includes('Đã đổi nhân vật trong lần chơi thử này'));
+    assert.doesNotMatch(d.body.textContent, /xu đã kiếm|Kho báu|Đặt lại|Bộ sưu tập sticker/);
+
     assert.ok(!calls.some((call) => call.action === 'avatar_save'));
   } finally {
     dom.window.close();

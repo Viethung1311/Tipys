@@ -7,11 +7,9 @@ import {
   Map,
   ChartNoAxesCombined,
   BookOpen,
-  Gift,
   CalendarDays,
 } from 'lucide-react';
 import TipyButton from '../../components/TipyButton.jsx';
-import Modal from '../../components/Modal.jsx';
 import Loading from '../../components/Loading.jsx';
 import { api } from '../../game/backend.js';
 import {
@@ -39,14 +37,11 @@ export default function KeyboardQuest({
   onPlayingChange,
   onBack,
   avatarOverride,
-  onAvatarChanged,
 }) {
   const [progress, setProgress] = useState([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
     [run, setRun] = useState(null),
-    [reset, setReset] = useState(false),
-    [resetting, setResetting] = useState(false),
     [revision, setRevision] = useState(0),
     [view, setView] = useState('map'),
     [mode, setMode] = useState('learn'),
@@ -134,20 +129,6 @@ export default function KeyboardQuest({
     if (typeof id === 'string') open(id);
     else setRun(null);
   };
-  const resetProgress = async () => {
-    setResetting(true);
-    setError('');
-    try {
-      if (user) await api('quest_reset', { confirm: true });
-      else localStorage.removeItem(guestKey);
-      setProgress([]);
-      setReset(false);
-    } catch (failure) {
-      setError(failure.message);
-    } finally {
-      setResetting(false);
-    }
-  };
   if (run)
     return (
       <div className="quest-page">
@@ -210,7 +191,6 @@ export default function KeyboardQuest({
               ['map', 'Bản đồ', Map],
               ['profile', 'Tiến bộ', ChartNoAxesCombined],
               ['library', 'Từ vựng', BookOpen],
-              ['collection', 'Kho báu', Gift],
             ].map(([id, label, Icon]) => (
               <TipyButton
                 key={id}
@@ -231,7 +211,6 @@ export default function KeyboardQuest({
                 <select value={mode} onChange={(event) => setMode(event.target.value)}>
                   <option value="learn">Cùng học</option>
                   <option value="race">Đua xe một mình</option>
-                  <option value="treasure">Săn kho báu</option>
                 </select>
               </label>
               <div className="quest-actions">
@@ -270,17 +249,8 @@ export default function KeyboardQuest({
               <p>Bài ôn ưu tiên nội dung bạn từng nhầm. Không cần chơi liên tục mỗi ngày.</p>
             </section>
           )}
-          {(view === 'profile' || view === 'collection') && (
-            <LearningProfile
-              progress={progress}
-              avatar={avatarOverride || avatar}
-              user={user}
-              onAvatarChanged={(value) => {
-                setAvatar(value);
-                onAvatarChanged?.(value);
-              }}
-              collection={view === 'collection'}
-            />
+          {view === 'profile' && (
+            <LearningProfile progress={progress} avatar={avatarOverride || avatar} user={user} />
           )}
           {view === 'map' && (
             <div className="quest-worlds">
@@ -347,31 +317,7 @@ export default function KeyboardQuest({
               </div>
             </section>
           )}
-          <TipyButton
-            emphasis="secondary"
-            icon={RotateCcw}
-            disabled={!progress.length}
-            onClick={() => setReset(true)}
-          >
-            Đặt lại
-          </TipyButton>
         </>
-      )}
-      {reset && (
-        <Modal
-          title="Đặt lại hành trình?"
-          description="Chỉ xóa tiến độ bài học này. Tổng thời gian luyện và kết quả Chữ rơi được giữ nguyên."
-        >
-          {error && <p role="alert">{error}</p>}
-          <div className="quest-actions">
-            <TipyButton loading={resetting} onClick={resetProgress}>
-              Đặt lại
-            </TipyButton>
-            <TipyButton emphasis="secondary" disabled={resetting} onClick={() => setReset(false)}>
-              Quay lại
-            </TipyButton>
-          </div>
-        </Modal>
       )}
     </div>
   );

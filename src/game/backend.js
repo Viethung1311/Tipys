@@ -29,6 +29,12 @@ async function request(action, body, params) {
     throw Error('Phần tài khoản đang được thiết lập. Bạn vẫn có thể chơi thử.');
   }
   if (!response.ok) throw Error(data.error || 'Chưa xử lý được yêu cầu.');
+  if (
+    typeof window !== 'undefined' &&
+    (action === 'quest_finish' ||
+      (action === 'progress' && body.result && body.result !== 'in_progress'))
+  )
+    window.dispatchEvent(new window.Event('tipy-points-changed'));
   return data;
 }
 // The queue prevents a late heartbeat from overwriting the final result.

@@ -362,11 +362,6 @@ export default function LessonPlayer({
           <p>Mỗi lượt đúng, xe tiến thêm một chặng. Không đếm ngược.</p>
         </div>
       )}
-      {mode === 'treasure' && (
-        <p className="quest-treasure" role="status">
-          🎒 Kho báu: {index}/{lesson.items.length} ngôi sao · Gõ đúng để thu thập.
-        </p>
-      )}
       <div className="quest-challenge">
         <span className="quest-mascot" aria-hidden="true">
           {target.image}

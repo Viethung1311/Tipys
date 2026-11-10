@@ -84,6 +84,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         });
       }
       const { profile, access } = await current();
+      if (req.method === 'GET' && action === 'points')
+        return res.status(200).json(await backend.points(profile));
       if (req.method === 'GET' && action === 'quest_class_report')
         return res
           .status(200)
@@ -132,7 +134,6 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         class_post: 'classPost',
         post_archive: 'postArchive',
         quest_finish: 'questFinish',
-        quest_reset: 'questReset',
         start: 'start',
         progress: 'progress',
         save_game: 'saveGame',

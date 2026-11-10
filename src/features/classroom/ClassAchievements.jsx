@@ -6,7 +6,7 @@ export default function ClassAchievements({ rows = [], user, avatarOverride }) {
     <aside className="panel class-achievements" aria-labelledby="class-top-heading">
       <span className="eyebrow">MỖI NGÀY MỘT TIẾN BỘ</span>
       <h2 id="class-top-heading">🏆 Top thành tích</h2>
-      <p>Điểm Chữ rơi cao nhất của các bạn trong lớp.</p>
+      <p>Điểm chung của các bạn trong lớp.</p>
       {rows.length ? (
         <ol className="class-top-list">
           {rows.map((row) => (

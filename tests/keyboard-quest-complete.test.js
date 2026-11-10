@@ -82,12 +82,12 @@ test('review interleaves weak exercises without losing IDs or accepting another 
   assert.equal(recommendedLessons(rows).review.id, lesson.id);
   assert.equal(recommendedLessons(rows).next.id, 'keys-asdf');
 });
-test('replays preserve earned coins, badges require actual progress and recent list stays bounded', () => {
+test('replays preserve best stars, badges require actual progress and recent list stays bounded', () => {
   let rows = [];
   for (const lesson of LESSONS)
     rows = updatedProgress(rows, lesson, gradeLesson(lesson, completedAnswers(lesson)), 5);
   let summary = learningSummary(rows);
-  assert.equal(summary.coins, 900);
+  assert.equal(summary.stars, 90);
   assert.equal(summary.completed, 30);
   assert.equal(summary.seconds, 150);
   assert.equal(summary.recent.length, 5);
@@ -99,7 +99,7 @@ test('replays preserve earned coins, badges require actual progress and recent l
     5,
   );
   summary = learningSummary(rows);
-  assert.equal(summary.coins, 900);
+  assert.equal(summary.stars, 90);
   assert.equal(summary.seconds, 155);
   assert.equal(rows.length, 30);
   assert.ok(!learningSummary([]).badges.some((badge) => badge.earned));

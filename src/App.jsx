@@ -33,6 +33,11 @@ export default function App() {
     [classes, setClasses] = useState([]);
   const classroomCache = useRef(new Map());
   useEffect(() => classroomCache.current.clear(), [user?.user_id]);
+  useEffect(() => {
+    const clear = () => classroomCache.current.clear();
+    window.addEventListener('tipy-points-changed', clear);
+    return () => window.removeEventListener('tipy-points-changed', clear);
+  }, []);
   const [myAvatar, setMyAvatar] = useState(null);
   useEffect(() => setMyAvatar(null), [user?.user_id]);
   const [bootstrapReady, setBootstrapReady] = useState(false);
@@ -174,7 +179,6 @@ export default function App() {
             blocked={audioOpen || accountOpen}
             onPlayingChange={setGamePlaying}
             avatarOverride={myAvatar && myAvatar.userId === user?.user_id ? myAvatar.value : null}
-            onAvatarChanged={(value) => setMyAvatar({ userId: user?.user_id, value })}
             onBack={() => navigate('library')}
           />
         ) : screen === 'setup' ? (

@@ -3,10 +3,26 @@ import { questStart } from './keyboard-quest.js';
 import { QUEST_CODE } from '../../src/features/keyboard-quest/curriculum.js';
 import { SUPPORTED_KEYS } from '../../src/game/config.js';
 import { resultRows } from '../../src/game/results.js';
+import { accountPoints } from '../../src/game/points.js';
 import { ApiError, requireAdmin, fail } from '../errors.js';
 import { validateLevels, validateProgress } from './game-validation.js';
 export function createGames(db) {
   return {
+    async points(profile) {
+      const [stats, lessons] = await Promise.all([
+        db
+          .from('player_game_stats')
+          .select('best_play,games(game_code)')
+          .eq('user_id', profile.user_id),
+        db
+          .from('player_lesson_progress')
+          .select('lesson_id,best_stars,games(game_code)')
+          .eq('user_id', profile.user_id),
+      ]);
+      fail(stats.error);
+      fail(lessons.error);
+      return { points: accountPoints(stats.data, lessons.data) };
+    },
     async games(admin = false) {
       const query = db.from('games').select('*').order('created_at');
       const { data, error } = await (admin ? query : query.eq('is_active', true));

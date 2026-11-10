@@ -139,15 +139,5 @@ export function createKeyboardQuest(db) {
         throw new ApiError(409, 'Bài đang mở ở nơi khác. Bạn mở lại bài nhé.');
       return { progress: saved.data };
     },
-    async questReset(profile, input) {
-      if (input.confirm !== true) throw new ApiError(400, 'Bạn cần xác nhận đặt lại tiến độ.');
-      const game = await gameFor();
-      const result = await db.rpc('tipy_reset_quest_progress', {
-        p_user: profile.user_id,
-        p_game: game.game_id,
-      });
-      fail(result.error);
-      return { progress: [] };
-    },
   };
 }

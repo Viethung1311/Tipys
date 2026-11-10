@@ -5,6 +5,7 @@ import { practiceTime } from '../game/results.js';
 import Loading from '../components/Loading.jsx';
 import AdminClasses from '../features/classroom/AdminClasses.jsx';
 import ResultsTable from '../components/ResultsTable.jsx';
+import AccountPoints from '../components/AccountPoints.jsx';
 const fields = [
   ['fall', 'Thời gian rơi ban đầu (giây)', 1, 30, 0.1],
   ['minFall', 'Thời gian rơi nhanh nhất (giây)', 1, 30, 0.1],
@@ -126,6 +127,7 @@ export default function AdminPage() {
           TIPY <span className="brand-stem">STEM</span>
         </a>
         <span>TRANG QUẢN TRỊ</span>
+        <AccountPoints key={user?.user_id || 'guest'} user={user} />
         <a href="/">← Về trò chơi</a>
       </header>
       <main className="admin-main">

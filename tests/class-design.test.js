@@ -12,7 +12,11 @@ test('class top uses the supplied class members, highest typing score and cumula
           total_active_seconds: seconds,
           games: { game_code: 'falling_letters' },
         },
-        { best_play: { score: 99999 }, total_active_seconds: 3, games: { game_code: 'other' } },
+        {
+          best_play: { score: 99999 },
+          total_active_seconds: 3,
+          games: { game_code: 'keyboard_quest' },
+        },
       ],
     },
   });

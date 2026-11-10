@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ApiError, requireAdmin, fail } from '../errors.js';
 import { QUEST_CODE, findLesson } from '../../src/features/keyboard-quest/curriculum.js';
 import { learningSummary } from '../../src/features/keyboard-quest/progress.js';
+import { accountPoints } from '../../src/game/points.js';
 import {
   ANIMALS,
   ACCESSORIES,
@@ -64,12 +65,7 @@ export function classMembersView(rows) {
       user_id: row.user_id,
       name: row.profiles.full_name,
       avatar: row.profiles.student_avatars || { animal: 'rat', accessory: 'none', color: 'sun' },
-      best_score: Math.max(
-        0,
-        ...stats
-          .filter((s) => s.games?.game_code === 'falling_letters')
-          .map((s) => Number(s.best_score ?? s.best_play?.score ?? 0)),
-      ),
+      best_score: accountPoints(stats, row.profiles.player_lesson_progress || []),
       total_active_seconds: stats.reduce((sum, s) => sum + Number(s.total_active_seconds || 0), 0),
     };
   });
@@ -297,7 +293,7 @@ export function createClassrooms(db) {
         db
           .from('class_members')
           .select(
-            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color),player_game_stats(total_active_seconds,best_score:best_play->score,games(game_code)))',
+            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color),player_game_stats(total_active_seconds,best_score:best_play->score,games(game_code)),player_lesson_progress(lesson_id,best_stars,games(game_code)))',
           )
           .eq('class_id', input.classId)
           .eq('is_active', true)
