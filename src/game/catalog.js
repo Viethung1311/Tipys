@@ -3,7 +3,7 @@ export const GAME_ENGINES = {
   keyboard_quest: {
     screen: 'quest',
     icon: '🗺️',
-    features: ['5 bài làm quen', 'Gõ từ và câu', 'Telex tiếng Việt'],
+    features: ['30 bài học', '9 chủ đề từ vựng', 'Telex tiếng Việt'],
   },
   falling_letters: {
     screen: 'setup',

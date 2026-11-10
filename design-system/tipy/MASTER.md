@@ -95,7 +95,14 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 ## Module Bé chinh phục bàn phím
 
-- Bản đồ dùng thẻ nền kem/trắng, font Nunito 19 px, tiêu đề 28–36 px và TipyButton chung. Bài khóa có chữ “Chưa mở” cùng icon khóa; bài trải nghiệm mở sẵn có nhãn rõ. Hai thế giới chưa triển khai ghi “Sắp ra mắt”.
+- Bản đồ dùng thẻ nền kem/trắng, font Nunito 19 px, tiêu đề 28–36 px và TipyButton chung. Bài khóa có chữ “Chưa mở” cùng icon khóa; bài trải nghiệm mở sẵn có nhãn rõ. Cả 5 thế giới có nội dung; thư viện mở sau đủ 30 màn.
 - Không dùng luật mất mạng hay thua sau sáu lần sai của Chữ rơi. Khuyến khích thử lại, hiển thị độ chính xác, thời gian và sao; không so sánh công khai học sinh.
 - Bàn phím cảm ứng dùng lại Keyboard, có viền chỉ phím đích. Phím trong module tối thiểu 48 × 48 px; vùng bàn phím cuộn riêng ở máy hẹp, không kéo tràn trang. Văn bản nhập bằng textarea thật, hỗ trợ bộ gõ hệ điều hành và composition.
 - Không thêm animation lặp. Dùng loading chung và thông báo lỗi có nút thử lại; không giả báo lưu thành công khi backend lỗi.
+
+### Mở rộng hành trình
+
+- Các góc Bản đồ, Tiến bộ, Từ vựng, Kho báu chỉ mount góc đang xem. Nút dùng TipyButton; bảng Telex dùng disclosure native, summary cao tối thiểu 48 px.
+- Huy hiệu/sticker luôn có chữ “Đã nhận”, “Đã mở” hoặc điều kiện sao; không chỉ đổi màu. Đeo sticker dùng nhân vật tài khoản hiện có. Xu là số đã kiếm từ sao tốt nhất, không có cửa hàng hoặc thanh toán.
+- Xe chỉ di chuyển khi hoàn thành một lượt đúng, không chạy hiệu ứng liên tục; kho báu hiển thị số lượt đúng. Không gây áp lực thời gian. Hồ sơ hiển thị 5 bài gần đây và chứng nhận khi đủ 30 màn.
+- Báo cáo giáo viên là bảng riêng, có vùng cuộn bàn phím trên máy hẹp, loading/lỗi/thử lại rõ. Báo cáo không xuất hiện với học sinh; quyền còn được kiểm tra ở backend.

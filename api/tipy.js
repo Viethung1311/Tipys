@@ -84,6 +84,10 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         });
       }
       const { profile, access } = await current();
+      if (req.method === 'GET' && action === 'quest_class_report')
+        return res
+          .status(200)
+          .json(await backend.questClassReport(profile, { classId: req.query?.classId }));
       if (req.method === 'GET' && action === 'quest_progress')
         return res.status(200).json(await backend.questProgress(profile));
       if (req.method === 'GET' && action === 'classes')

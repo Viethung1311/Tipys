@@ -173,6 +173,8 @@ export default function App() {
             sound={play}
             blocked={audioOpen || accountOpen}
             onPlayingChange={setGamePlaying}
+            avatarOverride={myAvatar && myAvatar.userId === user?.user_id ? myAvatar.value : null}
+            onAvatarChanged={(value) => setMyAvatar({ userId: user?.user_id, value })}
             onBack={() => navigate('library')}
           />
         ) : screen === 'setup' ? (

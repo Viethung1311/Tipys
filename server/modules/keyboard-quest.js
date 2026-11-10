@@ -8,7 +8,7 @@ import {
 } from '../../src/features/keyboard-quest/curriculum.js';
 import { gradeLesson, matchesTarget } from '../../src/features/keyboard-quest/engine.js';
 const fields =
-  'lesson_id,completed,best_stars,best_accuracy,last_accuracy,weak_keys,weak_rules,last_play_id,last_played_at';
+  'lesson_id,completed,best_stars,best_accuracy,last_accuracy,attempts,correct_count,wrong_count,total_active_seconds,weak_keys,weak_rules,last_play_id,last_played_at';
 export async function questRows(db, userId, gameId) {
   const result = await db
     .from('player_lesson_progress')
@@ -45,22 +45,27 @@ export function validateQuestFinish(play, input) {
   const rows = input.answers;
   if (!Array.isArray(rows) || rows.length !== lesson.items.length)
     throw new ApiError(400, 'Bài luyện chưa hoàn tất.');
+  const ids = new Set();
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
+    const item = lesson.items.find((item) => item.id === row?.itemId);
+    const kind = item?.kind || lesson.kind;
     if (
       !row ||
-      row.itemId !== lesson.items[i].id ||
+      !item ||
+      ids.has(row.itemId) ||
       typeof row.answer !== 'string' ||
-      !matchesTarget(row.answer, lesson.items[i].target) ||
+      !matchesTarget(row.answer, item.target) ||
       !['errors', 'position', 'telex', 'editing'].every(
         (key) => Number.isInteger(row[key]) && row[key] >= 0 && row[key] <= 10000,
       ) ||
       row.errors !== row.position + row.telex + row.editing ||
-      (lesson.kind === 'key' && row.errors !== row.position) ||
-      (lesson.kind === 'text' && row.position !== 0) ||
+      (kind === 'key' && row.errors !== row.position) ||
+      (kind === 'text' && row.position !== 0) ||
       (!lesson.telex && row.telex !== 0)
     )
       throw new ApiError(400, 'Kết quả bài luyện chưa hợp lệ.');
+    ids.add(row.itemId);
   }
   return { lesson, grade: gradeLesson(lesson, rows) };
 }

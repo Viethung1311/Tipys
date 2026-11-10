@@ -12,7 +12,7 @@ async function until(check) {
   }
   throw Error('Quest UI timed out');
 }
-async function setup(user = null) {
+async function setup(user = null, progress = []) {
   const dom = new JSDOM('<div id="root"></div>', {
     url: 'https://tipy.test/#typing/quest',
     runScripts: 'outside-only',
@@ -20,6 +20,7 @@ async function setup(user = null) {
   });
   const w = dom.window,
     calls = [];
+  w.localStorage.setItem('tipy-quest-guest-v1', JSON.stringify(progress));
   w.fetch = async (url, options) => {
     const body = options?.body ? JSON.parse(options.body) : null,
       action = body?.action || new URL(url, 'https://tipy.test').searchParams.get('action');
@@ -62,10 +63,10 @@ async function setup(user = null) {
 test('guest quest completes with physical/touch keys, pauses, unlocks next lesson and keeps one local summary', async () => {
   const { dom, w, d, calls, click } = await setup();
   try {
-    assert.equal(d.querySelectorAll('.quest-lesson').length, 8);
+    assert.equal(d.querySelectorAll('.quest-lesson').length, 30);
     assert.equal(
       [...d.querySelectorAll('.quest-lesson button')].filter((el) => el.disabled).length,
-      4,
+      26,
     );
     await click('Vào học');
     await until(() => d.querySelector('.quest-target'));
@@ -79,6 +80,7 @@ test('guest quest completes with physical/touch keys, pauses, unlocks next lesso
       await sleep(12);
     }
     await until(() => d.body.textContent.includes('Đã lưu bản chơi thử'));
+    assert.doesNotMatch(d.body.textContent, /Lần trước:/);
     assert.equal(JSON.parse(w.localStorage.getItem('tipy-quest-guest-v1')).length, 1);
     assert.ok(!calls.some((row) => ['start', 'quest_finish'].includes(row.action)));
     await click('Bài tiếp');
@@ -103,7 +105,7 @@ test('signed-in quest reads own progress and saves through existing authenticate
     await until(() => d.body.textContent.includes('Đã lưu vào tài khoản TIPY'));
     assert.equal(calls.filter((row) => row.action === 'quest_finish').length, 1);
     assert.equal(calls.find((row) => row.action === 'start').body.lessonId, 'keys-as');
-    assert.equal(w.localStorage.getItem('tipy-quest-guest-v1'), null);
+    assert.equal(w.localStorage.getItem('tipy-quest-guest-v1'), '[]');
     assert.equal(calls.find((row) => row.action === 'quest_finish').body.answers.length, 10);
   } finally {
     dom.window.close();
@@ -136,6 +138,93 @@ test('text exercises wait for composition and accept normalized Vietnamese witho
       new w.KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }),
     );
     await until(() => d.querySelector('.quest-target').textContent === 'à');
+  } finally {
+    dom.window.close();
+  }
+});
+
+const seedLesson = (lesson) => ({
+  lesson_id: lesson.id,
+  completed: true,
+  best_stars: 3,
+  best_accuracy: 100,
+  last_accuracy: 100,
+});
+test('mixed lessons switch from physical keys to editable text and race mode follows progress', async () => {
+  const { dom, w, d } = await setup(null, LESSONS.slice(0, 5).map(seedLesson));
+  try {
+    const select = d.querySelector('.quest-recommend select');
+    select.value = 'race';
+    select.dispatchEvent(new w.Event('change', { bubbles: true }));
+    await sleep(20);
+    const lesson = LESSONS.find((item) => item.stage === 6);
+    [...d.querySelectorAll('.quest-lesson')]
+      .find((el) => el.textContent.includes(lesson.title))
+      .querySelector('button')
+      .click();
+    await until(() => d.querySelector('.quest-race'));
+    for (const item of lesson.items) {
+      if (item.kind === 'key') d.querySelector('[aria-label="Gõ ' + item.target + '"]').click();
+      else {
+        const input = d.querySelector('textarea');
+        assert.ok(input);
+        Object.getOwnPropertyDescriptor(w.HTMLTextAreaElement.prototype, 'value').set.call(
+          input,
+          item.target,
+        );
+        input.dispatchEvent(new w.Event('input', { bubbles: true }));
+        input.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      }
+      await sleep(15);
+    }
+    await until(() => d.body.textContent.includes('Đã lưu bản chơi thử'));
+    assert.equal(
+      JSON.parse(w.localStorage.getItem('tipy-quest-guest-v1')).find(
+        (row) => row.lesson_id === lesson.id,
+      ).completed,
+      true,
+    );
+  } finally {
+    dom.window.close();
+  }
+});
+test('missing-letter lesson accepts corrections without replacing the prompt by its answer', async () => {
+  const lesson = LESSONS.find((item) => item.stage === 13);
+  const { dom, w, d } = await setup(null, [
+    seedLesson(LESSONS.find((item) => item.id === 'picture-words')),
+  ]);
+  try {
+    [...d.querySelectorAll('.quest-lesson')]
+      .find((el) => el.textContent.includes(lesson.title))
+      .querySelector('button')
+      .click();
+    const input = await until(() => d.querySelector('textarea'));
+    assert.equal(d.querySelector('.quest-target').textContent, 'b_n');
+    const setter = Object.getOwnPropertyDescriptor(w.HTMLTextAreaElement.prototype, 'value').set;
+    for (const value of ['z', '', 'a']) {
+      setter.call(input, value);
+      input.dispatchEvent(new w.Event('input', { bubbles: true }));
+      await sleep(10);
+    }
+    input.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await until(() => d.querySelector('.quest-target').textContent === 'c_c');
+  } finally {
+    dom.window.close();
+  }
+});
+test('vocabulary opens after all 30 lessons; earned stickers use the existing avatar flow', async () => {
+  const { dom, w, d, click, calls } = await setup(null, LESSONS.map(seedLesson));
+  try {
+    await click('Từ vựng');
+    assert.equal(d.querySelectorAll('.quest-lesson').length, 9);
+    assert.ok([...d.querySelectorAll('.quest-lesson button')].every((button) => !button.disabled));
+    await click('Tiến bộ');
+    assert.match(d.body.textContent, /Chứng nhận chinh phục bàn phím/);
+    assert.match(d.body.textContent, /900/);
+    await click('Kho báu');
+    await click('Đeo');
+    await until(() => d.body.textContent.includes('Đã đổi nhân vật trong lần chơi thử này'));
+    assert.ok(!calls.some((call) => call.action === 'avatar_save'));
   } finally {
     dom.window.close();
   }

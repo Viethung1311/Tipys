@@ -83,10 +83,20 @@ API classroom actions are authenticated. Every membership-gated action checks th
 ## MVP Bé chinh phục bàn phím
 
 - Engine/game_code: keyboard_quest; màn hình tải riêng tại #typing/quest trong mục Gõ chữ. Dùng chung tài khoản, cookie, âm thanh và thống kê hiện có.
-- Nội dung có phiên bản ở src/features/keyboard-quest/curriculum.js: 5 bài làm quen và 3 bài trải nghiệm mở sẵn. Không phải toàn bộ 30 màn. Telex dùng bộ gõ của thiết bị, không tự chuyển as thành á khi máy chưa bật bộ gõ.
+- Nội dung có phiên bản ở src/features/keyboard-quest/curriculum.js: 30 màn và 9 chủ đề, mỗi chủ đề 10 từ. Tám mã bài MVP được giữ nguyên; ba bài trải nghiệm vẫn mở sẵn. Telex dùng bộ gõ của thiết bị, không tự chuyển as thành á khi máy chưa bật bộ gõ.
 - Sau schema hiện có, chỉ chạy db/keyboard_quest.sql. Migration thêm player_lesson_progress (một hàng/người/game/bài), hai RPC chỉ service_role được gọi và bản ghi game tắt mặc định. Không chạy lại schema gốc trên database đang dùng. Đã đối chiếu schema live trước khi bổ sung.
 - GET quest_progress trả tiến độ của phiên hiện tại. POST start nhận gameCode, stageNumber, lessonId, kiểm tra điều kiện mở khóa. POST quest_finish kiểm tra chủ lượt, bài, câu trả lời, lỗi và thời gian; backend tự tính sao và độ chính xác. RPC ghi kết thúc lượt + tổng thời gian + tiến độ trong một transaction, cùng thứ tự khóa với RPC cũ. Gửi lại cùng lượt không cộng trùng. POST progress không được hoàn thành bài học.
 - POST quest_reset yêu cầu confirm:true, chỉ đặt lại tiến độ module của chính người đăng nhập; giữ player_game_stats và kết quả Chữ rơi. Yêu cầu cũ bị vô hiệu sau reset. RLS chỉ cho học sinh đọc bản ghi của mình; admin được đọc theo chính sách hiện có; client không được ghi trực tiếp.
 - Khách chỉ lưu bản chơi thử cục bộ, không tự gộp vào tài khoản. Không lưu chuỗi nhập sai tự do hoặc từng lần bấm phím. Sai dấu chỉ phân loại khi quan sát được khác biệt dấu, không suy đoán chuỗi Telex đã gõ.
 - Heartbeat 10 giây, dừng đồng hồ khi tạm dừng/ẩn trang/mở dialog. Đóng cưỡng bức có thể mất tối đa khoảng heartbeat chưa gửi; không phải nhật ký kiểm chứng chống gian lận.
 - Rollout: giữ game tắt đến khi frontend/backend mới được triển khai và kiểm tra đăng nhập thật. Sau đó admin bật game hiện có. Rollback: tắt game và quay về deployment trước, giữ bảng tiến độ để phục hồi.
+
+## Bản mở rộng sau MVP
+
+- Không có migration bổ sung: tiến độ tối đa 39 hàng/người/game (30 màn + 9 chủ đề) dùng cùng bảng/RPC hiện tại. Các mã bài và item MVP không đổi, curriculum_version vẫn 1 vì nội dung cũ giữ nguyên; lesson_id mới là phần bổ sung. Thư viện yêu cầu hoàn thành đủ 30 màn.
+- Bài ôn chỉ đổi thứ tự các item cố định, xen kẽ nội dung từng sai với nội dung khác. Backend kiểm tra đủ tập ID duy nhất, câu trả lời và loại lỗi theo từng item; không tin thứ tự, sao hay xu gửi lên từ client.
+- Hồ sơ lấy số đúng/sai, thời gian và lần luyện gần nhất từ các hàng tổng hợp; chỉ hiện tối đa 5 bài gần đây, không dựng nhật ký từng lần bấm. Reset xóa các tổng hợp bài nhưng vẫn giữ tổng thời gian tài khoản ở player_game_stats.
+- Xu đã kiếm = 10 × tổng sao tốt nhất. Huy hiệu và sticker suy ra từ tiến độ, không có ví/spending hoặc bảng phần thưởng riêng. Đeo sticker gọi avatar_save hiện có theo tài khoản của phiên; nhân vật được dùng chung với lớp học.
+- Đua xe một mình và săn kho báu dùng cùng bài học/chấm điểm, không đối thủ công khai hoặc đồng hồ đếm ngược. Tốc độ ký tự/phút chỉ tham khảo. Nghe mẫu dùng giọng tiếng Việt sẵn trên thiết bị; khi không có giọng, UI giải thích và vẫn có gợi ý chữ.
+- GET quest_class_report chỉ admin, kiểm tra lớp đang mở trước truy vấn roster hiện tại. Một truy vấn nhúng tiến độ theo từng thành viên tránh N+1 và giới hạn hàng cấp gốc; báo cáo tối đa 300 thành viên theo giới hạn lớp hiện có, chỉ tải khi bấm xem/làm mới. Không trả tiến độ người ngoài lớp hoặc dữ liệu game khác.
+- Gói bài học/thư viện và báo cáo tải riêng; không thêm ảnh mạng, quảng cáo, thư viện hay thông tin cá nhân thật. Chứng nhận chỉ xuất hiện sau đủ 30 màn và có thể in ngay từ trình duyệt.

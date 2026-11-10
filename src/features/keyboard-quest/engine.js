@@ -30,15 +30,15 @@ export function gradeLesson(lesson, answers) {
   const stars = !completed ? 0 : accuracy >= 95 ? 3 : accuracy >= 90 ? 2 : 1;
   const weakKeys = {},
     weakRules = {};
-  answers.forEach((row, index) => {
-    const item = lesson.items[index];
-    if (row.errors && lesson.kind === 'key')
+  answers.forEach((row) => {
+    const item = lesson.items.find((item) => item.id === row.itemId);
+    if (row.errors && (item.kind || lesson.kind) === 'key')
       weakKeys[item.target] = (weakKeys[item.target] || 0) + row.errors;
     if (row.telex && item.rule) weakRules[item.rule] = (weakRules[item.rule] || 0) + row.telex;
   });
   return { correct, wrong, accuracy, completed, stars, weakKeys, weakRules };
 }
-export function updatedProgress(rows, lesson, grade) {
+export function updatedProgress(rows, lesson, grade, seconds = 0) {
   const old = rows.find((row) => row.lesson_id === lesson.id);
   return [
     ...rows.filter((row) => row.lesson_id !== lesson.id),
@@ -50,6 +50,11 @@ export function updatedProgress(rows, lesson, grade) {
       last_accuracy: grade.accuracy,
       weak_keys: grade.weakKeys,
       weak_rules: grade.weakRules,
+      attempts: (old?.attempts || 0) + 1,
+      correct_count: Number(old?.correct_count || 0) + grade.correct,
+      wrong_count: Number(old?.wrong_count || 0) + grade.wrong,
+      total_active_seconds: Number(old?.total_active_seconds || 0) + seconds,
+      last_played_at: new Date().toISOString(),
     },
   ];
 }

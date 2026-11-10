@@ -1,6 +1,8 @@
 /** Classroom service: server-side authorization precedes every read/write/sign. */
 import { randomUUID } from 'node:crypto';
 import { ApiError, requireAdmin, fail } from '../errors.js';
+import { QUEST_CODE, findLesson } from '../../src/features/keyboard-quest/curriculum.js';
+import { learningSummary } from '../../src/features/keyboard-quest/progress.js';
 import {
   ANIMALS,
   ACCESSORIES,
@@ -244,6 +246,50 @@ export function createClassrooms(db) {
       const posts = await postsQuery(input);
       fail(posts.error);
       return { posts: posts.data };
+    },
+    async questClassReport(profile, input) {
+      await access(profile, input.classId, true);
+      // Embed the bounded per-student rows to avoid N+1 reads and REST's top-level row cap.
+      const result = await db
+        .from('class_members')
+        .select(
+          'user_id,profiles!inner(full_name,is_active,player_lesson_progress(lesson_id,completed,best_stars,last_accuracy,correct_count,wrong_count,total_active_seconds,weak_keys,weak_rules,last_played_at,games(game_code)))',
+        )
+        .eq('class_id', input.classId)
+        .eq('is_active', true)
+        .eq('profiles.is_active', true)
+        .limit(300);
+      fail(result.error);
+      return {
+        students: result.data.map((member) => {
+          const rows = (member.profiles.player_lesson_progress || []).filter(
+            (row) => row.games?.game_code === QUEST_CODE && findLesson(row.lesson_id),
+          );
+          const summary = learningSummary(rows);
+          const weakest = (key) =>
+            Object.entries(
+              rows.reduce((all, row) => {
+                for (const [id, count] of Object.entries(row[key] || {}))
+                  all[id] = (all[id] || 0) + count;
+                return all;
+              }, {}),
+            )
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 3)
+              .map(([key]) => key);
+          return {
+            user_id: member.user_id,
+            name: member.profiles.full_name,
+            completed: summary.completed,
+            accuracy: summary.accuracy,
+            seconds: summary.seconds,
+            worlds: summary.worlds,
+            weakKeys: weakest('weak_keys'),
+            weakRules: weakest('weak_rules'),
+            lastPlayed: summary.recent[0]?.last_played_at || null,
+          };
+        }),
+      };
     },
     async classroom(profile, input) {
       const classroom = await access(profile, input.classId);

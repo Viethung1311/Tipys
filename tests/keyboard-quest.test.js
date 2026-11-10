@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
-import { LESSONS, isUnlocked } from '../src/features/keyboard-quest/curriculum.js';
+import { LESSONS, findLesson, isUnlocked } from '../src/features/keyboard-quest/curriculum.js';
 import {
   matchesTarget,
   createAnswers,
@@ -104,10 +104,10 @@ test('quest grading preserves Unicode, case and spacing; unlocks use completed l
   assert.ok(matchesTarget('a\u0301', 'á'));
   assert.ok(!matchesTarget(' Me', 'Me'));
   assert.ok(!matchesTarget('me', 'Me'));
-  assert.equal(errorKind(LESSONS[7], 'a', 'á'), 'telex');
-  assert.equal(errorKind(LESSONS[7], 'b', 'á'), 'editing');
+  assert.equal(errorKind(findLesson('telex-demo'), 'a', 'á'), 'telex');
+  assert.equal(errorKind(findLesson('telex-demo'), 'b', 'á'), 'editing');
   assert.ok(!isUnlocked(LESSONS[1], []));
-  assert.ok(isUnlocked(LESSONS[7], []));
+  assert.ok(isUnlocked(findLesson('telex-demo'), []));
   const lesson = LESSONS[0],
     answers = answersFor(lesson);
   let grade = gradeLesson(lesson, answers);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
 import Loading from '../../components/Loading.jsx';
 import Reveal from '../../shared/Reveal.jsx';
@@ -6,6 +6,7 @@ import Avatar from './Avatar.jsx';
 import Attachment from './Attachment.jsx';
 import PostComposer from './PostComposer.jsx';
 import ClassAchievements from './ClassAchievements.jsx';
+const ClassQuestReport = lazy(() => import('./ClassQuestReport.jsx'));
 export default function ClassroomPage({ user, classes: availableClasses, cache, avatarOverride }) {
   const classes = availableClasses.filter((c) => !c.archived_at);
   const [classId, setClassId] = useState(() => classes[0]?.class_id || ''),
@@ -171,6 +172,11 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
                   />
                 </div>
               </Reveal>
+              {user.role === 'admin' && (
+                <Suspense fallback={<Loading label="Đang mở báo cáo…" />}>
+                  <ClassQuestReport key={`quest-report-${classId}`} classId={classId} />
+                </Suspense>
+              )}
               {user.role === 'admin' && (
                 <PostComposer key={`composer-${classId}`} classId={classId} onPosted={refresh} />
               )}

@@ -8,6 +8,7 @@ import {
   Play,
   RotateCcw,
   Save,
+  Volume2,
 } from 'lucide-react';
 import Keyboard from '../../components/Keyboard.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
@@ -26,6 +27,8 @@ export default function LessonPlayer({
   onBack,
   onSaved,
   nextLesson,
+  mode = 'learn',
+  previous,
 }) {
   const [phase, setPhase] = useState(user ? 'starting' : 'playing'),
     [index, setIndex] = useState(0),
@@ -36,7 +39,8 @@ export default function LessonPlayer({
     [saving, setSaving] = useState(false),
     [saveError, setSaveError] = useState(''),
     [saved, setSaved] = useState(false),
-    [lastKey, setLastKey] = useState('');
+    [lastKey, setLastKey] = useState(''),
+    [ime, setIme] = useState(false);
   const answers = useRef(createAnswers(lesson)),
     session = useRef(null),
     elapsed = useRef(0),
@@ -45,6 +49,7 @@ export default function LessonPlayer({
     input = useRef(null),
     live = useRef(true);
   const target = lesson.items[index];
+  const kind = target.kind || lesson.kind;
   const pause = useCallback(() => setPhase((old) => (old === 'playing' ? 'paused' : old)), []);
   useEffect(() => {
     live.current = true;
@@ -128,15 +133,15 @@ export default function LessonPlayer({
         }
       } else {
         row.errors++;
-        row[errorKind(lesson, answer, target.target)]++;
+        row[errorKind({ ...lesson, kind }, answer, target.target)]++;
         setFeedback('Thử lại nhé! Nhìn mẫu một lần nữa.');
         sound('wrong');
       }
     },
-    [phase, blocked, index, target, lesson, sound],
+    [phase, blocked, index, target, lesson, sound, kind],
   );
   useEffect(() => {
-    if (lesson.kind !== 'key') return;
+    if (kind !== 'key') return;
     const down = (event) => {
       if (
         event.ctrlKey ||
@@ -160,7 +165,7 @@ export default function LessonPlayer({
     };
     window.addEventListener('keydown', down);
     return () => window.removeEventListener('keydown', down);
-  }, [lesson, submit, pause, phase, blocked]);
+  }, [kind, submit, pause, phase, blocked]);
   const grade = phase === 'result' ? gradeLesson(lesson, answers.current) : null;
   const persist = useCallback(async () => {
     setSaving(true);
@@ -172,7 +177,12 @@ export default function LessonPlayer({
           await session.current.finish(Math.floor(elapsed.current / 1000), answers.current)
         ).data.progress;
       if (!live.current) return;
-      onSaved(lesson, gradeLesson(lesson, answers.current), progress);
+      onSaved(
+        lesson,
+        gradeLesson(lesson, answers.current),
+        progress,
+        Math.floor(elapsed.current / 1000),
+      );
       setSaved(true);
     } catch (error) {
       if (live.current) setSaveError(error.message);
@@ -186,6 +196,31 @@ export default function LessonPlayer({
   const leave = async () => {
     await session.current?.quit(Math.floor(elapsed.current / 1000)).catch(() => {});
     onBack();
+  };
+  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  useEffect(() => {
+    if (phase !== 'playing' || blocked) window.speechSynthesis?.cancel();
+  }, [phase, blocked]);
+  const listen = () => {
+    const voice = window.speechSynthesis
+      ?.getVoices()
+      .find((voice) => voice.lang.toLowerCase().startsWith('vi'));
+    if (!voice || !window.SpeechSynthesisUtterance) {
+      setFeedback('Máy chưa có giọng đọc tiếng Việt. Bạn có thể xem gợi ý nhé.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(
+      kind === 'key'
+        ? `Bấm phím ${target.target === 'Space' ? 'cách' : target.target}`
+        : target.prompt
+          ? `Điền chữ còn thiếu trong ${target.prompt.replace('_', ' ... ')}`
+          : target.target,
+    );
+    utterance.voice = voice;
+    utterance.lang = 'vi-VN';
+    utterance.rate = 0.85;
+    window.speechSynthesis.speak(utterance);
   };
   if (phase === 'starting')
     return (
@@ -225,6 +260,19 @@ export default function LessonPlayer({
             <b>{seconds}s</b> luyện tập
           </p>
         </div>
+        {lesson.kind === 'text' && seconds > 0 && (
+          <p>
+            {Math.round(
+              (lesson.items.reduce((n, item) => n + [...item.target].length, 0) * 60) / seconds,
+            )}{' '}
+            ký tự/phút · Tốc độ chỉ để tham khảo.
+          </p>
+        )}
+        {previous && (
+          <p>
+            Lần trước: {previous.last_accuracy}% · Tốt nhất: {previous.best_accuracy}% chính xác.
+          </p>
+        )}
         <p>
           {grade.completed
             ? 'Bạn đã mở thêm một bước trên hành trình!'
@@ -301,15 +349,41 @@ export default function LessonPlayer({
       <p>
         Lượt {index + 1}/{lesson.items.length} · Thời gian {seconds}s
       </p>
+      {lesson.description && <p>{lesson.description}</p>}
+      {mode === 'race' && (
+        <div
+          className="quest-race"
+          aria-label={`Xe của bạn đã đi ${index} trên ${lesson.items.length} chặng`}
+        >
+          <span style={{ left: `${(index / lesson.items.length) * 85}%` }} aria-hidden="true">
+            🏎️
+          </span>
+          <b aria-hidden="true">🏁</b>
+          <p>Mỗi lượt đúng, xe tiến thêm một chặng. Không đếm ngược.</p>
+        </div>
+      )}
+      {mode === 'treasure' && (
+        <p className="quest-treasure" role="status">
+          🎒 Kho báu: {index}/{lesson.items.length} ngôi sao · Gõ đúng để thu thập.
+        </p>
+      )}
       <div className="quest-challenge">
         <span className="quest-mascot" aria-hidden="true">
           {target.image}
         </span>
-        <p>{lesson.kind === 'key' ? 'Tìm và bấm phím' : 'Gõ đúng theo mẫu'}</p>
-        <h2 className="quest-target">{target.target === 'Space' ? 'Phím cách' : target.target}</h2>
+        <p>
+          {kind === 'key'
+            ? 'Tìm và bấm phím'
+            : target.prompt
+              ? 'Gõ chữ còn thiếu'
+              : 'Gõ đúng theo mẫu'}
+        </p>
+        <h2 className="quest-target">
+          {target.prompt || (target.target === 'Space' ? 'Phím cách' : target.target)}
+        </h2>
         {hint && (
           <p className="quest-hint">
-            {lesson.kind === 'key'
+            {kind === 'key'
               ? FINGER_HINTS[target.target]
               : target.example
                 ? `Telex: ${target.example}`
@@ -317,7 +391,7 @@ export default function LessonPlayer({
           </p>
         )}
       </div>
-      {lesson.kind === 'text' && (
+      {kind === 'text' && (
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -335,18 +409,27 @@ export default function LessonPlayer({
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
+              disabled={phase !== 'playing' || blocked}
               onCompositionStart={() => {
                 composing.current = true;
+                setIme(true);
+              }}
+              onCompositionUpdate={() => {
+                composing.current = true;
+                setIme(true);
               }}
               onCompositionEnd={() => {
                 composing.current = false;
+                setIme(false);
               }}
               onChange={(event) => setValue(event.target.value)}
               onKeyDown={(event) => {
+                setLastKey(event.key === ' ' ? 'Cách' : event.key);
                 if (
                   event.key === 'Enter' &&
                   !event.shiftKey &&
                   !event.isComposing &&
+                  !event.nativeEvent.isComposing &&
                   !composing.current &&
                   event.keyCode !== 229
                 ) {
@@ -356,15 +439,16 @@ export default function LessonPlayer({
               }}
             />
           </label>
-          <TipyButton type="submit" icon={Check}>
+          <TipyButton type="submit" icon={Check} disabled={ime || phase !== 'playing' || blocked}>
             Kiểm tra
           </TipyButton>
         </form>
       )}
       <p className="quest-feedback" role="status" aria-live="polite">
-        {feedback || 'Mình cùng thử nhé!'}
+        {ime ? 'Đang ghép dấu…' : feedback || 'Mình cùng thử nhé!'}
       </p>
-      {lesson.kind === 'key' ? (
+      {lastKey && <p className="quest-hint">Vừa bấm: {lastKey}</p>}
+      {kind === 'key' ? (
         <>
           <Keyboard
             keys={[...SUPPORTED_KEYS]}
@@ -388,6 +472,14 @@ export default function LessonPlayer({
         </p>
       )}
       <div className="quest-actions">
+        <TipyButton
+          emphasis="secondary"
+          icon={Volume2}
+          onClick={listen}
+          disabled={phase !== 'playing' || blocked}
+        >
+          Nghe mẫu
+        </TipyButton>
         <TipyButton emphasis="secondary" icon={Lightbulb} onClick={() => setHint(!hint)}>
           {hint ? 'Ẩn gợi ý' : 'Xem gợi ý'}
         </TipyButton>

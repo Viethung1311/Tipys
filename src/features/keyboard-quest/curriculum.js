@@ -1,3 +1,4 @@
+import { EXTRA_LESSONS, VOCABULARY } from './content.js';
 export const QUEST_CODE = 'keyboard_quest';
 export const CURRICULUM_VERSION = 1;
 export const WORLDS = [
@@ -110,16 +111,68 @@ const definitions = [
     ].map(([target, example, rule]) => ({ target, example, rule, image: '🪄' })),
   },
 ];
-export const LESSONS = definitions.map((lesson) => ({
+const prepare = (lesson) => ({
+  description: lesson.telex
+    ? 'Gõ tiếng Việt bằng bộ gõ của thiết bị. Ưu tiên đúng trước nhanh.'
+    : lesson.kind === 'key'
+      ? 'Tìm phím theo mẫu. Không cần gõ nhanh.'
+      : 'Gõ theo mẫu, có thể dùng Backspace để sửa.',
+  skill: lesson.telex
+    ? 'telex'
+    : lesson.exercise || (lesson.kind === 'key' ? 'key-position' : 'text-input'),
+  difficulty: lesson.world,
+  estimatedMinutes: Math.max(1, Math.ceil(lesson.items.length / 5)),
   ...lesson,
   items: lesson.items.map((item, index) => ({ ...item, id: `${lesson.id}-${index + 1}` })),
-}));
-export const findLesson = (id) => LESSONS.find((lesson) => lesson.id === id);
-export const lessonForStage = (stage) => LESSONS.find((lesson) => lesson.stage === stage);
+});
+// The eight MVP IDs and exercises stay unchanged so existing progress remains valid.
+export const LESSONS = [...definitions, ...EXTRA_LESSONS]
+  .sort((a, b) => a.stage - b.stage)
+  .map(prepare);
+export const LIBRARY_LESSONS = VOCABULARY.map((topic, index) =>
+  prepare({
+    id: `vocabulary-${topic.id}`,
+    stage: 101 + index,
+    world: 0,
+    title: topic.title,
+    kind: 'text',
+    telex: true,
+    threshold: 85,
+    previous: 'champion',
+    items: topic.words.map((target) => ({ target, image: topic.image, rule: 'combined' })),
+  }),
+);
+export const ALL_LESSONS = [...LESSONS, ...LIBRARY_LESSONS];
+export const findLesson = (id) => ALL_LESSONS.find((lesson) => lesson.id === id);
+export const lessonForStage = (stage) => ALL_LESSONS.find((lesson) => lesson.stage === stage);
 export const isUnlocked = (lesson, progress) =>
-  !lesson.previous || progress.some((row) => row.lesson_id === lesson.previous && row.completed);
+  lesson.world === 0
+    ? LESSONS.every((lesson) =>
+        progress.some((row) => row.lesson_id === lesson.id && row.completed),
+      )
+    : !lesson.previous ||
+      progress.some((row) => row.lesson_id === lesson.previous && row.completed);
 export const FINGER_HINTS = {
   A: 'Ngón út tay trái',
+  Q: 'Ngón út tay trái',
+  W: 'Ngón áp út tay trái',
+  E: 'Ngón giữa tay trái',
+  R: 'Ngón trỏ tay trái',
+  T: 'Ngón trỏ tay trái',
+  Y: 'Ngón trỏ tay phải',
+  U: 'Ngón trỏ tay phải',
+  I: 'Ngón giữa tay phải',
+  O: 'Ngón áp út tay phải',
+  P: 'Ngón út tay phải',
+  Z: 'Ngón út tay trái',
+  X: 'Ngón áp út tay trái',
+  C: 'Ngón giữa tay trái',
+  V: 'Ngón trỏ tay trái',
+  B: 'Ngón trỏ tay trái',
+  N: 'Ngón trỏ tay phải',
+  M: 'Ngón trỏ tay phải',
+  G: 'Ngón trỏ tay trái',
+  H: 'Ngón trỏ tay phải',
   S: 'Ngón áp út tay trái',
   D: 'Ngón giữa tay trái',
   F: 'Ngón trỏ tay trái',
