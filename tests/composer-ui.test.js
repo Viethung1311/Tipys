@@ -43,10 +43,10 @@ test('teacher sees side-by-side local draft preview; images are revoked and unsa
     };
     return { ok: true, json: async () => values[action] };
   };
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>
     x.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   const fill = (selector, value) => {
     const input = d.querySelector(selector),
       proto =
@@ -134,10 +134,10 @@ test('switching teacher classes removes the old grid, top and draft instead of r
     };
     return { ok: true, json: async () => values[action] };
   };
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>
     x.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   try {
     await until(() => d.querySelector('.classroom-layout'));
     for (const id of ['b', 'a', 'b']) {

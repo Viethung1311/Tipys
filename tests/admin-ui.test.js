@@ -62,10 +62,10 @@ test('dedicated admin page shows practice totals and edits difficulty with numer
       value = { configured: true, user: { role: 'admin', full_name: 'Giáo viên' }, games: [game] };
     return { ok: true, json: async () => value };
   };
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>
     x.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   const button = (text) =>
     [...d.querySelectorAll('button')].find((b) => b.textContent.includes(text));
   try {

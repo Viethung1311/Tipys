@@ -6,9 +6,9 @@ import Avatar from './Avatar.jsx';
 import Attachment from './Attachment.jsx';
 import PostComposer from './PostComposer.jsx';
 import ClassAchievements from './ClassAchievements.jsx';
-export default function ClassroomPage({ user, onMembershipChange, avatarOverride }) {
-  const [classes, setClasses] = useState([]),
-    [classId, setClassId] = useState(''),
+export default function ClassroomPage({ user, classes: availableClasses, cache, avatarOverride }) {
+  const classes = availableClasses.filter((c) => !c.archived_at);
+  const [classId, setClassId] = useState(() => classes[0]?.class_id || ''),
     [detail, setDetail] = useState(null),
     [busy, setBusy] = useState(true),
     [error, setError] = useState(''),
@@ -17,44 +17,36 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
   const latestClassId = useRef(classId);
   latestClassId.current = classId;
   useEffect(() => {
-    let live = true;
-    setBusy(true);
-    api('classes')
-      .then((data) => {
-        if (!live) return;
-        const list = data.classes.filter((c) => !c.archived_at);
-        setClasses(list);
-        setClassId(list[0]?.class_id || '');
-        onMembershipChange?.(list);
-      })
-      .catch((e) => {
-        if (live) setError(e.message);
-      })
-      .finally(() => {
-        if (live) setBusy(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [user.user_id]);
-  useEffect(() => {
     if (!classId) {
       setDetail(null);
+      setBusy(false);
       return;
     }
     let live = true;
+    const key = user.user_id + ':' + classId;
+    const cached = cache.get(key);
+    if (cached && Date.now() - cached.time < 15000) {
+      setDetail(cached.data);
+      setHasMore(cached.data.posts.length === 20);
+      setBusy(false);
+      return;
+    }
     setDetail(null);
     setBusy(true);
     setError('');
     api('classroom', undefined, { classId })
       .then((data) => {
         if (live) {
+          cache.set(key, { data, time: Date.now() });
           setDetail(data);
           setHasMore(data.posts.length === 20);
         }
       })
       .catch((e) => {
-        if (live) setError(e.message);
+        if (live) {
+          cache.delete(key);
+          setError(e.message);
+        }
       })
       .finally(() => {
         if (live) setBusy(false);
@@ -62,12 +54,13 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
     return () => {
       live = false;
     };
-  }, [classId, user.user_id]);
+  }, [classId, user.user_id, cache]);
   const refresh = async () => {
     const requestedClass = classId;
-    const data = await api('classroom', undefined, { classId });
+    const data = await api('class_posts', undefined, { classId });
     if (latestClassId.current !== requestedClass) return;
-    setDetail(data);
+    cache.delete(user.user_id + ':' + classId);
+    setDetail((previous) => ({ ...previous, posts: data.posts }));
     setHasMore(data.posts.length === 20);
   };
   const run = async (task) => {
@@ -106,6 +99,22 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
         </section>
       ) : (
         <>
+          <button
+            className="secondary"
+            disabled={saving}
+            onClick={() =>
+              run(async () => {
+                cache.delete(user.user_id + ':' + classId);
+                const requestedClass = classId;
+                const data = await api('classroom', undefined, { classId });
+                if (latestClassId.current !== requestedClass) return;
+                setDetail(data);
+                setHasMore(data.posts.length === 20);
+              })
+            }
+          >
+            Làm mới lớp học
+          </button>
           <label className="class-select">
             Chọn lớp
             <select value={classId} onChange={(e) => setClassId(e.target.value)}>
@@ -215,12 +224,16 @@ export default function ClassroomPage({ user, onMembershipChange, avatarOverride
                   disabled={saving}
                   onClick={() =>
                     run(async () => {
-                      const next = await api('classroom', undefined, {
+                      cache.delete(user.user_id + ':' + classId);
+                      const next = await api('class_posts', undefined, {
                         classId,
                         offset: detail.posts.length,
                       });
                       if (latestClassId.current !== classId) return;
-                      setDetail({ ...detail, posts: [...detail.posts, ...next.posts] });
+                      setDetail((previous) => ({
+                        ...previous,
+                        posts: [...previous.posts, ...next.posts],
+                      }));
                       setHasMore(next.posts.length === 20);
                     })
                   }

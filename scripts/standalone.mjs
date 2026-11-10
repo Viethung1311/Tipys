@@ -1,5 +1,7 @@
+import { build } from 'vite';
+await build({ mode: 'test', build: { outDir: '.standalone-dist' } });
 import { readFile, writeFile, readdir } from 'node:fs/promises';
-const directory = new URL('../dist/assets/', import.meta.url),
+const directory = new URL('../.standalone-dist/assets/', import.meta.url),
   assets = await readdir(directory);
 let js = await readFile(
   new URL(

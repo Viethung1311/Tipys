@@ -30,10 +30,10 @@ test('complete UI flow: setup, custom keys, input, pause, results, replay, persi
       cb(now);
     }, 10);
   w.cancelAnimationFrame = (id) => w.clearTimeout(id);
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>
     x.endsWith('.js'),
   );
-  const code = readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8');
+  const code = readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8');
   w.eval(code);
   const button = (text) =>
     [...d.querySelectorAll('button')].find((b) => b.textContent.includes(text));

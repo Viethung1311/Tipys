@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
+import { imagePreview } from './image.js';
 import { FILE_TYPES, MAX_FILE_BYTES } from './constants.js';
 
 const EMPTY = { title: '', body: '', link: '' };
@@ -45,21 +46,39 @@ export default function PostComposer({ classId, onPosted }) {
     setError('');
     try {
       if (uploads.length > 3) throw Error('Mỗi bài tối đa 3 file.');
-      const ids = [];
       for (const file of uploads) {
         const mime = FILE_TYPES[file.name.split('.').pop().toLowerCase()];
         if (!mime || file.size < 1 || file.size > MAX_FILE_BYTES)
           throw Error('Chọn file hợp lệ tối đa 5 MB.');
-        const signed = (
-          await api('class_upload', { classId, name: file.name, mime, size: file.size })
-        ).data;
-        const upload = new FormData();
-        upload.append('cacheControl', '3600');
-        upload.append('', new File([file], file.name, { type: mime }));
-        const response = await fetch(signed.signedUrl, { method: 'PUT', body: upload });
-        if (!response.ok) throw Error('Tải file chưa xong. Bạn thử lại nhé.');
-        ids.push(signed.attachmentId);
       }
+      const results = await Promise.allSettled(
+        uploads.map(async (file) => {
+          const mime = FILE_TYPES[file.name.split('.').pop().toLowerCase()];
+          const preview = await imagePreview(file);
+          const signed = (
+            await api('class_upload', {
+              classId,
+              name: file.name,
+              mime,
+              size: file.size,
+              preview: Boolean(preview),
+            })
+          ).data;
+          const put = async (url, value, type) => {
+            const upload = new FormData();
+            upload.append('cacheControl', '3600');
+            upload.append('', new File([value], value.name, { type }));
+            const response = await fetch(url, { method: 'PUT', body: upload });
+            if (!response.ok) throw Error('Tải file chưa xong. Bạn thử lại nhé.');
+          };
+          await put(signed.signedUrl, file, mime);
+          if (preview) await put(signed.previewSignedUrl, preview, 'image/webp');
+          return signed.attachmentId;
+        }),
+      );
+      const failed = results.find((result) => result.status === 'rejected');
+      if (failed) throw failed.reason;
+      const ids = results.map((result) => result.value);
       await api('class_post', { classId, ...snapshot, files: ids });
       form.reset();
       setFields(EMPTY);

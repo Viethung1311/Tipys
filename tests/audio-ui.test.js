@@ -70,10 +70,10 @@ test('audio controls persist independently; countdown plays once per beat and op
       cb(now);
     }, 10);
   w.cancelAnimationFrame = (id) => w.clearTimeout(id);
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>
     x.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   const button = (text) =>
     [...d.querySelectorAll('button')].find((b) => b.textContent.includes(text));
   const click = async (text) => {

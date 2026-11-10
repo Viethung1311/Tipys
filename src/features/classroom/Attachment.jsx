@@ -3,13 +3,19 @@ import { api } from '../../game/backend.js';
 /** Fetch signed links on demand: private class files are never public bucket URLs. */
 export default function Attachment({ file }) {
   const [url, setUrl] = useState(''),
+    [previewUrl, setPreviewUrl] = useState(''),
+    [expiresAt, setExpiresAt] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   const open = async () => {
+    if (url && Date.now() < expiresAt) return;
     setBusy(true);
     setError('');
     try {
-      setUrl((await api('class_file', undefined, { attachmentId: file.attachment_id })).url);
+      const data = await api('class_file', undefined, { attachmentId: file.attachment_id });
+      setUrl(data.url);
+      setPreviewUrl(data.previewUrl || data.url);
+      setExpiresAt(Date.now() + 240000);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -27,7 +33,15 @@ export default function Attachment({ file }) {
             Mở / tải tài liệu ↗
           </a>
           {file.mime_type.startsWith('image/') && (
-            <img src={url} alt={file.name} loading="lazy" decoding="async" />
+            <img
+              src={previewUrl}
+              alt={file.name}
+              loading="lazy"
+              decoding="async"
+              onError={() => {
+                if (previewUrl !== url) setPreviewUrl(url);
+              }}
+            />
           )}
         </>
       )}

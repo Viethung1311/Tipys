@@ -72,11 +72,15 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
           if (![401, 403].includes(error.status)) throw error;
           setSession(res, null, production);
         }
+        const [games, classes] = await Promise.all([
+          backend.games(user?.role === 'admin'),
+          user ? backend.classes(user) : [],
+        ]);
         return res.status(200).json({
           configured: true,
           user,
-          games: await backend.games(user?.role === 'admin'),
-          classes: user ? await backend.classes(user) : [],
+          games,
+          classes,
         });
       }
       const { profile, access } = await current();
@@ -86,13 +90,16 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         return res
           .status(200)
           .json({ userIds: await backend.classRoster(profile, { classId: req.query?.classId }) });
-      if (req.method === 'GET' && action === 'classroom') {
+      if (req.method === 'GET' && ['classroom', 'class_posts'].includes(action)) {
         const offset = Number(req.query?.offset || 0);
         if (!Number.isInteger(offset) || offset < 0 || offset > 100000)
           throw new ApiError(400, 'Trang chưa hợp lệ.');
-        return res
-          .status(200)
-          .json(await backend.classroom(profile, { classId: req.query?.classId, offset }));
+        return res.status(200).json(
+          await backend[action === 'class_posts' ? 'classPosts' : 'classroom'](profile, {
+            classId: req.query?.classId,
+            offset,
+          }),
+        );
       }
       if (req.method === 'GET' && action === 'class_file')
         return res

@@ -22,6 +22,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState('students'),
     [students, setStudents] = useState([]),
     [history, setHistory] = useState([]),
+    [historyLoading, setHistoryLoading] = useState(false),
+    [classes, setClasses] = useState([]),
     [games, setGames] = useState([]),
     [game, setGame] = useState(null),
     [levels, setLevels] = useState(LEVELS);
@@ -36,9 +38,8 @@ export default function AdminPage() {
     if (data.user?.role === 'admin') {
       setGames(data.games);
       if (data.games.length) selectGame(data.games[0]);
-      const [s, h] = await Promise.all([api('students'), api('history')]);
-      setStudents(s.students);
-      setHistory(h.history);
+      setClasses(data.classes || []);
+      setStudents((await api('students')).students);
     }
     setLoading(false);
   };
@@ -48,6 +49,24 @@ export default function AdminPage() {
       setLoading(false);
     });
   }, []);
+  useEffect(() => {
+    if (user?.role !== 'admin' || tab !== 'results') return;
+    let live = true;
+    setHistoryLoading(true);
+    api('history')
+      .then((data) => {
+        if (live) setHistory(data.history);
+      })
+      .catch((error) => {
+        if (live) setError(error.message);
+      })
+      .finally(() => {
+        if (live) setHistoryLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [user?.user_id, tab]);
   const run = async (action) => {
     setBusy(true);
     setError('');
@@ -207,7 +226,12 @@ export default function AdminPage() {
               </button>
             </nav>
             {tab === 'classes' && (
-              <AdminClasses students={students} onChanged={load} onMembersChanged={patchMembers} />
+              <AdminClasses
+                initialClasses={classes}
+                students={students}
+                onChanged={load}
+                onMembersChanged={patchMembers}
+              />
             )}
             {tab === 'students' && (
               <section className="panel">
@@ -278,7 +302,11 @@ export default function AdminPage() {
                   Mỗi học sinh/game chỉ hiển thị cao nhất và gần nhất. Nếu trùng một lượt, chỉ có
                   một dòng.
                 </p>
-                <ResultsTable rows={history} />
+                {historyLoading ? (
+                  <Loading label="Đang tải kết quả…" />
+                ) : (
+                  <ResultsTable rows={history} />
+                )}
               </section>
             )}
             {tab === 'games' && (

@@ -59,9 +59,9 @@ File: tối đa 3 tệp/bài, 5 MB/tệp; PNG/JPG/WEBP/PDF/TXT/DOCX/XLSX/PPTX. B
 
 ## Tài nguyên và giới hạn
 
-- Chỉ mount màn hình đang mở; game hủy requestAnimationFrame/listener khi rời màn hình.
+- Mã admin/lớp học/cài đặt và màn chơi tải riêng bằng React.lazy; chỉ mount màn hình đang mở; game hủy requestAnimationFrame/listener khi rời màn hình.
 - Reveal chạy một lần, disconnect observer; không có listener cuộn liên tục. Tôn trọng `prefers-reduced-motion`. Hiện dần là hiệu ứng giao diện, không tự làm giảm chi phí truy vấn.
-- Bài tải 20/lần với nút xem thêm; ảnh chỉ tải khi mở file và dùng lazy decoding. CSS `content-visibility` giúp bỏ qua render bài ngoài vùng xem.
+- Bài tải 20/lần qua class_posts khi phân trang hoặc sau đăng/gỡ bài, không đọc lại thành viên và Top; ảnh chỉ tải khi mở file và dùng lazy decoding. CSS `content-visibility` giúp bỏ qua render bài ngoài vùng xem.
 - Danh sách lớp tối đa 200, danh sách quản lý học sinh 200, sơ đồ lớp 300. Khi trung tâm vượt các mức này, bổ sung phân trang/tìm kiếm trước khi mở rộng.
 - Kết quả game vẫn một hàng tổng hợp/người/game, tối đa best+latest; tổng thời gian không mất khi thay kết quả.
 - Dữ liệu khóa và quan hệ có chỉ mục phục vụ membership và feed. Bảng lớp không có polling tự động; tải lại trang để nhận phân lớp mới từ admin.
@@ -107,3 +107,17 @@ Chỉ xóa vĩnh viễn bản ghi/file sau một quy trình dọn có rà soát;
 `PostComposer` chỉ mount cho admin và API vẫn kiểm tra admin. Layout form + preview riêng: preview là state client, link chỉ HTTP(S), text do React escape. Ảnh preview dùng object URL và revoke khi thay file/rời component; chỉ nút Đăng mới gọi upload/post. Học sinh chỉ thấy bài đã gửi. Không cần migration database cho thay đổi này.
 
 Lưới học sinh và form giáo viên dùng key khác nhau (`roster-...`, `composer-...`) khi đổi lớp. Không tái sử dụng cùng key cho các phần tử anh em khác loại: React có thể giữ DOM mồ côi của lớp trước. Các refresh bất đồng bộ cũng đối chiếu latestClassId trước khi ghi vào màn hình hiện tại.
+
+## Hiệu năng lớp học
+
+- Dùng danh sách lớp từ bootstrap, không gọi classes lần nữa khi vào lớp. Bootstrap đọc game/lớp song song sau xác thực.
+- Cache chi tiết lớp trong bộ nhớ App tối đa 15 giây theo user/class; xóa khi đổi tài khoản, bỏ cache sau thay đổi bài hoặc phân trang. Nút Làm mới lớp học đọc lại thành viên, Top và bài; dữ liệu không được cache công khai trên CDN.
+- API frontend gộp các GET giống nhau đang chờ, không giữ response lâu dài; POST xóa danh sách yêu cầu dùng chung. Server vẫn xác thực phiên và quyền lớp ở mỗi yêu cầu.
+- Truy vấn thành viên chỉ lấy điểm từ JSON best_play, không truyền toàn bộ snapshot game từ database. Top giữ cách tính điểm/thời gian và tối đa 10 người.
+- Ảnh mới lớn hơn 150 KB có bản xem trước WebP cạnh dài tối đa 960 px nếu trình duyệt hỗ trợ và bản mới nhỏ hơn. File gốc không đổi; thumbnail private lưu cạnh file có marker .previewable. trong storage_path, không cần migration schema. Ảnh cũ hoặc browser không hỗ trợ vẫn dùng bản gốc.
+- URL gốc/preview chỉ cấp sau kiểm tra quyền, hạn 5 phút; UI dùng lại tối đa 4 phút. Nếu preview lỗi, UI dùng lại ảnh gốc. Khi dọn file phải dọn cả đường dẫn gốc và đường dẫn gốc + .webp cho file có marker .previewable.
+- Upload tối đa 3 file song song; mỗi file tải gốc rồi preview. Chờ mọi upload kết thúc, chỉ publish nếu tất cả thành công. File upload bỏ dở vẫn cần quy trình dọn đã nêu ở trên.
+- Admin chỉ tải lịch sử khi mở tab Kết quả, tái sử dụng danh sách lớp bootstrap.
+- npm test build bundle riêng .test-dist với inlineDynamicImports cho JSDOM; dist production giữ code splitting. scripts/standalone.mjs cũng build bundle một file riêng để không phá bản HTML offline.
+
+Kiểm tra browser production: npm run build rồi node scripts/check-performance.mjs (cần Google Chrome). Script dùng asset production thật và chuyển đổi ảnh bằng canvas thật, nhưng giả lập API/Storage; không đo độ trễ Vercel/Supabase thực tế.

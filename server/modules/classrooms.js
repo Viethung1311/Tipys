@@ -66,7 +66,7 @@ export function classMembersView(rows) {
         0,
         ...stats
           .filter((s) => s.games?.game_code === 'falling_letters')
-          .map((s) => Number(s.best_play?.score || 0)),
+          .map((s) => Number(s.best_score ?? s.best_play?.score ?? 0)),
       ),
       total_active_seconds: stats.reduce((sum, s) => sum + Number(s.total_active_seconds || 0), 0),
     };
@@ -109,6 +109,16 @@ export function createClassrooms(db) {
     }
     return result.data;
   };
+  const postsQuery = (input) =>
+    db
+      .from('class_posts')
+      .select(
+        'post_id,title,body,link,created_at,class_attachments(attachment_id,name,mime_type,size_bytes)',
+      )
+      .eq('class_id', input.classId)
+      .is('archived_at', null)
+      .order('created_at', { ascending: false })
+      .range(input.offset || 0, (input.offset || 0) + 19);
   return {
     async classes(profile) {
       if (profile.role === 'admin') {
@@ -229,28 +239,26 @@ export function createClassrooms(db) {
       fail(error);
       return data;
     },
+    async classPosts(profile, input) {
+      await access(profile, input.classId);
+      const posts = await postsQuery(input);
+      fail(posts.error);
+      return { posts: posts.data };
+    },
     async classroom(profile, input) {
       const classroom = await access(profile, input.classId);
       const [members, posts] = await Promise.all([
         db
           .from('class_members')
           .select(
-            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color),player_game_stats(total_active_seconds,best_play,games(game_code)))',
+            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color),player_game_stats(total_active_seconds,best_score:best_play->score,games(game_code)))',
           )
           .eq('class_id', input.classId)
           .eq('is_active', true)
           .eq('profiles.is_active', true)
           .order('joined_at')
           .limit(300),
-        db
-          .from('class_posts')
-          .select(
-            'post_id,title,body,link,created_at,class_attachments(attachment_id,name,mime_type,size_bytes)',
-          )
-          .eq('class_id', input.classId)
-          .is('archived_at', null)
-          .order('created_at', { ascending: false })
-          .range(input.offset || 0, (input.offset || 0) + 19),
+        postsQuery(input),
       ]);
       fail(members.error);
       fail(posts.error);
@@ -292,9 +300,15 @@ export function createClassrooms(db) {
       await access(profile, input.classId, true);
       const file = validateFile(input),
         id = randomUUID(),
-        path = `${input.classId}/${id}.${file.extension}`;
+        path = `${input.classId}/${id}${input.preview === true && file.mime.startsWith('image/') ? '.previewable' : ''}.${file.extension}`;
       const { data, error } = await db.storage.from(BUCKET).createSignedUploadUrl(path);
       fail(error, 'Chưa chuẩn bị được tải file.');
+      let previewSignedUrl;
+      if (path.includes('.previewable.')) {
+        const preview = await db.storage.from(BUCKET).createSignedUploadUrl(path + '.webp');
+        fail(preview.error, 'Chưa chuẩn bị được ảnh xem trước.');
+        previewSignedUrl = preview.data.signedUrl;
+      }
       const saved = await db.from('class_attachments').insert({
         attachment_id: id,
         class_id: input.classId,
@@ -305,7 +319,7 @@ export function createClassrooms(db) {
         size_bytes: file.size,
       });
       fail(saved.error);
-      return { attachmentId: id, signedUrl: data.signedUrl };
+      return { attachmentId: id, signedUrl: data.signedUrl, previewSignedUrl };
     },
     async classPost(profile, input) {
       await access(profile, input.classId, true);
@@ -345,11 +359,20 @@ export function createClassrooms(db) {
       fail(error, 'Không tìm thấy tài liệu.');
       await access(profile, data.class_id);
       if (data.class_posts.archived_at) throw new ApiError(404, 'Bài đã được gỡ.');
-      const signed = await db.storage.from(BUCKET).createSignedUrl(data.storage_path, 300, {
-        download: data.mime_type.startsWith('image/') ? false : data.name,
-      });
+      const [signed, preview] = await Promise.all([
+        db.storage.from(BUCKET).createSignedUrl(data.storage_path, 300, {
+          download: data.mime_type.startsWith('image/') ? false : data.name,
+        }),
+        data.storage_path.includes('.previewable.') && data.mime_type.startsWith('image/')
+          ? db.storage.from(BUCKET).createSignedUrl(data.storage_path + '.webp', 300)
+          : null,
+      ]);
       fail(signed.error);
-      return { url: signed.data.signedUrl, mime: data.mime_type };
+      return {
+        url: signed.data.signedUrl,
+        previewUrl: preview?.error ? undefined : preview?.data?.signedUrl,
+        mime: data.mime_type,
+      };
     },
   };
 }

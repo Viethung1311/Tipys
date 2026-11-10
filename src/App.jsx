@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Keyboard, Volume2, VolumeX } from 'lucide-react';
 import Account from './components/Account.jsx';
 import AudioSettings from './components/AudioSettings.jsx';
 import HomePage from './screens/HomePage.jsx';
 import GameLibrary from './screens/GameLibrary.jsx';
-import TypingSetup from './features/typing/TypingSetup.jsx';
-import TypingGame from './features/typing/TypingGame.jsx';
-import ClassroomPage from './features/classroom/ClassroomPage.jsx';
+const TypingSetup = lazy(() => import('./features/typing/TypingSetup.jsx'));
+const TypingGame = lazy(() => import('./features/typing/TypingGame.jsx'));
+const ClassroomPage = lazy(() => import('./features/classroom/ClassroomPage.jsx'));
+import Loading from './components/Loading.jsx';
 import Reveal from './shared/Reveal.jsx';
 import useGameAudio from './hooks/useGameAudio.js';
 import { LEVELS, load, save, readSettings, recordKey } from './game/config.js';
@@ -27,6 +28,8 @@ export default function App() {
   const [user, setUser] = useState(null),
     [catalog, setCatalog] = useState(null),
     [classes, setClasses] = useState([]);
+  const classroomCache = useRef(new Map());
+  useEffect(() => classroomCache.current.clear(), [user?.user_id]);
   const [myAvatar, setMyAvatar] = useState(null);
   useEffect(() => setMyAvatar(null), [user?.user_id]);
   const [bootstrapReady, setBootstrapReady] = useState(false);
@@ -125,57 +128,60 @@ export default function App() {
           onAvatarChanged={(value) => setMyAvatar({ userId: user?.user_id, value })}
         />
       </nav>
-      {screen === 'classroom' ? (
-        <Reveal key={user?.user_id || 'guest'}>
-          {canClassroom ? (
-            <ClassroomPage
-              user={user}
-              onMembershipChange={setClasses}
-              avatarOverride={myAvatar?.userId === user.user_id ? myAvatar.value : null}
+      <Suspense fallback={<Loading label="Đang mở trang…" />}>
+        {screen === 'classroom' ? (
+          <Reveal key={user?.user_id || 'guest'}>
+            {canClassroom ? (
+              <ClassroomPage
+                user={user}
+                classes={classes}
+                cache={classroomCache.current}
+                avatarOverride={myAvatar?.userId === user.user_id ? myAvatar.value : null}
+              />
+            ) : (
+              <main className="classroom-page">
+                <section className="panel">
+                  <h1>Lớp học</h1>
+                  <p>Bạn cần đăng nhập và được giáo viên thêm vào lớp.</p>
+                </section>
+              </main>
+            )}
+          </Reveal>
+        ) : screen === 'home' ? (
+          <Reveal key="home">
+            <HomePage
+              ready={bootstrapReady}
+              onPlay={() => navigate('library')}
+              onClassroom={() => navigate('classroom')}
+              canClassroom={canClassroom}
             />
-          ) : (
-            <main className="classroom-page">
-              <section className="panel">
-                <h1>Lớp học</h1>
-                <p>Bạn cần đăng nhập và được giáo viên thêm vào lớp.</p>
-              </section>
-            </main>
-          )}
-        </Reveal>
-      ) : screen === 'home' ? (
-        <Reveal key="home">
-          <HomePage
-            ready={bootstrapReady}
-            onPlay={() => navigate('library')}
-            onClassroom={() => navigate('classroom')}
-            canClassroom={canClassroom}
+          </Reveal>
+        ) : screen === 'library' ? (
+          <Reveal key="library">
+            <GameLibrary catalog={catalog} onChoose={navigate} onHome={() => navigate('home')} />
+          </Reveal>
+        ) : screen === 'setup' ? (
+          <Reveal key="setup">
+            <TypingSetup
+              settings={settings}
+              setSettings={setSettings}
+              onHome={() => navigate('library')}
+              onStart={start}
+            />
+          </Reveal>
+        ) : (
+          <TypingGame
+            settings={runSettings}
+            user={user}
+            onHome={() => navigate('home')}
+            onSetup={() => navigate('setup')}
+            onFinish={finish}
+            sound={play}
+            audioOpen={audioOpen || accountOpen}
+            onPlayingChange={setGamePlaying}
           />
-        </Reveal>
-      ) : screen === 'library' ? (
-        <Reveal key="library">
-          <GameLibrary catalog={catalog} onChoose={navigate} onHome={() => navigate('home')} />
-        </Reveal>
-      ) : screen === 'setup' ? (
-        <Reveal key="setup">
-          <TypingSetup
-            settings={settings}
-            setSettings={setSettings}
-            onHome={() => navigate('library')}
-            onStart={start}
-          />
-        </Reveal>
-      ) : (
-        <TypingGame
-          settings={runSettings}
-          user={user}
-          onHome={() => navigate('home')}
-          onSetup={() => navigate('setup')}
-          onFinish={finish}
-          sound={play}
-          audioOpen={audioOpen || accountOpen}
-          onPlayingChange={setGamePlaying}
-        />
-      )}
+        )}
+      </Suspense>
       {audioOpen && (
         <AudioSettings
           preferences={preferences}

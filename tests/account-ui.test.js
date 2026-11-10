@@ -44,10 +44,10 @@ test('child account signup needs no email and accepts a one-character PIN; histo
     else value = { configured: true, user, games: [] };
     return { ok: true, json: async () => value };
   };
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((name) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((name) =>
     name.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   const button = (text) =>
     [...d.querySelectorAll('button')].find((b) => b.textContent.includes(text));
   const click = async (text) => {

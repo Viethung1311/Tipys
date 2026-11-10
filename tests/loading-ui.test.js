@@ -30,10 +30,10 @@ test('animated loader stays visible while bootstrap is pending and disappears on
                 json: async () => ({ configured: false, user: null, games: [] }),
               });
       });
-    const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+    const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>
       x.endsWith('.js'),
     );
-    w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+    w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
     try {
       await until(() => finish && d.querySelector('.loading-fullscreen'));
       assert.equal(d.querySelector('.loading-letters').textContent.replace('\u00a0', ' '), 'A');

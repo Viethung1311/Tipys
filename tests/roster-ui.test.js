@@ -87,7 +87,12 @@ function setup({ fail = false } = {}) {
       });
     }
     const data = {
-      bootstrap: { configured: true, user: { role: 'admin', full_name: 'Giáo viên' }, games: [] },
+      bootstrap: {
+        configured: true,
+        user: { role: 'admin', full_name: 'Giáo viên' },
+        games: [],
+        classes: [classA, classB],
+      },
       students: { students },
       history: { history: [] },
       classes: { classes: [classA, classB] },
@@ -95,10 +100,10 @@ function setup({ fail = false } = {}) {
     };
     return { ok: true, json: async () => data[action] };
   };
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((n) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((n) =>
     n.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   const button = (name) =>
     [...d.querySelectorAll('button')].find((b) => b.textContent.trim() === name);
   const select = async () => {

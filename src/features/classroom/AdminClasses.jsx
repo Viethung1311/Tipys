@@ -3,8 +3,8 @@ import { api } from '../../game/backend.js';
 import Loading from '../../components/Loading.jsx';
 import RosterEditor from './RosterEditor.jsx';
 /** Admin owns roster changes. Students have no enrollment write action. */
-export default function AdminClasses({ students, onChanged, onMembersChanged }) {
-  const [classes, setClasses] = useState([]),
+export default function AdminClasses({ students, initialClasses, onChanged, onMembersChanged }) {
+  const [classes, setClasses] = useState(initialClasses || []),
     [selected, setSelected] = useState(''),
     [busy, setBusy] = useState(true),
     [error, setError] = useState(''),
@@ -16,6 +16,10 @@ export default function AdminClasses({ students, onChanged, onMembersChanged }) 
     setClasses(data.classes);
   };
   useEffect(() => {
+    if (initialClasses) {
+      setBusy(false);
+      return;
+    }
     load()
       .catch((e) => setError(e.message))
       .finally(() => setBusy(false));

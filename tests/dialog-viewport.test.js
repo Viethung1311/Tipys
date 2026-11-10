@@ -41,10 +41,10 @@ test('account and audio dialogs track the visible viewport and remove listeners 
     ok: true,
     json: async () => ({ configured: true, user: null, games: [], classes: [] }),
   });
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((x) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>
     x.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   const click = async (text) => {
     await until(() => [...d.querySelectorAll('button')].some((b) => b.textContent.includes(text)));
     [...d.querySelectorAll('button')].find((b) => b.textContent.includes(text)).click();

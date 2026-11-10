@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
-import AdminPage from './screens/AdminPage.jsx';
+import Loading from './components/Loading.jsx';
+const AdminPage = lazy(() => import('./screens/AdminPage.jsx'));
 import './index.css';
 import './styles/loading.css';
 import './styles/classroom.css';
@@ -11,6 +12,8 @@ import './styles/responsive.css';
 import './styles/classroom-design.css';
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {window.location.pathname.startsWith('/admin') ? <AdminPage /> : <App />}
+    <Suspense fallback={<Loading fullscreen label="Đang mở trang…" />}>
+      {window.location.pathname.startsWith('/admin') ? <AdminPage /> : <App />}
+    </Suspense>
   </React.StrictMode>,
 );

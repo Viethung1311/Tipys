@@ -7,3 +7,6 @@ playwright-report/
 .env
 .env.*
 !.env.example
+
+.test-dist/
+.standalone-dist/

@@ -36,10 +36,17 @@ const detail = {
       body: 'Nội dung bài học',
       link: 'https://example.com/lesson',
       created_at: '2026-11-09T10:00:00Z',
-      class_attachments: [],
+      class_attachments: [
+        { attachment_id: 'file-one', name: 'anh.jpg', mime_type: 'image/jpeg', size_bytes: 500000 },
+      ],
     },
   ],
 };
+detail.posts = Array.from({ length: 20 }, (_, index) => ({
+  ...detail.posts[0],
+  post_id: 'post-' + index,
+}));
+
 test('member sees square roster and class top, then changes avatar through account', async () => {
   const errors = [],
     requests = [];
@@ -61,15 +68,20 @@ test('member sees square roster and class top, then changes avatar through accou
       bootstrap: { configured: true, user: child, games: [], classes: [classroom] },
       classes: { classes: [classroom] },
       classroom: detail,
+      class_posts: { posts: [{ ...detail.posts[0], post_id: 'older-post', title: 'Bài cũ hơn' }] },
+      class_file: {
+        url: 'https://files.test/original.jpg',
+        previewUrl: 'https://files.test/preview.webp',
+      },
       avatar: { avatar: detail.members[0].avatar },
       avatar_save: { data: { animal: 'dragon', accessory: 'book', color: 'sky' } },
     };
     return { ok: true, json: async () => values[action] };
   };
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((n) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((n) =>
     n.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   const button = (text) =>
     [...d.querySelectorAll('button')].find((b) => b.textContent.includes(text));
   try {
@@ -82,6 +94,38 @@ test('member sees square roster and class top, then changes avatar through accou
     assert.equal(d.querySelectorAll('.class-desks > li').length, 1);
     assert.match(d.querySelector('.class-achievements').textContent, /Top thành tích/);
     assert.equal(d.querySelector('.avatar-editor'), null);
+    assert.equal(
+      requests.filter((r) => typeof r === 'string' && r.includes('action=classes&')).length,
+      0,
+    );
+    button('📎 anh.jpg').click();
+    await until(() => d.querySelector('.class-attachment img'));
+    assert.equal(d.querySelector('.class-attachment img').src, 'https://files.test/preview.webp');
+    button('📎 anh.jpg').click();
+    await sleep(20);
+    assert.equal(
+      requests.filter((r) => typeof r === 'string' && r.includes('action=class_file')).length,
+      1,
+    );
+    button('Trang chủ').click();
+    await until(() => d.querySelector('.welcome-hero'));
+    button('Lớp học').click();
+    await until(() => d.querySelector('.class-desks'));
+    assert.equal(
+      requests.filter((r) => typeof r === 'string' && r.includes('action=classroom')).length,
+      1,
+    );
+    button('Xem bài cũ hơn').click();
+    await until(() => d.querySelectorAll('.class-post').length === 21);
+    assert.equal(
+      requests.filter((r) => typeof r === 'string' && r.includes('action=classroom')).length,
+      1,
+    );
+    assert.ok(
+      requests.some(
+        (r) => typeof r === 'string' && r.includes('action=class_posts') && r.includes('offset=20'),
+      ),
+    );
     button('Tài khoản · Bạn An').click();
     await until(() => button('Nhân vật'));
     button('Nhân vật').click();
@@ -115,10 +159,10 @@ test('guest cannot activate classroom navigation', async () => {
     ok: true,
     json: async () => ({ configured: true, user: null, games: [], classes: [] }),
   });
-  const bundle = readdirSync(new URL('../dist/assets/', import.meta.url)).find((n) =>
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((n) =>
     n.endsWith('.js'),
   );
-  w.eval(readFileSync(new URL('../dist/assets/' + bundle, import.meta.url), 'utf8'));
+  w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   try {
     await until(() => d.querySelector('.main-nav'));
     assert.equal(

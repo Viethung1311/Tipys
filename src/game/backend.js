@@ -1,4 +1,18 @@
-export async function api(action, body, params = {}) {
+const pendingReads = new Map();
+export function api(action, body, params = {}) {
+  if (body) {
+    pendingReads.clear();
+    return request(action, body, params);
+  }
+  const key = new URLSearchParams({ action, ...params }).toString();
+  if (pendingReads.has(key)) return pendingReads.get(key);
+  const pending = request(action, body, params).finally(() => {
+    if (pendingReads.get(key) === pending) pendingReads.delete(key);
+  });
+  pendingReads.set(key, pending);
+  return pending;
+}
+async function request(action, body, params) {
   const response = await fetch(
     body ? '/api/tipy' : `/api/tipy?${new URLSearchParams({ action, ...params })}`,
     {
