@@ -1,15 +1,16 @@
 import { resultLabel, resultType, practiceTime } from '../game/results.js';
 export default function ResultsTable({ rows }) {
   return (
-    <div className="table-scroll">
+    <div className="table-scroll" role="region" aria-label="Kết quả luyện tập" tabIndex={0}>
       <table>
+        <caption className="sr-only">Kết quả cao nhất và gần nhất đang được giữ lại</caption>
         <thead>
           <tr>
             {[
               'Học sinh',
               'Trò chơi',
               'Kết quả giữ lại',
-              'Điểm',
+              'Điểm / chính xác',
               'Thời gian lượt',
               'Tổng luyện tập',
               'Lý do kết thúc',
@@ -25,7 +26,7 @@ export default function ResultsTable({ rows }) {
               <td>{row.profiles.full_name}</td>
               <td>{row.games.game_name}</td>
               <td>{resultType(row.result_type)}</td>
-              <td>{row.score}</td>
+              <td>{row.games.game_code === 'keyboard_quest' ? `${row.score}%` : row.score}</td>
               <td>{practiceTime(row.active_seconds)}</td>
               <td>{practiceTime(row.total_active_seconds)}</td>
               <td>{resultLabel(row)}</td>
@@ -36,7 +37,7 @@ export default function ResultsTable({ rows }) {
           ))}
         </tbody>
       </table>
-      {!rows.length && <p>Chưa có lượt chơi nào. Mình bắt đầu nhé!</p>}
+      {!rows.length && <p className="empty-state">Chưa có kết quả được lưu.</p>}
     </div>
   );
 }

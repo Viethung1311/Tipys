@@ -165,7 +165,7 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
             <p>Cùng học Typing, khám phá Scratch và tạo nên những giờ học vui nhộn.</p>
           </div>
           <a
-            className="primary"
+            className="tipy-button tipy-button--learn tipy-button--secondary"
             href="https://www.google.com/maps/search/?api=1&query=68+Ph%E1%BA%A1m+T%E1%BB%A9%2C+C%E1%BA%A9m+L%E1%BB%87%2C+%C4%90%C3%A0+N%E1%BA%B5ng"
             target="_blank"
             rel="noopener noreferrer"

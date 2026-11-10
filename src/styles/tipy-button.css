@@ -50,7 +50,7 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.tipy-button:hover:not(:disabled) {
+.tipy-button:not(.tipy-button--secondary):hover:not(:disabled) {
   filter: none;
   background: var(--button-end);
 }

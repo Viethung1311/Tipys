@@ -3,6 +3,18 @@
   --tipy-surface: #fffaf2;
   --tipy-surface-raised: #ffffff;
   --tipy-text: #402b20;
+  --tipy-text-muted: #655548;
+  --tipy-border: #d8cbbd;
+  --tipy-learn-soft: #fff0df;
+  --tipy-play-soft: #e4f4ef;
+  --tipy-danger-soft: #fff0ed;
+  --tipy-content-size: 19px;
+  --tipy-small-size: 16px;
+  --tipy-heading-size: clamp(28px, 4vw, 36px);
+  --tipy-section-size: 28px;
+  --tipy-card-radius: 24px;
+  --tipy-input-radius: 14px;
+  --tipy-card-shadow: 0 6px 20px #402b200a;
   --tipy-on-action: #ffffff;
   --tipy-learn: #c84c00;
   --tipy-learn-end: #bc4100;

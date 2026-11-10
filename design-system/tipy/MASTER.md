@@ -125,3 +125,12 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 Danh mục duy nhất src/characters/catalog.js dùng 36 PNG nguyên bản trong public/characters; không dùng emoji con giáp. Avatar cạnh tài khoản là nút 56 px, tên truy cập “Chọn nhân vật”. Hộp chọn dùng radio, ảnh contain đúng tỉ lệ, nhãn ngắn và dấu “Đang chọn”, TipyButton xác nhận. Khách được xem, đăng nhập trước khi lưu. Dùng chung Avatar cho header, hồ sơ, lớp và game; ảnh danh mục chỉ tải khi mở hộp, dùng lazy.
 
 Modal chọn nhân vật dùng header cố định trong khung với nút X 48 × 48 px; chỉ phần nội dung cuộn, ẩn thanh cuộn nhưng giữ chuột/cảm ứng/bàn phím. X và Esc đóng, bỏ bản chọn chưa lưu. Nút lưu nằm trong luồng sau danh sách, không sticky/che hàng cuối; có đệm cuối 24–32 px.
+
+## Áp dụng toàn website
+
+- Font `TIPY Nunito` local nay dùng cho toàn website, thay phạm vi thử nghiệm chỉ trên nút. Nội dung học sinh 19 px, thông tin phụ 16 px, tiêu đề 28–36 px; quản trị dùng 16/14 px để bảng gọn nhưng vẫn dễ đọc.
+- Token nền, chữ phụ, viền, nền cam/xanh ngọc nhạt, bo góc và bóng dùng chung ở `src/styles/tipy-tokens.css`. `src/styles/tipy-ui.css` áp dụng các kiểu UI chung theo tên component/màn hình; các CSS cũ giữ bố cục chuyên biệt. Không đặt quy tắc rộng lên canvas, ảnh hay phần chữ rơi.
+- Nút thao tác dùng TipyButton ở cả quản trị, quản lý lớp, gửi bài và mở file. Quản trị kế thừa token nút với chiều cao 48 px, chữ 16 px; nút chính học sinh vẫn 64 px. Nút phụ giữ nền kem khi hover để không mất tương phản. Tab có trạng thái hiện tại và focus; form 48 px, nhãn rõ, bảng chỉ cuộn trong vùng riêng.
+- Điện thoại: độ khó xếp một cột; bàn phím chọn phím có vùng cuộn riêng và phím 48 px. Bố cục/luật/vị trí chữ trong vùng chơi giữ nguyên. Sơ đồ lớp không cắt tên học sinh.
+- Tài khoản chỉ còn Tài khoản/Nhân vật; Lịch sử chơi thuộc mục riêng trong quản trị, chọn học sinh rồi đọc đúng kết quả cao nhất/gần nhất. Bảng ghi rõ giới hạn, không giả dựng dòng lịch sử; kết quả keyboard_quest hiển thị phần trăm chính xác.
+- Kiểm tra giao diện bằng `node scripts/check-site-ui.mjs` sau build: trang chủ, kho game, setup/chơi/tạm dừng, bản đồ/bài/tiến bộ, lớp/top, tài khoản/ảnh/âm thanh và toàn bộ tab quản trị, gồm dữ liệu trống, lỗi và thử lại. Dữ liệu trong kịch bản này là giả lập, không ghi vào Supabase thật.

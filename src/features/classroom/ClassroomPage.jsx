@@ -6,6 +6,8 @@ import Avatar from './Avatar.jsx';
 import Attachment from './Attachment.jsx';
 import PostComposer from './PostComposer.jsx';
 import ClassAchievements from './ClassAchievements.jsx';
+import TipyButton from '../../components/TipyButton.jsx';
+import { RotateCcw, BookOpen } from 'lucide-react';
 const ClassQuestReport = lazy(() => import('./ClassQuestReport.jsx'));
 export default function ClassroomPage({ user, classes: availableClasses, cache, avatarOverride }) {
   const classes = availableClasses.filter((c) => !c.archived_at);
@@ -100,8 +102,9 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
         </section>
       ) : (
         <>
-          <button
-            className="secondary"
+          <TipyButton
+            emphasis="secondary"
+            icon={RotateCcw}
             disabled={saving}
             onClick={() =>
               run(async () => {
@@ -115,7 +118,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
             }
           >
             Làm mới lớp học
-          </button>
+          </TipyButton>
           <label className="class-select">
             Chọn lớp
             <select value={classId} onChange={(e) => setClassId(e.target.value)}>
@@ -225,8 +228,9 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
                 </Reveal>
               ))}
               {hasMore && (
-                <button
-                  className="secondary"
+                <TipyButton
+                  emphasis="secondary"
+                  icon={BookOpen}
                   disabled={saving}
                   onClick={() =>
                     run(async () => {
@@ -245,7 +249,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
                   }
                 >
                   Xem bài cũ hơn
-                </button>
+                </TipyButton>
               )}
             </>
           )}

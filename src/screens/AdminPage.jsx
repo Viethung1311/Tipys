@@ -4,7 +4,9 @@ import { LEVELS } from '../game/config.js';
 import { practiceTime } from '../game/results.js';
 import Loading from '../components/Loading.jsx';
 import AdminClasses from '../features/classroom/AdminClasses.jsx';
-import ResultsTable from '../components/ResultsTable.jsx';
+import StudentHistory from '../features/admin/StudentHistory.jsx';
+import TipyButton from '../components/TipyButton.jsx';
+import { History, LogIn, LogOut, Save, LockKeyhole } from 'lucide-react';
 import AccountPoints from '../components/AccountPoints.jsx';
 const fields = [
   ['fall', 'Thời gian rơi ban đầu (giây)', 1, 30, 0.1],
@@ -22,8 +24,7 @@ export default function AdminPage() {
     [notice, setNotice] = useState('');
   const [tab, setTab] = useState('students'),
     [students, setStudents] = useState([]),
-    [history, setHistory] = useState([]),
-    [historyLoading, setHistoryLoading] = useState(false),
+    [historyStudentId, setHistoryStudentId] = useState(''),
     [classes, setClasses] = useState([]),
     [games, setGames] = useState([]),
     [game, setGame] = useState(null),
@@ -50,24 +51,6 @@ export default function AdminPage() {
       setLoading(false);
     });
   }, []);
-  useEffect(() => {
-    if (user?.role !== 'admin' || tab !== 'results') return;
-    let live = true;
-    setHistoryLoading(true);
-    api('history')
-      .then((data) => {
-        if (live) setHistory(data.history);
-      })
-      .catch((error) => {
-        if (live) setError(error.message);
-      })
-      .finally(() => {
-        if (live) setHistoryLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [user?.user_id, tab]);
   const run = async (action) => {
     setBusy(true);
     setError('');
@@ -142,8 +125,9 @@ export default function AdminPage() {
             {user ? (
               <>
                 <p>Tài khoản hiện tại không có quyền quản trị.</p>
-                <button
-                  className="secondary"
+                <TipyButton
+                  emphasis="secondary"
+                  icon={LogOut}
                   disabled={busy}
                   onClick={() =>
                     run(async () => {
@@ -153,7 +137,7 @@ export default function AdminPage() {
                   }
                 >
                   Đổi tài khoản
-                </button>
+                </TipyButton>
               </>
             ) : (
               <form className="account-form" onSubmit={login}>
@@ -165,9 +149,9 @@ export default function AdminPage() {
                   Mật khẩu
                   <input name="password" type="password" autoComplete="current-password" required />
                 </label>
-                <button className="primary" disabled={busy || !configured}>
+                <TipyButton type="submit" icon={LogIn} disabled={busy || !configured}>
                   {busy ? 'Đang đăng nhập…' : 'Đăng nhập admin'}
-                </button>
+                </TipyButton>
               </form>
             )}
           </section>
@@ -179,8 +163,9 @@ export default function AdminPage() {
                 <h1>Quản lý lớp học & trò chơi</h1>
                 <p>Thời gian luyện là thời gian thực chơi, không tính đếm ngược và tạm dừng.</p>
               </div>
-              <button
-                className="secondary"
+              <TipyButton
+                emphasis="secondary"
+                icon={LogOut}
                 disabled={busy}
                 onClick={() =>
                   run(async () => {
@@ -190,7 +175,7 @@ export default function AdminPage() {
                 }
               >
                 Đăng xuất
-              </button>
+              </TipyButton>
             </div>
             <div className="admin-metrics">
               <div>
@@ -208,16 +193,17 @@ export default function AdminPage() {
                 <strong>{students.reduce((sum, s) => sum + s.total_plays, 0)}</strong>
               </div>
             </div>
-            <nav className="admin-tabs">
+            <nav className="admin-tabs" aria-label="Quản trị">
               {[
                 ['classes', 'Lớp học'],
                 ['students', 'Học sinh & thời gian'],
-                ['results', 'Cao nhất & gần nhất'],
+                ['results', 'Lịch sử chơi'],
                 ['games', 'Tốc độ & độ khó'],
               ].map(([value, label]) => (
                 <button
                   key={value}
                   className={tab === value ? 'active' : ''}
+                  aria-current={tab === value ? 'page' : undefined}
                   onClick={() => setTab(value)}
                 >
                   {label}
@@ -242,7 +228,13 @@ export default function AdminPage() {
                   Sắp xếp theo tổng thời gian luyện. Kết quả cũ được thay thế, tổng thời gian vẫn
                   cộng dồn.
                 </p>
-                <div className="table-scroll">
+                {!students.length && <p className="empty-state">Chưa có học sinh.</p>}
+                <div
+                  className="table-scroll"
+                  role="region"
+                  aria-label="Danh sách học sinh"
+                  tabIndex={0}
+                >
                   <table>
                     <thead>
                       <tr>
@@ -274,8 +266,19 @@ export default function AdminPage() {
                           <td>{student.total_plays}</td>
                           <td>{student.is_active ? 'Đang mở' : 'Đã khóa'}</td>
                           <td>
-                            <button
-                              className="secondary"
+                            <TipyButton
+                              emphasis="secondary"
+                              icon={History}
+                              onClick={() => {
+                                setHistoryStudentId(student.user_id);
+                                setTab('results');
+                              }}
+                            >
+                              Xem kết quả
+                            </TipyButton>
+                            <TipyButton
+                              emphasis="secondary"
+                              icon={LockKeyhole}
                               disabled={busy}
                               onClick={() =>
                                 run(async () => {
@@ -288,7 +291,7 @@ export default function AdminPage() {
                               }
                             >
                               {student.is_active ? 'Khóa tài khoản' : 'Mở tài khoản'}
-                            </button>
+                            </TipyButton>
                           </td>
                         </tr>
                       ))}
@@ -298,18 +301,11 @@ export default function AdminPage() {
               </section>
             )}
             {tab === 'results' && (
-              <section className="panel">
-                <h2>Kết quả giữ lại</h2>
-                <p className="muted">
-                  Mỗi học sinh/game chỉ hiển thị cao nhất và gần nhất. Nếu trùng một lượt, chỉ có
-                  một dòng.
-                </p>
-                {historyLoading ? (
-                  <Loading label="Đang tải kết quả…" />
-                ) : (
-                  <ResultsTable rows={history} />
-                )}
-              </section>
+              <StudentHistory
+                students={students}
+                studentId={historyStudentId}
+                onStudentChange={setHistoryStudentId}
+              />
             )}
             {tab === 'games' && (
               <section className="panel">
@@ -392,9 +388,9 @@ export default function AdminPage() {
                     ) : (
                       <p>Cấu hình riêng của game này được giữ nguyên.</p>
                     )}
-                    <button className="primary" disabled={busy} onClick={save}>
+                    <TipyButton icon={Save} disabled={busy} onClick={save}>
                       Lưu cấu hình
-                    </button>
+                    </TipyButton>
                   </>
                 )}
               </section>

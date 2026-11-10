@@ -116,7 +116,9 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
       if (req.method === 'GET' && action === 'avatar')
         return res.status(200).json({ avatar: await backend.avatar(profile) });
       if (req.method === 'GET' && action === 'history')
-        return res.status(200).json({ history: await backend.history(profile) });
+        return res.status(200).json({
+          history: await backend.history(profile, { userId: req.query?.userId }),
+        });
       if (req.method === 'GET' && action === 'students')
         return res.status(200).json({ students: await backend.students(profile) });
       if (req.method === 'POST' && action === 'logout') {

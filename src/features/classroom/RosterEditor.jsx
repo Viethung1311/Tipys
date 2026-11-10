@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
+import TipyButton from '../../components/TipyButton.jsx';
+import { UserPlus, UserMinus } from 'lucide-react';
 
 function SelectAll({ checked, mixed, disabled, onChange }) {
   const input = useRef(null);
@@ -7,14 +9,16 @@ function SelectAll({ checked, mixed, disabled, onChange }) {
     input.current.indeterminate = mixed;
   }, [mixed]);
   return (
-    <input
-      ref={input}
-      type="checkbox"
-      aria-label="Chọn tất cả học sinh đang hiển thị"
-      checked={checked}
-      disabled={disabled}
-      onChange={onChange}
-    />
+    <label className="checkbox-target">
+      <input
+        ref={input}
+        type="checkbox"
+        aria-label="Chọn tất cả học sinh đang hiển thị"
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+      />
+    </label>
   );
 }
 
@@ -160,20 +164,21 @@ export default function RosterEditor({ classId, className, students, onMembersCh
         <span>
           Đã chọn <b>{selected.size}</b> bạn
         </span>
-        <button
-          className="primary"
+        <TipyButton
+          icon={UserPlus}
           disabled={locked || !additions.length}
           onClick={() => save(true)}
         >
           Thêm vào lớp ({additions.length})
-        </button>
-        <button
-          className="secondary"
+        </TipyButton>
+        <TipyButton
+          emphasis="secondary"
+          icon={UserMinus}
           disabled={locked || !removals.length}
           onClick={() => save(false)}
         >
           Bỏ khỏi lớp ({removals.length})
-        </button>
+        </TipyButton>
         <button
           className="text-button"
           disabled={locked || !selected.size}
@@ -197,7 +202,7 @@ export default function RosterEditor({ classId, className, students, onMembersCh
           {notice}
         </p>
       )}
-      <div className="table-scroll">
+      <div className="table-scroll" role="region" aria-label="Thành viên lớp" tabIndex={0}>
         <table>
           <thead>
             <tr>
@@ -223,13 +228,15 @@ export default function RosterEditor({ classId, className, students, onMembersCh
                   className={selected.has(student.user_id) ? 'roster-selected' : ''}
                 >
                   <td>
-                    <input
-                      type="checkbox"
-                      aria-label={`Chọn ${student.full_name} (${student.username})`}
-                      checked={selected.has(student.user_id)}
-                      disabled={locked || !canSelect(student)}
-                      onChange={() => toggle(student.user_id)}
-                    />
+                    <label className="checkbox-target">
+                      <input
+                        type="checkbox"
+                        aria-label={`Chọn ${student.full_name} (${student.username})`}
+                        checked={selected.has(student.user_id)}
+                        disabled={locked || !canSelect(student)}
+                        onChange={() => toggle(student.user_id)}
+                      />
+                    </label>
                   </td>
                   <td>
                     {student.full_name}

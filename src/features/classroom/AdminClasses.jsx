@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { api } from '../../game/backend.js';
 import Loading from '../../components/Loading.jsx';
 import RosterEditor from './RosterEditor.jsx';
+import TipyButton from '../../components/TipyButton.jsx';
+import { Plus, Save, Archive } from 'lucide-react';
 /** Admin owns roster changes. Students have no enrollment write action. */
 export default function AdminClasses({ students, initialClasses, onChanged, onMembersChanged }) {
   const [classes, setClasses] = useState(initialClasses || []),
@@ -63,9 +65,9 @@ export default function AdminClasses({ students, initialClasses, onChanged, onMe
             placeholder="Ví dụ: STEM 3A"
           />
         </label>
-        <button className="primary" disabled={busy}>
+        <TipyButton type="submit" icon={Plus} disabled={busy}>
           Tạo lớp mới
-        </button>
+        </TipyButton>
       </form>
       <label className="class-select">
         Chọn lớp để quản lý
@@ -98,12 +100,13 @@ export default function AdminClasses({ students, initialClasses, onChanged, onMe
               Đổi tên lớp
               <input name="name" required maxLength={100} defaultValue={current.name} />
             </label>
-            <button className="secondary" disabled={busy}>
+            <TipyButton type="submit" emphasis="secondary" icon={Save} disabled={busy}>
               Lưu tên
-            </button>
+            </TipyButton>
           </form>
-          <button
-            className="secondary"
+          <TipyButton
+            emphasis="secondary"
+            icon={Archive}
             disabled={busy}
             onClick={() =>
               run(async () => {
@@ -114,7 +117,7 @@ export default function AdminClasses({ students, initialClasses, onChanged, onMe
             }
           >
             {current.archived_at ? 'Khôi phục lớp' : 'Xóa lớp (có thể khôi phục)'}
-          </button>
+          </TipyButton>
           <p className="muted">
             Xóa sẽ ẩn lớp với học sinh; dữ liệu và bài đăng được giữ để khôi phục.
           </p>

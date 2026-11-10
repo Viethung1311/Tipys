@@ -1,0 +1,861 @@
+/* Shared UI primitives. Arena, falling letters, canvas and keyboard geometry stay feature-owned. */
+.checkbox-target {
+  display: inline-grid;
+  place-items: center;
+  min-width: 48px;
+  min-height: 48px;
+  cursor: pointer;
+}
+.tipy-loading {
+  background: var(--tipy-surface);
+  color: var(--tipy-text);
+  font-family: var(--tipy-font-family);
+}
+.tipy-loading p {
+  font-size: 19px;
+}
+.icon-button {
+  min-width: 48px;
+  min-height: 48px;
+  color: var(--tipy-play);
+  border-color: var(--tipy-border);
+  background: var(--tipy-surface-raised);
+}
+.icon-button:focus-visible,
+.audio-trigger:focus-visible,
+.brand:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 3px;
+}
+.modal .audio-switch.on::before {
+  background: var(--tipy-play);
+}
+.location-card {
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-border);
+}
+.keyboard .key {
+  font-family: var(--tipy-font-family);
+}
+.touchboard .key {
+  font-size: 18px;
+}
+.keyboard .key.selected {
+  color: var(--tipy-play);
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+}
+.keyboard .key.lit.selected {
+  color: var(--tipy-on-action);
+  background: var(--tipy-play);
+  border-color: var(--tipy-play);
+}
+.keyboard .key:disabled {
+  opacity: 1;
+  color: var(--tipy-disabled-text);
+  background: var(--tipy-disabled);
+  border-color: var(--tipy-disabled-base);
+}
+.keyboard .key:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 2px;
+}
+.admin-metrics strong {
+  color: var(--tipy-learn);
+}
+.admin-header > .account-points {
+  display: inline-flex;
+}
+.presets button.active {
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+  color: var(--tipy-play);
+}
+.panel {
+  min-width: 0;
+}
+.selection-info {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.start-row > span {
+  flex-wrap: wrap;
+}
+.setup-page .keyboard.picker {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.setup-page .picker .key-row {
+  min-width: 620px;
+}
+.setup-page .picker .key {
+  min-width: 48px;
+  min-height: 48px;
+  font-size: 18px;
+}
+@media (max-width: 680px) {
+  .setup-page .difficulty-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .setup-page .difficulty {
+    flex-direction: row;
+    text-align: left;
+  }
+  .setup-page .setup-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+:root {
+  font-family: var(--tipy-font-family);
+  font-size: 18px;
+  color: var(--tipy-text);
+  background: var(--tipy-surface);
+  font-weight: 500;
+}
+body {
+  line-height: 1.6;
+}
+.admin-shell {
+  --tipy-content-size: 16px;
+  --tipy-small-size: 14px;
+  --tipy-button-height: 48px;
+  --tipy-button-font-size: 16px;
+  --tipy-button-radius: 16px;
+  --tipy-button-depth: 3px;
+  --tipy-button-travel: 2px;
+  --tipy-button-pressed-depth: 1px;
+}
+:is(.welcome-page, .game-library, .setup-page, .classroom-page, .admin-main, .modal) {
+  color: var(--tipy-text);
+  font-family: var(--tipy-font-family);
+  font-size: var(--tipy-content-size);
+  line-height: 1.6;
+  min-width: 0;
+}
+:is(.welcome-page, .game-library, .setup-page, .classroom-page, .admin-main, .modal)
+  :is(h1, h2, h3) {
+  color: var(--tipy-text);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+:is(.welcome-page, .game-library, .setup-page, .classroom-page, .admin-main) h1 {
+  font-size: var(--tipy-heading-size);
+}
+:is(.welcome-page, .game-library, .setup-page, .classroom-page, .admin-main, .modal) h2 {
+  font-size: var(--tipy-section-size);
+}
+:is(.welcome-page, .game-library, .setup-page, .classroom-page, .admin-main, .modal) h3 {
+  font-size: 22px;
+}
+:is(.welcome-page, .game-library, .setup-page, .classroom-page, .admin-main, .modal) p {
+  font-size: var(--tipy-content-size);
+  line-height: 1.65;
+  color: var(--tipy-text-muted);
+  overflow-wrap: anywhere;
+}
+:is(.page-title, .section-heading, .admin-title, .classroom-board-heading) {
+  gap: var(--tipy-space-4);
+}
+:is(
+  .panel,
+  .game-card,
+  .learning-card,
+  .audio-channel,
+  .composer-preview,
+  .preview-paper,
+  .admin-metrics > div
+) {
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-card-radius);
+  background: var(--tipy-surface-raised);
+  box-shadow: var(--tipy-card-shadow);
+}
+.panel {
+  padding: var(--tipy-space-5);
+}
+:is(.learn-scratch, .learn-class, .tip, .how-strip, .more-games, .history-summary) {
+  background: var(--tipy-play-soft);
+  color: var(--tipy-text);
+  border-radius: var(--tipy-input-radius);
+}
+:is(.brand-stem, .page-title h1 > span, .result-score) {
+  color: var(--tipy-learn);
+}
+:is(
+  .muted,
+  .section-note,
+  .hero-meta,
+  .card-features,
+  .selection-info,
+  .start-row > span,
+  .class-count,
+  .empty-desks,
+  .empty-state,
+  .composer-preview > small,
+  .preview-paper > small,
+  .class-post > small,
+  .roster-inactive,
+  .roster-actions > span,
+  .speed-grid label,
+  .admin-metrics small,
+  .account-summary p,
+  .audio-note,
+  .record,
+  .result-score span,
+  .result-grid small,
+  .modal .result-keys
+) {
+  font-size: var(--tipy-small-size);
+  line-height: 1.6;
+  color: var(--tipy-text-muted);
+}
+:is(.eyebrow, .classroom-board-heading .eyebrow, .class-achievements > .eyebrow, .preview-eyebrow) {
+  font-size: var(--tipy-small-size);
+  letter-spacing: 0.06em;
+  color: var(--tipy-learn);
+  font-weight: 800;
+}
+.site-header,
+.main-nav,
+.admin-header {
+  background: var(--tipy-surface);
+  border-color: var(--tipy-border);
+}
+.site-header .brand {
+  color: var(--tipy-text);
+}
+.brand small {
+  font-size: 12px;
+  color: var(--tipy-text-muted);
+  letter-spacing: 0.08em;
+}
+.header-message {
+  font-size: 16px;
+  color: var(--tipy-text-muted);
+}
+.main-nav > button,
+.main-nav .account-button,
+.audio-trigger {
+  min-height: 48px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--tipy-text);
+  border-radius: var(--tipy-input-radius);
+}
+.main-nav > button[aria-current='page'],
+.main-nav > button:hover:not(:disabled) {
+  color: var(--tipy-learn);
+  background: var(--tipy-learn-soft);
+}
+.main-nav .account-button {
+  background: var(--tipy-surface-raised);
+  border-color: var(--tipy-border);
+}
+.account-label {
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.audio-trigger {
+  min-width: 48px;
+  background: var(--tipy-surface-raised);
+  border-color: var(--tipy-border);
+}
+.account-controls {
+  max-width: 100%;
+}
+.admin-header {
+  flex-wrap: wrap;
+}
+.admin-header > a,
+.admin-header > span {
+  font-size: 16px;
+  color: var(--tipy-text);
+  letter-spacing: 0;
+}
+.admin-header > a:not(.brand),
+.lesson-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  color: var(--tipy-play);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+:is(.account-form, .class-create, .class-select, .roster-filters, .history-filters, .speed-grid)
+  label,
+label.class-select {
+  font-size: var(--tipy-content-size);
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--tipy-text);
+}
+:is(.account-form, .class-create, .roster-filters, .history-filters, .speed-grid)
+  :is(input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea, select),
+.class-select select,
+.quest-page select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-input-radius);
+  background: var(--tipy-surface-raised);
+  color: var(--tipy-text);
+  font: inherit;
+  line-height: 1.5;
+}
+:is(.account-form, .class-create, .roster-filters, .history-filters, .speed-grid, .class-select)
+  :is(input, textarea, select):focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 2px;
+}
+:is(.admin-main, .modal, .classroom-page) input:is([type='checkbox'], [type='radio']) {
+  accent-color: var(--tipy-play);
+}
+.account-form .muted {
+  font-size: var(--tipy-small-size);
+}
+.account-tabs,
+.admin-tabs {
+  gap: 12px;
+  margin-block: 20px;
+}
+.account-tabs button,
+.account-tabs a,
+.admin-tabs button,
+.presets button,
+.selection-info button,
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-input-radius);
+  background: var(--tipy-surface-raised);
+  font: 800 var(--tipy-content-size) / 1.5 var(--tipy-font-family);
+  color: var(--tipy-text);
+  text-decoration: none;
+  white-space: normal;
+}
+.account-tabs .active,
+.account-tabs [aria-current],
+.admin-tabs .active,
+.presets .active {
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+  color: var(--tipy-play);
+}
+.account-tabs button:hover:not(:disabled),
+.admin-tabs button:hover:not(:disabled),
+.text-button:hover:not(:disabled) {
+  background: var(--tipy-surface);
+}
+:is(.account-tabs, .admin-tabs, .main-nav, .difficulty-options, .presets) button:focus-visible,
+.text-button:focus-visible,
+.table-scroll:focus-visible,
+.lesson-link:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 3px;
+}
+:is(.account-tabs, .admin-tabs, .main-nav, .difficulty-options, .presets) button:disabled,
+.text-button:disabled {
+  opacity: 1;
+  background: var(--tipy-disabled);
+  color: var(--tipy-disabled-text);
+  border-color: var(--tipy-disabled-base);
+}
+.admin-shell .tipy-button {
+  min-width: 0;
+  margin: 6px 4px 8px 0;
+  padding: 10px 16px;
+}
+.admin-shell .tipy-button__icon {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+}
+.class-attachment .tipy-button {
+  min-width: 0;
+  width: auto;
+  text-align: left;
+}
+.class-attachment .tipy-button__label {
+  overflow-wrap: anywhere;
+}
+.table-scroll,
+.report-scroll,
+.quest-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-input-radius);
+  margin-top: 20px;
+}
+.table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+:is(.table-scroll, .report-scroll, .quest-table-scroll) :is(th, td) {
+  padding: 14px 16px;
+  font: 500 16px/1.55 var(--tipy-font-family);
+  color: var(--tipy-text);
+  border-bottom: 1px solid var(--tipy-border);
+  text-align: left;
+  vertical-align: top;
+}
+:is(.table-scroll, .report-scroll, .quest-table-scroll) th {
+  font-weight: 800;
+  background: var(--tipy-surface);
+}
+.table-scroll tbody tr:last-child td {
+  border-bottom: 0;
+}
+.history-filters {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-block: 24px;
+}
+.history-filters label {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: min(220px, 100%);
+}
+.history-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.history-summary strong {
+  flex-basis: 100%;
+}
+.student-history .account-error .tipy-button {
+  display: flex;
+  margin-top: 12px;
+}
+.empty-state {
+  padding: 24px;
+  background: var(--tipy-surface);
+  border: 1px dashed var(--tipy-border);
+  border-radius: var(--tipy-input-radius);
+}
+.admin-main .panel > h2 {
+  margin-bottom: 16px;
+}
+.admin-title {
+  align-items: start;
+  flex-wrap: wrap;
+}
+.admin-main .speed-grid {
+  gap: 24px;
+}
+.speed-grid fieldset {
+  background: var(--tipy-surface);
+  border-color: var(--tipy-border);
+  border-radius: var(--tipy-card-radius);
+}
+.speed-grid legend {
+  font-size: 20px;
+  color: var(--tipy-text);
+}
+.classroom-layout {
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+}
+.classroom-board .class-desks {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+}
+.classroom-board .student-desk {
+  aspect-ratio: auto;
+  min-height: 180px;
+  padding: 30px 12px 16px;
+  background: var(--tipy-surface);
+  border-color: var(--tipy-border);
+  border-radius: var(--tipy-input-radius);
+}
+.classroom-board .student-desk b {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.classroom-board .student-avatar {
+  width: 64px;
+  height: 64px;
+}
+.classroom-board .own-desk {
+  border-color: var(--tipy-learn);
+  outline-color: var(--tipy-learn);
+  background: var(--tipy-learn-soft);
+}
+.seat-number,
+.own-seat-label {
+  font-size: 12px;
+  color: var(--tipy-text-muted);
+}
+.own-seat-label {
+  background: var(--tipy-learn-soft);
+}
+.class-achievements {
+  background: var(--tipy-surface-raised);
+  border-color: var(--tipy-border);
+}
+.class-top-list li {
+  gap: 12px;
+  flex-wrap: wrap;
+  border-color: var(--tipy-border);
+}
+.class-top-list b {
+  font-size: 18px;
+  color: var(--tipy-text);
+}
+.class-top-list small {
+  font-size: 16px;
+  color: var(--tipy-text-muted);
+}
+.class-top-list strong {
+  font-size: 20px;
+  color: var(--tipy-play);
+}
+.class-top-list .student-avatar {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+}
+.class-post .post-body {
+  font-size: 19px;
+  line-height: 1.7;
+}
+.class-feed-title {
+  font-size: 28px;
+}
+.preview-paper > h3 {
+  font-size: 22px;
+}
+.classroom-page .composer-heading h2 {
+  font-size: 28px;
+}
+.class-select {
+  margin-block: 20px;
+}
+.roster-filters label {
+  min-width: min(200px, 100%);
+}
+.roster-editor input[type='checkbox'] {
+  width: 24px;
+  height: 24px;
+}
+.roster-editor td:first-child,
+.roster-editor th:first-child {
+  min-width: 56px;
+}
+.roster-selected,
+.roster-actions {
+  background: var(--tipy-play-soft);
+}
+.class-create {
+  gap: 16px;
+  align-items: end;
+}
+.class-create .tipy-button {
+  align-self: end;
+}
+.dialog-viewport > .modal {
+  background: var(--tipy-surface-raised);
+  border-color: var(--tipy-border);
+  border-radius: var(--tipy-card-radius);
+  color: var(--tipy-text);
+}
+.dialog-viewport .modal h2 {
+  font-size: var(--tipy-heading-size);
+}
+.dialog-viewport .modal p,
+.dialog-viewport .account-form label {
+  font-size: 19px;
+  line-height: 1.6;
+}
+.modal .result-grid {
+  background: var(--tipy-play-soft);
+  gap: 12px;
+}
+.modal .result-grid small {
+  font-size: 16px;
+}
+.modal .result-grid strong {
+  font-size: 20px;
+}
+.modal .result-score span,
+.modal .result-keys,
+.modal .audio-note {
+  font-size: 16px;
+}
+.modal .audio-channel h3 {
+  font-size: 22px;
+}
+.modal .audio-channel p {
+  font-size: 18px;
+}
+.modal .volume-label {
+  font-size: 18px;
+  color: var(--tipy-text);
+}
+.modal .audio-switch {
+  min-width: 56px;
+  min-height: 48px;
+  border-radius: 24px;
+}
+.modal .audio-switch.on {
+  background: var(--tipy-play);
+}
+.modal .audio-channel input[type='range'] {
+  height: 48px;
+  accent-color: var(--tipy-play);
+}
+.modal .avatar-picker-preview h3 {
+  font-size: 22px;
+}
+.modal .character-option b {
+  font-size: 18px;
+}
+.difficulty-options .difficulty {
+  min-height: 90px;
+  background: var(--tipy-surface-raised);
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-input-radius);
+  padding: 16px;
+}
+.difficulty-options .difficulty b {
+  font-size: 22px;
+  color: var(--tipy-text);
+}
+.difficulty-options .difficulty small {
+  font-size: 18px;
+  color: var(--tipy-text-muted);
+}
+.difficulty-options .difficulty.active {
+  border-color: var(--tipy-play);
+  background: var(--tipy-play-soft);
+}
+.setup-page .how-strip {
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 18px;
+}
+.game-card .tag,
+.game-heading .tag {
+  font-size: 14px;
+  color: var(--tipy-play);
+  background: var(--tipy-play-soft);
+}
+.game-card .card-features {
+  font-size: 16px;
+  line-height: 1.6;
+  flex-wrap: wrap;
+}
+.welcome-page .hero-meta,
+.welcome-page .hero-meta > span,
+.welcome-page .location-card p {
+  font-size: 18px;
+  color: var(--tipy-text-muted);
+}
+.welcome-page .hero-copy > p {
+  font-size: 19px;
+}
+.welcome-page .welcome-class > small {
+  font-size: 16px;
+  color: var(--tipy-text-muted);
+}
+.welcome-page .scratch-code-card > span,
+.welcome-page .scratch-showcase-heading {
+  font-size: 14px;
+  letter-spacing: 0;
+  color: var(--tipy-text);
+}
+.welcome-page .scratch-showcase-heading {
+  white-space: normal;
+}
+.welcome-page .learning-caption {
+  font-size: 16px;
+  color: var(--tipy-text-muted);
+}
+.game-toolbar small,
+.keyboard-caption,
+.speed-counter,
+.wrong-counter,
+.game-instructions,
+.game-note {
+  font-family: var(--tipy-font-family);
+  font-size: 16px;
+  color: var(--tipy-text-muted);
+  line-height: 1.5;
+}
+.game-toolbar {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.game-toolbar strong {
+  color: var(--tipy-text);
+}
+.game-toolbar .hearts {
+  color: var(--tipy-learn);
+}
+.account-error,
+.preview-invalid,
+.quest-page [role='alert'] {
+  background: var(--tipy-danger-soft);
+  color: var(--tipy-danger);
+  border: 1px solid var(--tipy-danger);
+  border-radius: var(--tipy-input-radius);
+  padding: 16px;
+  font-size: var(--tipy-content-size);
+  line-height: 1.6;
+}
+.admin-success {
+  background: var(--tipy-play-soft);
+  color: var(--tipy-play-base);
+  border: 1px solid var(--tipy-play);
+  border-radius: var(--tipy-input-radius);
+  font-size: var(--tipy-content-size);
+}
+.account-message,
+.roster-pending,
+.admin-rule,
+.balance-tip {
+  font-size: var(--tipy-small-size);
+  line-height: 1.6;
+  color: var(--tipy-text-muted);
+}
+footer {
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 16px;
+  color: var(--tipy-text-muted);
+}
+@media (max-width: 1000px) {
+  .main-nav:has(> .account-points) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .main-nav > .account-controls {
+    grid-column: 1/3;
+    justify-self: stretch;
+  }
+  .main-nav > .account-points {
+    grid-column: 3;
+  }
+  .classroom-layout {
+    grid-template-columns: 1fr;
+  }
+  .class-achievements {
+    position: static;
+  }
+}
+@media (max-width: 680px) {
+  :root {
+    --tipy-section-size: 26px;
+  }
+  .main-nav > button {
+    font-size: 18px;
+    min-height: 48px;
+    padding: 8px;
+    white-space: normal;
+  }
+  .main-nav > .account-controls,
+  .main-nav > .account-points {
+    grid-column: 1/-1;
+    justify-self: stretch;
+  }
+  .site-header {
+    gap: 12px;
+  }
+  .site-header .brand {
+    font-size: 20px;
+  }
+  .brand small {
+    font-size: 10px;
+  }
+  .audio-trigger {
+    font-size: 16px;
+    padding: 10px;
+  }
+  .sound-label {
+    font-size: 16px;
+  }
+  .panel {
+    padding: 20px;
+  }
+  .page-title {
+    padding-block: 24px;
+  }
+  .learning-cards,
+  .setup-grid,
+  .speed-grid {
+    grid-template-columns: 1fr;
+  }
+  .section-heading {
+    align-items: start;
+    flex-wrap: wrap;
+  }
+  .classroom-board .class-desks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .classroom-board .student-desk {
+    padding-inline: 8px;
+  }
+  .dialog-viewport .modal .result-grid {
+    grid-template-columns: 1fr;
+  }
+  .class-create {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .class-create .tipy-button {
+    width: 100%;
+  }
+  .admin-main {
+    width: calc(100% - 32px);
+  }
+  .admin-main .panel {
+    padding: 20px;
+  }
+  .history-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .history-filters label {
+    min-width: 0;
+  }
+  .history-filters > .tipy-button {
+    width: 100%;
+  }
+  .history-summary {
+    flex-direction: column;
+    gap: 8px;
+  }
+  footer {
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .text-button,
+  .admin-tabs button,
+  .account-tabs button,
+  .difficulty-options button,
+  .presets button {
+    transition: none;
+  }
+}

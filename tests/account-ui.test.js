@@ -11,7 +11,7 @@ async function until(check) {
   }
   throw Error('Timed out waiting for account UI');
 }
-test('child account signup needs no email and accepts a one-character PIN; history and logout work', async () => {
+test('child signup accepts a one-character PIN; history tab is absent and logout works', async () => {
   const errors = [],
     requests = [];
   let user = null;
@@ -79,9 +79,11 @@ test('child account signup needs no email and accepts a one-character PIN; histo
       requests.some((r) => typeof r === 'string' && r.includes('leaderboard')),
       false,
     );
-    await click('Lịch sử chơi');
-    await until(() => d.body.textContent.includes('Chưa có lượt chơi'));
-    await click('Tài khoản');
+    assert.equal(button('Lịch sử chơi'), undefined);
+    assert.equal(
+      requests.some((r) => typeof r === 'string' && r.includes('action=history')),
+      false,
+    );
     await click('Đăng xuất');
     await until(() => d.querySelector('[name="password"]'));
     assert.equal(user, null);

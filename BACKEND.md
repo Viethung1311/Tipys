@@ -116,3 +116,9 @@ WorldMap chỉ hiển thị ô thế giới ở màn đầu; chọn một thế 
 Chạy db/character_avatars.sql sau classrooms.sql trên database hiện có. Migration chuyển CHECK/default và 12 mã cũ sang icon_01–icon_36, không thêm bảng/cột hay xóa dữ liệu khác. Giữ nguyên RLS và API avatar/avatar_save: chỉ phiên hiện tại được ghi, mã phải thuộc danh mục chung. Giữ cột animal và metadata phụ kiện/màu để tương thích dữ liệu cũ.
 
 CHECK vẫn chấp nhận 12 mã cũ để tab đang mở và deployment cũ còn ghi được trong lúc chuyển đổi/rollback. API mới chỉ cho chọn/lưu 36 mã ảnh; mọi nơi đọc dùng cùng ánh xạ nên không hiện lại emoji.
+
+## Xem lịch sử học sinh trong quản trị
+
+GET `history&userId=<UUID học sinh>` dùng lại service history và player_game_stats. Backend kiểm tra admin trước mọi truy vấn, kiểm tra UUID và hồ sơ có role student, rồi lọc stats theo đúng user_id đó. Học sinh gửi userId (kể cả giả role trong query) nhận 403; GET history không tham số vẫn chỉ trả dữ liệu của chính học sinh để tương thích API cũ. Admin không truyền userId vẫn giữ khả năng đọc tổng hợp trước đây, nhưng giao diện mới luôn yêu cầu chọn học sinh.
+
+Không migration, không ghi thêm lịch sử hay đổi RPC ghi kết quả. Tối đa 200 bản tổng hợp/game trong lần đọc theo giới hạn sẵn có; mỗi game có cao nhất/gần nhất, trùng play_id chỉ một dòng. Tổng luyện và tổng lượt lấy từ bản tổng hợp, không cộng hai snapshot thành tổng thời gian. Keyboard Quest lưu score snapshot là accuracy nên bảng hiển thị %. Danh sách chọn học sinh vẫn dùng API students (tối đa 200 tài khoản theo giới hạn hiện tại).

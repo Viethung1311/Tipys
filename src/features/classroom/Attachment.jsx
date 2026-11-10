@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { api } from '../../game/backend.js';
+import TipyButton from '../../components/TipyButton.jsx';
+import { Paperclip } from 'lucide-react';
 /** Fetch signed links on demand: private class files are never public bucket URLs. */
 export default function Attachment({ file }) {
   const [url, setUrl] = useState(''),
@@ -24,9 +26,9 @@ export default function Attachment({ file }) {
   };
   return (
     <div className="class-attachment">
-      <button className="secondary" disabled={busy} onClick={open}>
+      <TipyButton emphasis="secondary" icon={Paperclip} disabled={busy} onClick={open}>
         {busy ? 'Đang mở…' : `📎 ${file.name}`} · {Math.ceil(file.size_bytes / 1024)} KB
-      </button>
+      </TipyButton>
       {url && (
         <>
           <a href={url} target="_blank" rel="noopener noreferrer">

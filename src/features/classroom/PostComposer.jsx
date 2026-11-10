@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
 import { imagePreview } from './image.js';
 import { FILE_TYPES, MAX_FILE_BYTES } from './constants.js';
+import TipyButton from '../../components/TipyButton.jsx';
+import { Send } from 'lucide-react';
 
 const EMPTY = { title: '', body: '', link: '' };
 function previewLink(value) {
@@ -144,9 +146,15 @@ export default function PostComposer({ classId, onPosted }) {
             <p className="muted">
               Tối đa 3 file/bài, 5 MB/file. Ảnh, PDF, TXT, Word, Excel, PowerPoint.
             </p>
-            <button className="primary full" type="submit">
+            <TipyButton
+              className="full"
+              type="submit"
+              icon={Send}
+              loading={busy}
+              loadingLabel="Đang đăng bài…"
+            >
               {busy ? 'Đang đăng bài…' : 'Đăng bài cho lớp'}
-            </button>
+            </TipyButton>
           </fieldset>
         </form>
         <aside className="composer-preview" aria-label="Xem trước bài đăng">

@@ -73,6 +73,7 @@ export default function Setup({ settings, setSettings, onStart, onHome }) {
             ))}
           </div>
           <Keyboard keys={settings.keys} onKey={toggle} editing />
+          <p className="muted">Vuốt ngang bàn phím để xem đủ phím.</p>
           <div className="selection-info">
             <span>
               {activePreset || 'Tùy chỉnh'} · <b>Đã chọn: {settings.keys.length} phím</b>

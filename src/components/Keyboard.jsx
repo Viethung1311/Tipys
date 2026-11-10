@@ -10,6 +10,8 @@ export default function Keyboard({
   return (
     <div
       className={`keyboard ${editing ? 'picker' : 'touchboard'}`}
+      role="region"
+      tabIndex={0}
       aria-label={editing ? 'Chọn phím luyện tập' : 'Bàn phím cảm ứng'}
     >
       {ROWS.map((row) => (

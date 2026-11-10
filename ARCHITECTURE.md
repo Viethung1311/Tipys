@@ -21,6 +21,8 @@
 
 Comment giải thích ranh giới, điều kiện an toàn hoặc lý do thiết kế. Tên hàm và cách chia module diễn tả thao tác; không thêm comment lặp lại từng dòng code.
 
+UI toàn trang dùng token và `src/styles/tipy-ui.css`, scope theo component để giữ nguyên hình học vùng chơi. `src/features/admin/StudentHistory.jsx` sở hữu bộ chọn học sinh/game, tải/lỗi/thử lại và chặn phản hồi cũ sau khi đổi học sinh; tái sử dụng ResultsTable và API history. Account không còn lưu hoặc tải history. Đọc lịch sử học sinh khác luôn kiểm tra admin ở server; cấu trúc và RPC ghi kết quả không đổi.
+
 ## Mô hình dữ liệu
 
 ```mermaid

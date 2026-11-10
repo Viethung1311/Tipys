@@ -8,8 +8,6 @@ import useDialogViewport from '../hooks/useDialogViewport.js';
 import TipyButton from './TipyButton.jsx';
 import { UserRound, LogIn, UserPlus, LogOut, X } from 'lucide-react';
 import AvatarPicker from '../features/classroom/AvatarPicker.jsx';
-import ResultsTable from './ResultsTable.jsx';
-import { practiceTime } from '../game/results.js';
 import AccountPoints from './AccountPoints.jsx';
 export default function Account({
   onUser,
@@ -25,7 +23,6 @@ export default function Account({
     [mode, setMode] = useState('login');
   const [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
-    [history, setHistory] = useState([]),
     [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState(null),
     [avatarLoading, setAvatarLoading] = useState(false),
@@ -95,9 +92,6 @@ export default function Account({
       setMode('account');
     });
   };
-  const total = [
-    ...new Map(history.map((row) => [row.game_id, row.total_active_seconds])).values(),
-  ].reduce((n, s) => n + Number(s), 0);
   return (
     <>
       {loading && <Loading fullscreen label="Đang mở vườn phím…" />}
@@ -134,7 +128,7 @@ export default function Account({
           <Dialog.Overlay className="overlay" />
           <div className="dialog-viewport" style={viewportStyle}>
             <Dialog.Content
-              className={`modal account-modal ${mode === 'history' || mode === 'avatar' ? 'wide' : ''} ${mode === 'avatar' ? 'character-modal' : ''}`}
+              className={`modal account-modal ${mode === 'avatar' ? 'wide character-modal' : ''}`}
               onPointerDownOutside={(e) => e.preventDefault()}
             >
               <div className={mode === 'avatar' ? 'character-modal-header' : undefined}>
@@ -241,18 +235,17 @@ export default function Account({
                 {user && (
                   <>
                     <div className="account-tabs">
-                      <button onClick={() => setMode('account')}>Tài khoản</button>
-                      <button onClick={() => setMode('avatar')}>Nhân vật</button>
                       <button
-                        disabled={busy}
-                        onClick={() =>
-                          run(async () => {
-                            setHistory((await api('history')).history);
-                            setMode('history');
-                          })
-                        }
+                        aria-current={mode === 'account' ? 'page' : undefined}
+                        onClick={() => setMode('account')}
                       >
-                        Lịch sử chơi
+                        Tài khoản
+                      </button>
+                      <button
+                        aria-current={mode === 'avatar' ? 'page' : undefined}
+                        onClick={() => setMode('avatar')}
+                      >
+                        Nhân vật
                       </button>
                       {user.role === 'admin' && <a href="/admin">Trang quản trị riêng →</a>}
                     </div>
@@ -283,18 +276,6 @@ export default function Account({
                           Đăng xuất
                         </TipyButton>
                       </div>
-                    )}
-                    {mode === 'history' && (
-                      <>
-                        <p className="practice-total">
-                          Tổng thời gian luyện: <b>{practiceTime(total)}</b>
-                        </p>
-                        <p className="muted">
-                          Chỉ giữ cao nhất và gần nhất cho mỗi game; tổng thời gian vẫn được cộng
-                          dồn.
-                        </p>
-                        <ResultsTable rows={history} />
-                      </>
                     )}
                   </>
                 )}

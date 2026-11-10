@@ -6,6 +6,7 @@ import { resultRows } from '../../src/game/results.js';
 import { accountPoints } from '../../src/game/points.js';
 import { ApiError, requireAdmin, fail } from '../errors.js';
 import { validateLevels, validateProgress } from './game-validation.js';
+import { uuid } from './classrooms.js';
 export function createGames(db) {
   return {
     async points(profile) {
@@ -29,13 +30,26 @@ export function createGames(db) {
       fail(error);
       return data;
     },
-    async history(profile) {
+    async history(profile, { userId } = {}) {
+      if (userId !== undefined) {
+        requireAdmin(profile);
+        uuid(userId);
+        const student = await db
+          .from('profiles')
+          .select('user_id')
+          .eq('user_id', userId)
+          .eq('role', 'student')
+          .maybeSingle();
+        fail(student.error);
+        if (!student.data) throw new ApiError(404, 'Không tìm thấy học sinh.');
+      }
       let query = db
         .from('player_game_stats')
         .select('*,games(game_code,game_name),profiles(username,full_name)')
         .order('last_played_at', { ascending: false })
         .limit(200);
-      if (profile.role !== 'admin') query = query.eq('user_id', profile.user_id);
+      if (userId !== undefined || profile.role !== 'admin')
+        query = query.eq('user_id', userId ?? profile.user_id);
       const { data, error } = await query;
       fail(error);
       return resultRows(data);
