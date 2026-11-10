@@ -121,3 +121,5 @@ Lưới học sinh và form giáo viên dùng key khác nhau (`roster-...`, `com
 - npm test build bundle riêng .test-dist với inlineDynamicImports cho JSDOM; dist production giữ code splitting. scripts/standalone.mjs cũng build bundle một file riêng để không phá bản HTML offline.
 
 Kiểm tra browser production: npm run build rồi node scripts/check-performance.mjs (cần Google Chrome). Script dùng asset production thật và chuyển đổi ảnh bằng canvas thật, nhưng giả lập API/Storage; không đo độ trễ Vercel/Supabase thực tế.
+
+Vercel Functions được đặt tại Singapore (sin1) để gần Supabase và người dùng Việt Nam; region mặc định iad1 làm mỗi truy vấn phải đi xa. Chỉ một region, không thay đổi schema hoặc quyền truy cập.

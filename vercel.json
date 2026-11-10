@@ -3,7 +3,14 @@
   "buildCommand": "npm run build && npm test",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/:path*", "destination": "/index.html" }
-  ]
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/index.html"
+    }
+  ],
+  "regions": ["sin1"]
 }
