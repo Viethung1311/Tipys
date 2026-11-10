@@ -1,4 +1,4 @@
-import { LESSONS, findLesson, isUnlocked } from './curriculum.js';
+import { LESSONS, findLesson } from './curriculum.js';
 export function learningSummary(rows) {
   const known = rows.filter((row) => findLesson(row.lesson_id));
   const done = (id) => known.some((row) => row.lesson_id === id && row.completed);
@@ -65,21 +65,6 @@ export function learningSummary(rows) {
       .sort((a, b) => Date.parse(b.last_played_at) - Date.parse(a.last_played_at))
       .slice(0, 5),
   };
-}
-export function recommendedLessons(rows) {
-  const next = LESSONS.find(
-    (lesson) =>
-      isUnlocked(lesson, rows) && !rows.some((row) => row.lesson_id === lesson.id && row.completed),
-  );
-  const review = rows
-    .filter(
-      (row) =>
-        findLesson(row.lesson_id) &&
-        isUnlocked(findLesson(row.lesson_id), rows) &&
-        Number(row.last_accuracy) < 100,
-    )
-    .sort((a, b) => Number(a.last_accuracy) - Number(b.last_accuracy))[0];
-  return { next, review: review ? findLesson(review.lesson_id) : null };
 }
 /** Reorder fixed exercises, never add answers outside the server-validated lesson. */
 export function practiceLesson(lesson, rows, random = Math.random) {

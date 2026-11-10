@@ -12,11 +12,7 @@ import {
   gradeLesson,
   updatedProgress,
 } from '../src/features/keyboard-quest/engine.js';
-import {
-  learningSummary,
-  recommendedLessons,
-  practiceLesson,
-} from '../src/features/keyboard-quest/progress.js';
+import { learningSummary, practiceLesson } from '../src/features/keyboard-quest/progress.js';
 import { validateQuestFinish } from '../server/modules/keyboard-quest.js';
 import { createClassrooms } from '../server/modules/classrooms.js';
 const completedAnswers = (lesson) =>
@@ -79,8 +75,6 @@ test('review interleaves weak exercises without losing IDs or accepting another 
     { answers },
   );
   assert.deepEqual(result.grade.weakKeys, { S: 2 });
-  assert.equal(recommendedLessons(rows).review.id, lesson.id);
-  assert.equal(recommendedLessons(rows).next.id, 'keys-asdf');
 });
 test('replays preserve best stars, badges require actual progress and recent list stays bounded', () => {
   let rows = [];

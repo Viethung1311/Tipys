@@ -65,6 +65,7 @@ test('shared account points refresh after a saved lesson, survive navigation and
     [...d.querySelectorAll('button')].find((el) => el.textContent.trim() === text);
   try {
     await until(() => d.querySelector('.account-points')?.textContent.includes('100'));
+    (await until(() => d.querySelector('[aria-label="Làm quen bàn phím"]'))).click();
     (await until(() => button('Vào học'))).click();
     await until(() => d.querySelector('.quest-target'));
     for (const item of LESSONS[0].items) {

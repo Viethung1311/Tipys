@@ -106,3 +106,7 @@ API classroom actions are authenticated. Every membership-gated action checks th
 GET points đọc đúng tài khoản của phiên (kể cả admin), dùng hai truy vấn độc lập chạy song song. Hàm thuần src/game/points.js cộng điểm cao nhất mỗi game, bỏ snapshot keyboard_quest vì đó là accuracy, rồi cộng 10 điểm mỗi sao tốt nhất của bài hợp lệ. Không ghi thêm bảng, không thay dữ liệu cũ, không cộng lại khi retry/replay. Bản ghi game/bài trùng được gộp theo mã trước khi tính.
 
 Top lớp dùng cùng hàm và chỉ nhận các thành viên đã được kiểm tra quyền. Dữ liệu sao nhúng trong truy vấn roster hiện có, không thêm truy vấn từng học sinh. AccountPoints nhận sự kiện sau lưu thành công, hủy cập nhật khi đổi tài khoản, không hiển thị 0 giả khi API lỗi. Cache lớp được xóa khi điểm thay đổi. Store và ledger chi tiêu chưa thuộc phạm vi này.
+
+## Bản đồ chọn thế giới
+
+WorldMap chỉ hiển thị ô thế giới ở màn đầu; chọn một thế giới mới mount danh sách bài của thế giới đó. Không thêm API hoặc truy vấn khi chuyển thế giới, không thay dữ liệu/điểm/điều kiện mở khóa. Bỏ gợi ý bài hôm nay; luyện lại vẫn xen kẽ các câu từng sai trong engine hiện có. Kiểu chơi chuyển vào phần bài của thế giới.

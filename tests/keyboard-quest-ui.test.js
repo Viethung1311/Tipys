@@ -50,7 +50,7 @@ async function setup(user = null, progress = []) {
     file.endsWith('.js'),
   );
   w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
-  await until(() => w.document.querySelector('.quest-lessons'));
+  await until(() => w.document.querySelector('.quest-world-grid'));
   const click = async (text) => {
     const button = await until(() =>
       [...w.document.querySelectorAll('button')].find((el) => el.textContent.trim() === text),
@@ -63,10 +63,15 @@ async function setup(user = null, progress = []) {
 test('guest quest completes with physical/touch keys, pauses, unlocks next lesson and keeps one local summary', async () => {
   const { dom, w, d, calls, click } = await setup();
   try {
-    assert.equal(d.querySelectorAll('.quest-lesson').length, 30);
+    assert.equal(d.querySelectorAll('.quest-world-tile').length, 5);
+    assert.equal(d.querySelectorAll('.quest-lesson').length, 0);
+    assert.doesNotMatch(d.body.textContent, /Hôm nay mình luyện gì|Học tiếp|Thử hôm nay/);
+    d.querySelector('[aria-label="Làm quen bàn phím"]').click();
+    await sleep(20);
+    assert.equal(d.querySelectorAll('.quest-lesson').length, 5);
     assert.equal(
       [...d.querySelectorAll('.quest-lesson button')].filter((el) => el.disabled).length,
-      26,
+      4,
     );
     await click('Vào học');
     await until(() => d.querySelector('.quest-target'));
@@ -96,6 +101,8 @@ test('signed-in quest reads own progress and saves through existing authenticate
     full_name: 'Test',
   });
   try {
+    d.querySelector('[aria-label="Làm quen bàn phím"]').click();
+    await sleep(20);
     await click('Vào học');
     await until(() => d.querySelector('.quest-target'));
     for (const item of LESSONS[0].items) {
@@ -114,6 +121,8 @@ test('signed-in quest reads own progress and saves through existing authenticate
 test('text exercises wait for composition and accept normalized Vietnamese without global key interception', async () => {
   const { dom, w, d } = await setup();
   try {
+    d.querySelector('[aria-label="Phù thủy tiếng Việt"]').click();
+    await sleep(20);
     const card = [...d.querySelectorAll('.quest-lesson')].find((el) =>
       el.textContent.includes('Phép thuật Telex'),
     );
@@ -150,10 +159,37 @@ const seedLesson = (lesson) => ({
   best_accuracy: 100,
   last_accuracy: 100,
 });
+test('world tiles mount only the selected lessons and return without reloading progress', async () => {
+  const { dom, d, calls, click } = await setup();
+  try {
+    assert.equal(d.querySelectorAll('.quest-lesson').length, 0);
+    d.querySelector('[aria-label="Làm quen bàn phím"]').click();
+    await until(() => d.querySelectorAll('.quest-lesson').length === 5);
+    const locked = [...d.querySelectorAll('.quest-lesson button')].find(
+      (button) => button.disabled,
+    );
+    locked.click();
+    await sleep(20);
+    assert.equal(d.querySelector('.quest-player'), null);
+    await click('Các thế giới');
+    assert.equal(d.querySelectorAll('.quest-lesson').length, 0);
+    d.querySelector('[aria-label="Phù thủy tiếng Việt"]').click();
+    await until(() => d.querySelectorAll('.quest-lesson').length === 8);
+    assert.doesNotMatch(d.querySelector('.quest-worlds').textContent, /Hai người bạn A, S/);
+    await click('Bản đồ');
+    assert.equal(d.querySelectorAll('.quest-world-tile').length, 5);
+    assert.equal(d.querySelectorAll('.quest-lesson').length, 0);
+    assert.equal(calls.filter((call) => call.action === 'bootstrap').length, 1);
+  } finally {
+    dom.window.close();
+  }
+});
 test('mixed lessons switch from physical keys to editable text and race mode follows progress', async () => {
   const { dom, w, d } = await setup(null, LESSONS.slice(0, 5).map(seedLesson));
   try {
-    const select = d.querySelector('.quest-recommend select');
+    d.querySelector('[aria-label="Nhà thám hiểm"]').click();
+    await sleep(20);
+    const select = d.querySelector('.quest-world-controls select');
     select.value = 'race';
     select.dispatchEvent(new w.Event('change', { bubbles: true }));
     await sleep(20);
@@ -194,6 +230,8 @@ test('missing-letter lesson accepts corrections without replacing the prompt by 
     seedLesson(LESSONS.find((item) => item.id === 'picture-words')),
   ]);
   try {
+    d.querySelector('[aria-label="Ghép chữ, kể chuyện"]').click();
+    await sleep(20);
     [...d.querySelectorAll('.quest-lesson')]
       .find((el) => el.textContent.includes(lesson.title))
       .querySelector('button')

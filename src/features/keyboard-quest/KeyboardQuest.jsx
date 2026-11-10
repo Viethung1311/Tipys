@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ArrowLeft,
-  Lock,
-  Play,
-  RotateCcw,
-  Map,
-  ChartNoAxesCombined,
-  BookOpen,
-  CalendarDays,
-} from 'lucide-react';
+import { ArrowLeft, Map, ChartNoAxesCombined, BookOpen } from 'lucide-react';
 import TipyButton from '../../components/TipyButton.jsx';
 import Loading from '../../components/Loading.jsx';
 import { api } from '../../game/backend.js';
@@ -16,7 +7,6 @@ import {
   LESSONS,
   LIBRARY_LESSONS,
   ALL_LESSONS,
-  WORLDS,
   QUEST_CODE,
   findLesson,
   isUnlocked,
@@ -25,8 +15,8 @@ import { updatedProgress } from './engine.js';
 import LessonPlayer from './LessonPlayer.jsx';
 import './quest.css';
 import LearningProfile from './LearningProfile.jsx';
-import TelexGuide from './TelexGuide.jsx';
-import { learningSummary, recommendedLessons, practiceLesson } from './progress.js';
+import WorldMap from './WorldMap.jsx';
+import { learningSummary, practiceLesson } from './progress.js';
 
 const guestKey = 'tipy-quest-guest-v1';
 export default function KeyboardQuest({
@@ -45,6 +35,7 @@ export default function KeyboardQuest({
     [revision, setRevision] = useState(0),
     [view, setView] = useState('map'),
     [mode, setMode] = useState('learn'),
+    [worldId, setWorldId] = useState(null),
     [avatar, setAvatar] = useState(null);
   const available =
     catalog === null ||
@@ -117,13 +108,14 @@ export default function KeyboardQuest({
   );
   const open = (id) => {
     const lesson = findLesson(id);
-    if (lesson && available && !loading && !error && isUnlocked(lesson, progress))
+    if (lesson && available && !loading && !error && isUnlocked(lesson, progress)) {
+      if (lesson.world) setWorldId(lesson.world);
       setRun({
         lesson: practiceLesson(lesson, progress),
         key: crypto.randomUUID(),
         previous: progress.find((row) => row.lesson_id === lesson.id),
       });
-    else setRun(null);
+    } else setRun(null);
   };
   const back = (id) => {
     if (typeof id === 'string') open(id);
@@ -197,106 +189,27 @@ export default function KeyboardQuest({
                 icon={Icon}
                 emphasis={view === id ? undefined : 'secondary'}
                 aria-current={view === id ? 'page' : undefined}
-                onClick={() => setView(id)}
+                onClick={() => {
+                  setView(id);
+                  if (id === 'map') setWorldId(null);
+                }}
               >
                 {label}
               </TipyButton>
             ))}
           </nav>
-          {view === 'map' && (
-            <section className="panel quest-recommend">
-              <h2>Hôm nay mình luyện gì?</h2>
-              <label>
-                Kiểu chơi
-                <select value={mode} onChange={(event) => setMode(event.target.value)}>
-                  <option value="learn">Cùng học</option>
-                  <option value="race">Đua xe một mình</option>
-                </select>
-              </label>
-              <div className="quest-actions">
-                {recommendedLessons(progress).next && (
-                  <TipyButton onClick={() => open(recommendedLessons(progress).next.id)}>
-                    Học tiếp
-                  </TipyButton>
-                )}
-                {recommendedLessons(progress).review && (
-                  <TipyButton
-                    emphasis="secondary"
-                    icon={RotateCcw}
-                    onClick={() => open(recommendedLessons(progress).review.id)}
-                  >
-                    Ôn tập
-                  </TipyButton>
-                )}
-                <TipyButton
-                  emphasis="secondary"
-                  icon={CalendarDays}
-                  onClick={() => {
-                    const frontier = recommendedLessons(progress).next?.stage || 30;
-                    const choices = LESSONS.filter(
-                      (lesson) => lesson.stage <= frontier && isUnlocked(lesson, progress),
-                    );
-                    const day = new Date();
-                    open(
-                      choices[(day.getFullYear() + day.getMonth() + day.getDate()) % choices.length]
-                        .id,
-                    );
-                  }}
-                >
-                  Thử hôm nay
-                </TipyButton>
-              </div>
-              <p>Bài ôn ưu tiên nội dung bạn từng nhầm. Không cần chơi liên tục mỗi ngày.</p>
-            </section>
-          )}
           {view === 'profile' && (
             <LearningProfile progress={progress} avatar={avatarOverride || avatar} user={user} />
           )}
           {view === 'map' && (
-            <div className="quest-worlds">
-              {WORLDS.map((world) => (
-                <section className="panel quest-world" key={world.id}>
-                  <h2>
-                    <span aria-hidden="true">{world.icon}</span> {world.title}
-                  </h2>
-                  {world.id === 4 && <TelexGuide />}
-                  {LESSONS.filter((lesson) => lesson.world === world.id).length ? (
-                    <div className="quest-lessons">
-                      {LESSONS.filter((lesson) => lesson.world === world.id).map((lesson) => {
-                        const unlocked = isUnlocked(lesson, progress),
-                          row = progress.find((item) => item.lesson_id === lesson.id);
-                        return (
-                          <article className="quest-lesson" key={lesson.id}>
-                            <div>
-                              <h3>{lesson.title}</h3>
-                              <p>
-                                {lesson.demo ? 'Bài trải nghiệm · mở sẵn' : `Bước ${lesson.stage}`}{' '}
-                                ·{' '}
-                                {row?.completed
-                                  ? `${row.best_stars} sao`
-                                  : unlocked
-                                    ? 'Sẵn sàng'
-                                    : 'Hoàn thành bài trước'}
-                              </p>
-                            </div>
-                            <TipyButton
-                              icon={unlocked ? Play : Lock}
-                              disabled={!unlocked}
-                              emphasis={row?.completed ? 'secondary' : undefined}
-                              onClick={() => open(lesson.id)}
-                            >
-                              {unlocked ? (row?.completed ? 'Luyện lại' : 'Vào học') : 'Chưa mở'}
-                            </TipyButton>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p>Sắp ra mắt. Bạn hãy thử các bài đang mở nhé!</p>
-                  )}
-                </section>
-              ))}
-            </div>
+            <WorldMap
+              worldId={worldId}
+              onChooseWorld={setWorldId}
+              progress={progress}
+              onOpen={open}
+              mode={mode}
+              onModeChange={setMode}
+            />
           )}
           {view === 'library' && (
             <section className="panel">

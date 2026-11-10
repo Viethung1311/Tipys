@@ -112,4 +112,10 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 - Chỉ một điểm chung của tài khoản trên toàn website, hiển thị bằng AccountPoints cạnh tài khoản và ở trang quản trị. Điểm = tổng điểm cao nhất mỗi game (không cộng snapshot accuracy của keyboard_quest) + 10 × sao tốt nhất mỗi bài học. Top lớp dùng cùng công thức, vẫn giới hạn trong lớp được phép xem.
 - Điểm lấy từ server, tự cập nhật sau khi lưu lượt/bài và khi quay lại tab; không dùng số client gửi lên hoặc cộng lặp theo lần chơi. Chưa có store, số dư tiêu dùng hay ví riêng.
 - Không có nút Đặt lại hoặc đường API xóa tiến độ cho học sinh. Các hàm SQL bảo trì chỉ service_role được gọi vẫn giữ để tương thích, không có thao tác xóa dữ liệu trong lần sửa này.
-- Các thế giới trên bản đồ rộng tối đa 960 px, căn giữa. Tiêu đề thế giới, tên bài và nút hành động xếp dọc, căn giữa; thẻ bài rộng tối đa 760 px. Điện thoại giữ một cột, vùng bấm đủ lớn.
+- Bản đồ rộng tối đa 960 px, căn giữa. Mỗi thế giới là một ô chữ nhật dùng TipyButton; chỉ hiện bài sau khi chọn thế giới. Ô thế giới và ô bài chia đều 2 cột; ô cuối lẻ căn giữa; điện thoại dưới 620 px còn 1 cột. Tên, tiến độ và nút bài căn giữa, vùng bấm đủ lớn.
+
+### Bản đồ hai cấp
+
+- Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount 5 ô thế giới; sau khi chọn mới mount 5–8 bài tương ứng, không render 30 bài ẩn.
+- “Các thế giới” trở về danh sách ô; “Bản đồ” trên thanh điều hướng cũng về danh sách này. Trở lại từ một bài chơi giữ thế giới hiện tại, chuyển bài sang thế giới khác cập nhật đúng thế giới. Focus về tiêu đề khi đổi cấp.
+- Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Điều kiện mở khóa, sao và điểm chung giữ nguyên.
