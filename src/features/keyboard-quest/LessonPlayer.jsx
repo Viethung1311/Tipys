@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   ArrowLeft,
   Check,
@@ -29,6 +29,8 @@ export default function LessonPlayer({
   nextLesson,
   mode = 'learn',
   previous,
+  navigationRef,
+  onNavigationLockChange,
 }) {
   const [phase, setPhase] = useState(user ? 'starting' : 'playing'),
     [index, setIndex] = useState(0),
@@ -193,10 +195,20 @@ export default function LessonPlayer({
   useEffect(() => {
     if (phase === 'result') persist();
   }, [phase, persist]);
-  const leave = async () => {
+  const leave = async (destination) => {
+    if (phase === 'starting' || (phase === 'result' && (saving || (!saved && !saveError)))) return;
     await session.current?.quit(Math.floor(elapsed.current / 1000)).catch(() => {});
-    onBack();
+    if (typeof destination === 'function') destination();
+    else onBack();
   };
+  // External map/menu navigation uses the same queued quit as the in-lesson Back button.
+  useImperativeHandle(navigationRef, () => leave);
+  useEffect(() => {
+    onNavigationLockChange?.(
+      phase === 'starting' || (phase === 'result' && (saving || (!saved && !saveError))),
+    );
+    return () => onNavigationLockChange?.(false);
+  }, [phase, saving, saved, saveError, onNavigationLockChange]);
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
   useEffect(() => {
     if (phase !== 'playing' || blocked) window.speechSynthesis?.cancel();

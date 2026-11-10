@@ -95,7 +95,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 ## Module Bé chinh phục bàn phím
 
-- Bản đồ dùng thẻ nền kem/trắng, font Nunito 19 px, tiêu đề 28–36 px và TipyButton chung. Bài khóa có chữ “Chưa mở” cùng icon khóa; bài trải nghiệm mở sẵn có nhãn rõ. Cả 5 thế giới có nội dung; thư viện mở sau đủ 30 màn.
+- Bản đồ dùng ảnh đảo phiêu lưu do chủ dự án cung cấp làm giao diện chính; các vùng nội dung dùng nền kem/trắng, font Nunito 19 px, tiêu đề 28–36 px và TipyButton chung. Bài khóa có chữ “Chưa mở” cùng icon khóa; bài trải nghiệm mở sẵn có nhãn rõ. Cả 5 thế giới có nội dung; thư viện mở sau đủ 30 màn.
 - Không dùng luật mất mạng hay thua sau sáu lần sai của Chữ rơi. Khuyến khích thử lại, hiển thị độ chính xác, thời gian và sao; không so sánh công khai học sinh.
 - Bàn phím cảm ứng dùng lại Keyboard, có viền chỉ phím đích. Phím trong module tối thiểu 48 × 48 px; vùng bàn phím cuộn riêng ở máy hẹp, không kéo tràn trang. Văn bản nhập bằng textarea thật, hỗ trợ bộ gõ hệ điều hành và composition.
 - Không thêm animation lặp. Dùng loading chung và thông báo lỗi có nút thử lại; không giả báo lưu thành công khi backend lỗi.
@@ -112,13 +112,20 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 - Chỉ một điểm chung của tài khoản trên toàn website, hiển thị bằng AccountPoints cạnh tài khoản và ở trang quản trị. Điểm = tổng điểm cao nhất mỗi game (không cộng snapshot accuracy của keyboard_quest) + 10 × sao tốt nhất mỗi bài học. Top lớp dùng cùng công thức, vẫn giới hạn trong lớp được phép xem.
 - Điểm lấy từ server, tự cập nhật sau khi lưu lượt/bài và khi quay lại tab; không dùng số client gửi lên hoặc cộng lặp theo lần chơi. Chưa có store, số dư tiêu dùng hay ví riêng.
 - Không có nút Đặt lại hoặc đường API xóa tiến độ cho học sinh. Các hàm SQL bảo trì chỉ service_role được gọi vẫn giữ để tương thích, không có thao tác xóa dữ liệu trong lần sửa này.
-- Bản đồ rộng tối đa 960 px, căn giữa. Mỗi thế giới là một ô chữ nhật dùng TipyButton; chỉ hiện bài sau khi chọn thế giới. Ô thế giới và ô bài chia đều 2 cột; ô cuối lẻ căn giữa; điện thoại dưới 620 px còn 1 cột. Tên, tiến độ và nút bài căn giữa, vùng bấm đủ lớn.
+- Bản đồ ảnh giữ đúng tỉ lệ 1672/941, dùng tọa độ phần trăm trong `adventure.js`. Trên điện thoại, vùng bản đồ cuộn ngang riêng với chiều rộng tối thiểu 960 px; trang không tràn ngang. Nút bảng gỗ mở menu để chọn đủ năm màn mà không cần vuốt. Danh sách bài chỉ hiện sau khi chọn màn; điện thoại dùng một cột.
 
 ### Bản đồ hai cấp
 
-- Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount 5 ô thế giới; sau khi chọn mới mount 5–8 bài tương ứng, không render 30 bài ẩn.
-- “Các thế giới” trở về danh sách ô; “Bản đồ” trên thanh điều hướng cũng về danh sách này. Trở lại từ một bài chơi giữ thế giới hiện tại, chuyển bài sang thế giới khác cập nhật đúng thế giới. Focus về tiêu đề khi đổi cấp.
+- Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount ảnh đảo và 5 vùng bấm; sau khi chọn mới mount 5–8 bài tương ứng. Menu chỉ mount khi mở, dùng disclosure để xem bài từng màn.
+- “Bản đồ đảo” và “Bản đồ” trên thanh điều hướng về đảo; “Danh sách bài” trở về màn đang học. Trở lại từ một bài chơi giữ thế giới hiện tại, chuyển bài sang thế giới khác cập nhật đúng thế giới. Focus về tiêu đề khi đổi cấp.
 - Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Điều kiện mở khóa, sao và điểm chung giữ nguyên.
+
+### Minh họa phiêu lưu
+
+- `adventure.js` là danh mục chung: tọa độ trên đảo, nền và nhân vật hướng dẫn của năm màn. Nhân vật hướng dẫn độc lập với avatar tài khoản. Sprite dùng `object-fit: contain`, không cắt hoặc kéo méo; không thêm nhãn đè chữ có sẵn trên đảo.
+- Bảng gỗ là nền của nút thật, nhãn “Chọn màn”/“Màn N”. Menu và chi tiết dùng Modal chung có X 48 px, Esc, focus về nút mở và vùng nội dung cuộn riêng. Không cho điều hướng rời bài khi đang bắt đầu hoặc lưu kết quả; chuyển bài chờ hàng đợi ghi lượt hiện có.
+- Chỉ nền của màn đang xem được mount. Nhân vật bản đồ tải khi đi vào vùng cuộn; PNG được nén lossless, giữ kích thước, alpha và dữ liệu điểm ảnh. `prepare-quest-art.mjs` kiểm tra điểm ảnh không đổi; không đưa ảnh ngoài bộ dùng vào public.
+- Kiểm tra riêng bằng `node scripts/check-adventure.mjs`: vùng bấm, khóa/mở, menu/X/Esc, làm bài, tiến độ sau reload và cả năm nền tại 320/768/1440 px. Kịch bản dùng API giả lập, không ghi Supabase thật.
 
 ## Nhân vật dùng chung
 

@@ -1,0 +1,39 @@
+.dialog-viewport > .modal--closable {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tipy-modal-header {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0 56px 16px 0;
+}
+.tipy-modal-close {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 2px solid var(--tipy-learn);
+  border-radius: 16px;
+  background: var(--tipy-surface);
+  color: var(--tipy-learn);
+}
+.tipy-modal-close:hover {
+  background: var(--tipy-surface-raised);
+  filter: none;
+}
+.tipy-modal-close:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 3px;
+}
+.tipy-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 4px 20px;
+  text-align: left;
+}

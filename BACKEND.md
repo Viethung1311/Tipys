@@ -109,7 +109,7 @@ Top lớp dùng cùng hàm và chỉ nhận các thành viên đã được ki�
 
 ## Bản đồ chọn thế giới
 
-WorldMap chỉ hiển thị ô thế giới ở màn đầu; chọn một thế giới mới mount danh sách bài của thế giới đó. Không thêm API hoặc truy vấn khi chuyển thế giới, không thay dữ liệu/điểm/điều kiện mở khóa. Bỏ gợi ý bài hôm nay; luyện lại vẫn xen kẽ các câu từng sai trong engine hiện có. Kiểu chơi chuyển vào phần bài của thế giới.
+WorldMap hiển thị ảnh đảo với năm vùng bấm thật; tọa độ phần trăm và ảnh nằm trong `features/keyboard-quest/adventure.js`. Chi tiết màn mở Modal chung, sau đó mới mount danh sách bài. AdventureScene chỉ tải nền/nhân vật của màn đang xem, không đổi avatar tài khoản. MapGuide chỉ tải sprite khi vào vùng cuộn. Menu chọn màn dùng cùng dữ liệu bài và `isUnlocked`, không thêm API hoặc thay dữ liệu/điểm/điều kiện mở khóa. LessonPlayer cung cấp điều hướng qua ref để chờ hàng đợi quit hiện có; header/menu khóa khi bắt đầu hoặc đang lưu kết quả. Không đổi engine, IME, session hay schema Supabase.
 
 ## Avatar ảnh dùng chung
 

@@ -257,9 +257,10 @@ try {
       .filter({ hasText: 'Bé chinh phục bàn phím' })
       .getByRole('button', { name: 'Chơi', exact: true })
       .click();
-    await page.locator('.quest-world-grid').waitFor();
+    await page.locator('.adventure-map').waitFor();
     await check('quest-map');
-    await page.getByRole('button', { name: 'Làm quen bàn phím', exact: true }).click();
+    await page.locator('[data-world-id="1"]').click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Bắt đầu', exact: true }).click();
     await page.locator('.quest-lesson').last().waitFor();
     await check('quest-lessons');
     await page.getByRole('button', { name: 'Vào học', exact: true }).first().click();
@@ -273,7 +274,8 @@ try {
     await page.locator('.quest-profile').waitFor();
     await check('quest-profile');
     await page.getByRole('button', { name: 'Bản đồ', exact: true }).click();
-    await page.getByRole('button', { name: 'Phù thủy tiếng Việt', exact: true }).click();
+    await page.locator('[data-world-id="4"]').click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Bắt đầu', exact: true }).click();
     await page
       .locator('.quest-lesson')
       .filter({ hasText: 'Phép thuật Telex' })

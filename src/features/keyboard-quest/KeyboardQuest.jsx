@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Map, ChartNoAxesCombined, BookOpen } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Map, ChartNoAxesCombined, BookOpen } from 'lucide-react';
 import TipyButton from '../../components/TipyButton.jsx';
 import Loading from '../../components/Loading.jsx';
 import { api } from '../../game/backend.js';
@@ -17,6 +17,11 @@ import './quest.css';
 import LearningProfile from './LearningProfile.jsx';
 import WorldMap from './WorldMap.jsx';
 import { learningSummary, practiceLesson } from './progress.js';
+import AdventureHeader from './AdventureHeader.jsx';
+import AdventureScene from './AdventureScene.jsx';
+import WorldMenu from './WorldMenu.jsx';
+import { adventureWorld } from './adventure.js';
+import './adventure.css';
 
 const guestKey = 'tipy-quest-guest-v1';
 export default function KeyboardQuest({
@@ -37,6 +42,10 @@ export default function KeyboardQuest({
     [mode, setMode] = useState('learn'),
     [worldId, setWorldId] = useState(null),
     [avatar, setAvatar] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false),
+    [navigating, setNavigating] = useState(false),
+    [navigationLocked, setNavigationLocked] = useState(false);
+  const navigationRef = useRef(null);
   const available =
     catalog === null ||
     catalog.some(
@@ -121,49 +130,95 @@ export default function KeyboardQuest({
     if (typeof id === 'string') open(id);
     else setRun(null);
   };
+  const navigate = async (destination) => {
+    if (navigating || navigationLocked) return;
+    setNavigating(true);
+    try {
+      if (run && navigationRef.current) await navigationRef.current(destination);
+      else destination();
+    } finally {
+      setNavigating(false);
+    }
+  };
+  const map = () => {
+    setRun(null);
+    setWorldId(null);
+    setView('map');
+    setMenuOpen(false);
+  };
+  const header = (
+    <AdventureHeader
+      worldId={run?.lesson.world || worldId}
+      lesson={run?.lesson}
+      completed={learningSummary(progress).completed}
+      busy={navigating || navigationLocked || loading || !available}
+      menuOpen={menuOpen}
+      onMenu={() => setMenuOpen(true)}
+      onBack={() => navigate(onBack)}
+      onMap={() => navigate(map)}
+      onList={() =>
+        navigate(() => {
+          setRun(null);
+          setView('map');
+        })
+      }
+    />
+  );
+  const menu = menuOpen && (
+    <WorldMenu
+      progress={progress}
+      worldId={run?.lesson.world || worldId}
+      lessonId={run?.lesson.id}
+      busy={navigating || navigationLocked}
+      onClose={() => setMenuOpen(false)}
+      onWorld={(id) =>
+        navigate(() => {
+          setRun(null);
+          setWorldId(id);
+          setView('map');
+          setMenuOpen(false);
+        })
+      }
+      onLesson={(id) =>
+        navigate(() => {
+          open(id);
+          setView('map');
+          setMenuOpen(false);
+        })
+      }
+    />
+  );
   if (run)
     return (
-      <div className="quest-page">
-        <LessonPlayer
-          key={run.key}
-          lesson={run.lesson}
-          user={user}
-          sound={sound}
-          blocked={blocked}
-          onPlayingChange={onPlayingChange}
-          onBack={back}
-          onSaved={saved}
-          mode={mode}
-          previous={run.previous}
-          nextLesson={LESSONS.find(
-            (lesson) =>
-              lesson.stage === run.lesson.stage + 1 &&
-              isUnlocked(lesson, [...progress, { lesson_id: run.lesson.id, completed: true }]),
-          )}
-        />
-      </div>
+      <main className="quest-page adventure-page">
+        {header}
+        <AdventureScene world={adventureWorld(run.lesson.world || worldId || 1)}>
+          <LessonPlayer
+            key={run.key}
+            lesson={run.lesson}
+            user={user}
+            sound={sound}
+            blocked={blocked || menuOpen || navigating}
+            navigationRef={navigationRef}
+            onNavigationLockChange={setNavigationLocked}
+            onPlayingChange={onPlayingChange}
+            onBack={back}
+            onSaved={saved}
+            mode={mode}
+            previous={run.previous}
+            nextLesson={LESSONS.find(
+              (lesson) =>
+                lesson.stage === run.lesson.stage + 1 &&
+                isUnlocked(lesson, [...progress, { lesson_id: run.lesson.id, completed: true }]),
+            )}
+          />
+        </AdventureScene>
+        {menu}
+      </main>
     );
   return (
-    <div className="quest-page">
-      <section className="panel quest-hero">
-        <span className="quest-mascot" aria-hidden="true">
-          🗺️
-        </span>
-        <h1>Bé chinh phục bàn phím</h1>
-        <p>Mỗi ngày một bước nhỏ. Mình cùng khám phá nhé!</p>
-        <p>
-          {user
-            ? 'Tiến độ được lưu vào tài khoản TIPY.'
-            : 'Bạn đang chơi thử. Đăng nhập để lưu tiến độ vào tài khoản.'}
-        </p>
-        <p>
-          {learningSummary(progress).completed}/{LESSONS.length} bài hoàn thành ·{' '}
-          {progress.reduce((sum, row) => sum + row.best_stars, 0)} sao
-        </p>
-        <TipyButton emphasis="secondary" icon={ArrowLeft} onClick={onBack}>
-          Gõ chữ
-        </TipyButton>
-      </section>
+    <main className="quest-page adventure-page">
+      {header}
       {loading ? (
         <Loading label="Đang mở hành trình…" />
       ) : error ? (
@@ -232,6 +287,7 @@ export default function KeyboardQuest({
           )}
         </>
       )}
-    </div>
+      {menu}
+    </main>
   );
 }
