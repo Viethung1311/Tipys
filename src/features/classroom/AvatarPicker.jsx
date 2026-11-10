@@ -1,3 +1,5 @@
+import { Save } from 'lucide-react';
+import TipyButton from '../../components/TipyButton.jsx';
 import { useEffect, useState } from 'react';
 import { api } from '../../game/backend.js';
 import Avatar from './Avatar.jsx';
@@ -100,9 +102,15 @@ export default function AvatarPicker({ user, onSaved }) {
               </select>
             </label>
           </div>
-          <button className="primary full" type="submit">
-            {saving ? 'Đang lưu…' : 'Lưu nhân vật'}
-          </button>
+          <TipyButton
+            icon={Save}
+            className="full"
+            type="submit"
+            loading={saving}
+            loadingLabel="Đang lưu…"
+          >
+            Lưu nhân vật
+          </TipyButton>
         </fieldset>
       </form>
       {loading && <p role="status">Đang tải nhân vật…</p>}

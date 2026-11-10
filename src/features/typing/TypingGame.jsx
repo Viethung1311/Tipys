@@ -1,4 +1,5 @@
 /** Live gameplay owns animation and persistence; navigation unmounts it safely. */
+import TipyButton from '../../components/TipyButton.jsx';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
@@ -9,6 +10,7 @@ import {
   RotateCcw,
   Home,
   Trophy,
+  SlidersHorizontal,
 } from 'lucide-react';
 import Modal from '../../components/Modal.jsx';
 import Keyboard from '../../components/Keyboard.jsx';
@@ -174,12 +176,18 @@ export default function Game({
           title="Nghỉ một chút nhé ☕"
           description="Chữ và thời gian đã dừng. Tiếp tục khi bạn sẵn sàng."
         >
-          <button className="primary full" onClick={resume}>
-            <Play size={18} /> Tiếp tục
-          </button>
-          <button className="secondary full" onClick={playAgain}>
-            <RotateCcw size={17} /> Chơi lại
-          </button>
+          <TipyButton variant="play" icon={Play} className="full" onClick={resume}>
+            Tiếp tục
+          </TipyButton>
+          <TipyButton
+            variant="play"
+            emphasis="secondary"
+            icon={RotateCcw}
+            className="full"
+            onClick={playAgain}
+          >
+            Chơi lại
+          </TipyButton>
           <button className="text-button centered" onClick={onHome}>
             <Home size={17} /> Về trang chủ
           </button>
@@ -218,12 +226,17 @@ export default function Game({
             ))}
           </div>
           <p className="result-keys">Bộ phím: {[...settings.keys].sort().join(', ')}</p>
-          <button className="primary full" onClick={playAgain}>
-            <RotateCcw size={18} /> Chơi lại nào
-          </button>
-          <button className="secondary full" onClick={onSetup}>
+          <TipyButton variant="play" icon={RotateCcw} className="full" onClick={playAgain}>
+            Chơi lại nào
+          </TipyButton>
+          <TipyButton
+            emphasis="secondary"
+            icon={SlidersHorizontal}
+            className="full"
+            onClick={onSetup}
+          >
             Đổi cài đặt
-          </button>
+          </TipyButton>
           <button className="text-button centered" onClick={onHome}>
             Về trang chủ
           </button>

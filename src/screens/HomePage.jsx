@@ -1,5 +1,6 @@
 import { ArrowRight, Keyboard, Puzzle, Users, MapPin, Sparkles, Check } from 'lucide-react';
 import Reveal from '../shared/Reveal.jsx';
+import TipyButton from '../components/TipyButton.jsx';
 import scratchCat from '../assets/scratch-cat.jpg';
 import scratchCondition from '../assets/scratch-condition.png';
 import scratchMotion from '../assets/scratch-motion.png';
@@ -22,9 +23,9 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
             Từ những phím gõ đầu tiên đến câu chuyện Scratch của riêng mình. Cùng TIPY STEM khám phá
             công nghệ trong một lớp học đầy niềm vui!
           </p>
-          <button className="primary hero-reveal hero-reveal-actions" onClick={onPlay}>
-            Khám phá trò chơi <ArrowRight size={19} />
-          </button>
+          <TipyButton variant="play" className="hero-reveal hero-reveal-actions" onClick={onPlay}>
+            Chơi ngay
+          </TipyButton>
           <div className="hero-meta hero-reveal hero-reveal-actions">
             <span>
               <Check size={15} /> Học qua thực hành
@@ -137,11 +138,18 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
             <span>🐲</span>
             <span>🐵</span>
           </div>
-          <button className="secondary" disabled={!canClassroom} onClick={onClassroom}>
-            Lớp học của mình <ArrowRight size={17} />
-          </button>
+          <TipyButton
+            variant="learn"
+            disabled={!canClassroom}
+            aria-describedby={!canClassroom ? 'classroom-entry-help' : undefined}
+            onClick={onClassroom}
+          >
+            Vào học
+          </TipyButton>
           {!canClassroom && (
-            <small>Đăng nhập và được giáo viên thêm vào lớp để mở lớp học của mình.</small>
+            <small id="classroom-entry-help">
+              Đăng nhập và được giáo viên thêm vào lớp để mở lớp học của mình.
+            </small>
           )}
         </section>
       </Reveal>

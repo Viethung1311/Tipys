@@ -50,8 +50,8 @@ test('complete UI flow: setup, custom keys, input, pause, results, replay, persi
     assert.match(d.body.textContent, /68 Phạm Tứ, Cẩm Lệ, Đà Nẵng/);
     assert.equal(d.querySelector('.game-card'), null);
     assert.equal(d.querySelector('.leaderboard'), null);
-    await click('Khám phá trò chơi');
     await click('Chơi ngay');
+    await click('Chơi');
     await click('Bỏ chọn tất cả');
     assert.equal(button('Bắt đầu chơi').disabled, true);
     await click('4 phím');
@@ -95,8 +95,8 @@ test('complete UI flow: setup, custom keys, input, pause, results, replay, persi
     await until(() => d.querySelector('[role="dialog"]'));
     await click('Về trang chủ');
     await until(() => d.querySelector('.hero'));
-    await click('Khám phá trò chơi');
     await click('Chơi ngay');
+    await click('Chơi');
     assert.match(d.body.textContent, /Đã chọn: 4 phím/);
     assert.deepEqual(errors, []);
   } finally {

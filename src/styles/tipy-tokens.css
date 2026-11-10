@@ -1,0 +1,31 @@
+:root {
+  --tipy-font-family: 'TIPY Nunito', 'Segoe UI', Arial, sans-serif;
+  --tipy-surface: #fffaf2;
+  --tipy-surface-raised: #ffffff;
+  --tipy-text: #402b20;
+  --tipy-on-action: #ffffff;
+  --tipy-learn: #c84c00;
+  --tipy-learn-end: #bc4100;
+  --tipy-learn-base: #8c3100;
+  --tipy-play: #007f6a;
+  --tipy-play-end: #00735f;
+  --tipy-play-base: #005344;
+  --tipy-focus: #2448a6;
+  --tipy-danger: #b42318;
+  --tipy-disabled: #e8e0d5;
+  --tipy-disabled-text: #655548;
+  --tipy-disabled-base: #c9bdae;
+  --tipy-space-1: 4px;
+  --tipy-space-2: 8px;
+  --tipy-space-3: 12px;
+  --tipy-space-4: 16px;
+  --tipy-space-5: 24px;
+  --tipy-space-6: 32px;
+  --tipy-button-height: 64px;
+  --tipy-button-font-size: 22px;
+  --tipy-button-radius: 24px;
+  --tipy-button-depth: 6px;
+  --tipy-button-pressed-depth: 2px;
+  --tipy-button-travel: 4px;
+  --tipy-button-duration: 120ms;
+}

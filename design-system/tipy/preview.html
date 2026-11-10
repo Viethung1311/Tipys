@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TIPY STEM · Thử hai nút</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--tipy-surface);
+        color: var(--tipy-text);
+        font-family: var(--tipy-font-family);
+      }
+      main {
+        width: min(880px, 100%);
+        margin: 0 auto;
+        padding: 64px 28px;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 48px;
+      }
+      .brand {
+        color: var(--tipy-learn-end);
+        font-size: 18px;
+        font-weight: 900;
+      }
+      h1 {
+        font-size: clamp(28px, 5vw, 36px);
+        line-height: 1.4;
+        margin: 12px 0;
+      }
+      p {
+        font-size: 18px;
+        line-height: 1.6;
+        margin: 0;
+      }
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin: 28px 0;
+      }
+      .actions > button {
+        width: 100%;
+      }
+      h2 {
+        font-size: 20px;
+        margin: 48px 0 0;
+      }
+      #feedback {
+        min-height: 32px;
+        text-align: center;
+        margin-top: 32px;
+      }
+      .note {
+        font-size: 16px;
+        color: var(--tipy-disabled-text);
+      }
+      @media (max-width: 580px) {
+        main {
+          padding: 32px 24px;
+        }
+        .actions {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+        header {
+          margin-bottom: 32px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="brand">TIPY STEM</span>
+        <h1>Cùng học, cùng chơi!</h1>
+        <p>Hai chiếc nút nhỏ, mở ra nhiều điều vui.</p>
+      </header>
+      <div id="root"></div>
+      <p id="feedback" role="status" aria-live="polite">Bạn thử bấm một nút nhé.</p>
+    </main>
+    <script type="module">
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import TipyButton from '/src/components/TipyButton.jsx';
+      const h = React.createElement;
+      const say = (text) => {
+        document.getElementById('feedback').textContent = text;
+      };
+      const button = (variant, children, props = {}) =>
+        h(TipyButton, { variant, ...props }, children);
+      createRoot(document.getElementById('root')).render(
+        h(
+          React.Fragment,
+          null,
+          h(
+            'div',
+            { className: 'actions', 'aria-label': 'Hai nút mẫu' },
+            button('learn', 'Vào học', { onClick: () => say('Sẵn sàng vào học!') }),
+            button('play', 'Chơi', { onClick: () => say('Cùng chơi thật vui!') }),
+          ),
+          h('h2', null, 'Khi chưa thể mở'),
+          h('p', { className: 'note' }, 'Nút có giải thích và không nhận thao tác.'),
+          h(
+            'div',
+            { className: 'actions' },
+            button('learn', 'Vào học', { disabled: true }),
+            button('play', 'Chơi', { disabled: true }),
+          ),
+          h('h2', null, 'Khi đang mở'),
+          h('p', { className: 'note' }, 'Có chữ phản hồi, không nhấp nháy hay xoay liên tục.'),
+          h(
+            'div',
+            { className: 'actions' },
+            button('learn', 'Vào học', { loading: true }),
+            button('play', 'Chơi', { loading: true }),
+          ),
+        ),
+      );
+    </script>
+  </body>
+</html>

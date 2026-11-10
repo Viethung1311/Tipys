@@ -10,7 +10,7 @@ let js = await readFile(
   ),
   'utf8',
 );
-const css = await readFile(
+let css = await readFile(
   new URL(
     assets.find((x) => x.endsWith('.css')),
     directory,
@@ -20,12 +20,18 @@ const css = await readFile(
 // Keep user-supplied artwork available in the standalone/offline version too.
 for (const filename of assets) {
   const extension = filename.split('.').pop();
-  const mime = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp' }[
-    extension
-  ];
+  const mime = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+    woff2: 'font/woff2',
+  }[extension];
   if (mime) {
     const bytes = await readFile(new URL(filename, directory));
-    js = js.replaceAll(`/assets/${filename}`, `data:${mime};base64,${bytes.toString('base64')}`);
+    const embedded = `data:${mime};base64,${bytes.toString('base64')}`;
+    js = js.replaceAll(`/assets/${filename}`, embedded);
+    css = css.replaceAll(`/assets/${filename}`, embedded);
   }
 }
 await writeFile(

@@ -1,5 +1,13 @@
 # Third-party notices
 
+## Nunito
+
+Nunito variable font (Latin, Latin extended and Vietnamese subsets), served locally for TIPY buttons.
+Source: https://fonts.google.com/specimen/Nunito and https://github.com/google/fonts/tree/main/ofl/nunito.
+Copyright 2014 The Nunito Project Authors. Licensed under the SIL Open Font License 1.1; complete notice and terms are preserved in `src/assets/fonts/OFL.txt`.
+
+## Loading animation
+
 The keycap loading animation is adapted from the bounce/shadow loader by mobinkakei (Mobeen): https://uiverse.io/mobinkakei/grumpy-turtle-41
 
 MIT License

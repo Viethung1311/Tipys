@@ -1,4 +1,5 @@
-import { ArrowRight, ArrowLeft, Heart, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart, Check, Sparkles } from 'lucide-react';
+import TipyButton from '../../components/TipyButton.jsx';
 import Keyboard from '../../components/Keyboard.jsx';
 import { PRESETS, LEVELS } from '../../game/config.js';
 export default function Setup({ settings, setSettings, onStart, onHome }) {
@@ -87,9 +88,9 @@ export default function Setup({ settings, setSettings, onStart, onHome }) {
             <span>
               <Heart size={17} fill="currentColor" /> 3 mạng <i>·</i> +10 điểm / chữ
             </span>
-            <button className="primary" onClick={onStart} disabled={!settings.keys.length}>
-              Bắt đầu chơi <ArrowRight size={18} />
-            </button>
+            <TipyButton variant="play" onClick={onStart} disabled={!settings.keys.length}>
+              Bắt đầu chơi
+            </TipyButton>
           </div>
           {!settings.keys.length && (
             <p role="status" className="balance-tip">

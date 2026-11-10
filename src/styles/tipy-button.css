@@ -1,0 +1,110 @@
+.tipy-button {
+  --button-start: var(--tipy-learn);
+  --button-end: var(--tipy-learn-end);
+  --button-base: var(--tipy-learn-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tipy-space-3);
+  min-height: var(--tipy-button-height);
+  min-width: 156px;
+  max-width: 100%;
+  padding: 14px var(--tipy-space-5);
+  border: 0;
+  border-radius: var(--tipy-button-radius);
+  color: var(--tipy-on-action);
+  background: linear-gradient(180deg, var(--button-start), var(--button-end));
+  box-shadow:
+    0 var(--tipy-button-depth) 0 var(--button-base),
+    inset 0 1px 0 #ffffff24;
+  font-family: var(--tipy-font-family);
+  font-size: var(--tipy-button-font-size);
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+  transition:
+    transform var(--tipy-button-duration),
+    box-shadow var(--tipy-button-duration);
+}
+.tipy-button--play {
+  --button-start: var(--tipy-play);
+  --button-end: var(--tipy-play-end);
+  --button-base: var(--tipy-play-base);
+}
+.tipy-button--secondary {
+  color: var(--button-end);
+  background: var(--tipy-surface-raised);
+  border: 2px solid currentColor;
+}
+.tipy-button--secondary:hover:not(:disabled) {
+  background: var(--tipy-surface);
+}
+.tipy-button__icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+}
+.tipy-button__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tipy-button:hover:not(:disabled) {
+  filter: none;
+  background: var(--button-end);
+}
+.tipy-button:active:not(:disabled) {
+  transform: translateY(var(--tipy-button-travel));
+  box-shadow: 0 var(--tipy-button-pressed-depth) 0 var(--button-base);
+}
+.tipy-button:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 4px;
+}
+.tipy-button:disabled {
+  opacity: 1;
+  background: var(--tipy-disabled);
+  color: var(--tipy-disabled-text);
+  box-shadow: 0 var(--tipy-button-depth) 0 var(--tipy-disabled-base);
+  cursor: not-allowed;
+}
+.tipy-button[aria-busy='true'] {
+  cursor: progress;
+}
+.dialog-viewport .tipy-button {
+  width: 100%;
+  margin-block: var(--tipy-space-3);
+}
+.start-row {
+  flex-wrap: wrap;
+  gap: var(--tipy-space-4);
+}
+.start-row .tipy-button__icon {
+  width: 30px;
+  height: 30px;
+}
+/* Leave room for the depth and focus ring, including when cards stack on phones. */
+.welcome-class > .tipy-button {
+  justify-self: start;
+  margin: var(--tipy-space-2) 0;
+}
+.game-card > .tipy-button {
+  margin: var(--tipy-space-2) var(--tipy-space-3);
+}
+@media (max-width: 680px) {
+  .start-row > .tipy-button {
+    width: 100%;
+  }
+  .welcome-class > .tipy-button,
+  .game-card > .tipy-button {
+    width: 100%;
+    justify-self: stretch;
+    margin: var(--tipy-space-2) 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tipy-button {
+    transition: none;
+  }
+}

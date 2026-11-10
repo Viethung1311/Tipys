@@ -1,5 +1,6 @@
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import Reveal from '../shared/Reveal.jsx';
+import TipyButton from '../components/TipyButton.jsx';
 import { availableGames, gameScreen, GAME_ENGINES } from '../game/catalog.js';
 
 /** Catalog metadata comes from the API; only registered engines are launchable. */
@@ -49,10 +50,9 @@ export default function GameLibrary({ catalog, onChoose, onHome }) {
                     ))}
                   </div>
                 </div>
-                <button className="primary" disabled={!screen} onClick={() => onChoose(screen)}>
-                  {screen ? 'Chơi ngay' : 'Đang chuẩn bị'}
-                  <ArrowRight size={18} />
-                </button>
+                <TipyButton variant="play" disabled={!screen} onClick={() => onChoose(screen)}>
+                  {screen ? 'Chơi' : 'Đang chuẩn bị'}
+                </TipyButton>
               </article>
             </Reveal>
           );

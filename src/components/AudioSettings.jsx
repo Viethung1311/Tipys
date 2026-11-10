@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import TipyButton from './TipyButton.jsx';
 import Modal from './Modal.jsx';
 export default function AudioSettings({ preferences, onChange, onClose }) {
   const change = (key, value) => onChange((previous) => ({ ...previous, [key]: value }));
@@ -45,9 +46,9 @@ export default function AudioSettings({ preferences, onChange, onClose }) {
         ))}
       </div>
       <p className="audio-note">Nhạc nền tắt mặc định. Cài đặt được lưu trên trình duyệt này.</p>
-      <button className="primary full" onClick={onClose}>
-        Xong rồi <Check size={18} />
-      </button>
+      <TipyButton icon={Check} className="full" onClick={onClose}>
+        Xong rồi
+      </TipyButton>
     </Modal>
   );
 }

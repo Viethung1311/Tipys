@@ -3,7 +3,8 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { api } from '../game/backend.js';
 import Loading from './Loading.jsx';
 import useDialogViewport from '../hooks/useDialogViewport.js';
-import { UserRound } from 'lucide-react';
+import TipyButton from './TipyButton.jsx';
+import { UserRound, LogIn, UserPlus, LogOut } from 'lucide-react';
 import AvatarPicker from '../features/classroom/AvatarPicker.jsx';
 import ResultsTable from './ResultsTable.jsx';
 import { practiceTime } from '../game/results.js';
@@ -152,9 +153,16 @@ export default function Account({
                     <p className="muted">
                       Không bắt buộc chữ hoa, ký tự đặc biệt hoặc độ dài tối thiểu.
                     </p>
-                    <button className="primary full" disabled={busy || !configured}>
-                      {busy ? 'Đang xử lý…' : mode === 'signup' ? 'Tạo tài khoản' : 'Vào chơi nào'}
-                    </button>
+                    <TipyButton
+                      type="submit"
+                      icon={mode === 'signup' ? UserPlus : LogIn}
+                      className="full"
+                      loading={busy}
+                      loadingLabel="Đang xử lý…"
+                      disabled={!configured}
+                    >
+                      {mode === 'signup' ? 'Tạo tài khoản' : 'Vào chơi nào'}
+                    </TipyButton>
                   </form>
                   {!configured && (
                     <p className="account-message">
@@ -189,9 +197,12 @@ export default function Account({
                       <p>
                         Vai trò: <b>{user.role === 'admin' ? 'Giáo viên quản trị' : 'Học sinh'}</b>
                       </p>
-                      <button
-                        className="secondary full"
-                        disabled={busy}
+                      <TipyButton
+                        emphasis="secondary"
+                        icon={LogOut}
+                        className="full"
+                        loading={busy}
+                        loadingLabel="Đang thoát…"
                         onClick={() =>
                           run(async () => {
                             await api('logout', {});
@@ -201,7 +212,7 @@ export default function Account({
                         }
                       >
                         Đăng xuất
-                      </button>
+                      </TipyButton>
                     </div>
                   )}
                   {mode === 'avatar' && <AvatarPicker user={user} onSaved={onAvatarChanged} />}
