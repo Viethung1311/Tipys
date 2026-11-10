@@ -141,6 +141,7 @@ test('external navigation waits for final save and signed-in reload reads the sa
       await sleep(12);
     }
     await until(() => calls.some((call) => call.action === 'quest_finish'));
+    await until(() => d.querySelector('.adventure-world-switch').disabled);
     assert.ok(d.querySelector('.adventure-world-switch').disabled);
     assert.ok(
       [...d.querySelectorAll('.adventure-breadcrumbs button')].every((button) => button.disabled),
