@@ -79,3 +79,14 @@ Mã UI và SQL chỉ là một phần hoàn tất; cần lưu biến, triển kh
 `db/classrooms.sql` adds five tables and a private Storage bucket: classes, class_members, student_avatars, class_posts, class_attachments. Applied successfully to project pjzsszjcymcfyamycidx. It contains no DROP, DELETE or TRUNCATE. Existing game/account/result data remains intact.
 
 API classroom actions are authenticated. Every membership-gated action checks the database, and all administration actions require the DB admin role. Signed file downloads last 300 seconds; no public bucket. Full maintenance details: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## MVP Bé chinh phục bàn phím
+
+- Engine/game_code: keyboard_quest; màn hình tải riêng tại #typing/quest trong mục Gõ chữ. Dùng chung tài khoản, cookie, âm thanh và thống kê hiện có.
+- Nội dung có phiên bản ở src/features/keyboard-quest/curriculum.js: 5 bài làm quen và 3 bài trải nghiệm mở sẵn. Không phải toàn bộ 30 màn. Telex dùng bộ gõ của thiết bị, không tự chuyển as thành á khi máy chưa bật bộ gõ.
+- Sau schema hiện có, chỉ chạy db/keyboard_quest.sql. Migration thêm player_lesson_progress (một hàng/người/game/bài), hai RPC chỉ service_role được gọi và bản ghi game tắt mặc định. Không chạy lại schema gốc trên database đang dùng. Đã đối chiếu schema live trước khi bổ sung.
+- GET quest_progress trả tiến độ của phiên hiện tại. POST start nhận gameCode, stageNumber, lessonId, kiểm tra điều kiện mở khóa. POST quest_finish kiểm tra chủ lượt, bài, câu trả lời, lỗi và thời gian; backend tự tính sao và độ chính xác. RPC ghi kết thúc lượt + tổng thời gian + tiến độ trong một transaction, cùng thứ tự khóa với RPC cũ. Gửi lại cùng lượt không cộng trùng. POST progress không được hoàn thành bài học.
+- POST quest_reset yêu cầu confirm:true, chỉ đặt lại tiến độ module của chính người đăng nhập; giữ player_game_stats và kết quả Chữ rơi. Yêu cầu cũ bị vô hiệu sau reset. RLS chỉ cho học sinh đọc bản ghi của mình; admin được đọc theo chính sách hiện có; client không được ghi trực tiếp.
+- Khách chỉ lưu bản chơi thử cục bộ, không tự gộp vào tài khoản. Không lưu chuỗi nhập sai tự do hoặc từng lần bấm phím. Sai dấu chỉ phân loại khi quan sát được khác biệt dấu, không suy đoán chuỗi Telex đã gõ.
+- Heartbeat 10 giây, dừng đồng hồ khi tạm dừng/ẩn trang/mở dialog. Đóng cưỡng bức có thể mất tối đa khoảng heartbeat chưa gửi; không phải nhật ký kiểm chứng chống gian lận.
+- Rollout: giữ game tắt đến khi frontend/backend mới được triển khai và kiểm tra đăng nhập thật. Sau đó admin bật game hiện có. Rollback: tắt game và quay về deployment trước, giữ bảng tiến độ để phục hồi.

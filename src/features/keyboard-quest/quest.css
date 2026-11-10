@@ -1,0 +1,168 @@
+.quest-page {
+  font-family: var(--tipy-font-family);
+  font-size: 19px;
+  color: var(--tipy-text);
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.quest-page h1,
+.quest-page h2,
+.quest-page h3 {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.quest-page h1 {
+  font-size: clamp(28px, 5vw, 36px);
+}
+.quest-page h2 {
+  font-size: 28px;
+}
+.quest-page h3 {
+  font-size: 22px;
+  margin: 0;
+}
+.quest-hero,
+.quest-result,
+.quest-state,
+.quest-challenge {
+  text-align: center;
+}
+.quest-worlds,
+.quest-lessons {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.quest-world {
+  background: var(--tipy-surface);
+}
+.quest-lesson {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px;
+  border-radius: var(--tipy-button-radius);
+  background: var(--tipy-surface-raised);
+}
+.quest-lesson p {
+  margin-bottom: 0;
+}
+.quest-lesson .tipy-button {
+  flex-shrink: 0;
+}
+.quest-mascot {
+  font-size: 64px;
+}
+.quest-player-top,
+.quest-actions,
+.quest-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.quest-actions {
+  justify-content: center;
+  margin-top: 24px;
+}
+.quest-player progress {
+  width: 100%;
+  accent-color: var(--tipy-play);
+  height: 20px;
+  margin-top: 24px;
+}
+.quest-challenge {
+  padding: 24px 0;
+}
+.quest-page .quest-target {
+  display: block;
+  text-align: center;
+  font-size: clamp(32px, 7vw, 48px);
+  white-space: pre-wrap;
+}
+.quest-hint {
+  font-size: 18px;
+}
+.quest-input-label {
+  display: grid;
+  gap: 12px;
+}
+.quest-input-label textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1.6;
+  border: 2px solid var(--tipy-text);
+  border-radius: 16px;
+  resize: vertical;
+  margin-bottom: 20px;
+}
+.quest-page :focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 4px;
+}
+.quest-feedback {
+  min-height: 32px;
+  font-weight: 800;
+}
+.quest-player .keyboard {
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+.quest-player .key {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  flex-shrink: 0;
+}
+.quest-player .key-row {
+  width: max-content;
+  min-width: 100%;
+}
+.quest-target-key {
+  outline: 3px solid var(--tipy-play);
+  outline-offset: -3px;
+  font-weight: 900;
+}
+.quest-stars {
+  color: var(--tipy-learn);
+  font-size: 40px;
+}
+.quest-metrics {
+  justify-content: center;
+}
+.quest-metrics p {
+  padding: 16px;
+  background: var(--tipy-surface);
+  border-radius: 16px;
+}
+.quest-metrics b {
+  display: block;
+  font-size: 28px;
+}
+@media (max-width: 620px) {
+  .quest-lesson {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px;
+  }
+  .quest-player-top {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .quest-page .panel {
+    padding: 20px;
+    min-width: 0;
+  }
+  .quest-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

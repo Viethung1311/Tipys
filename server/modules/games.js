@@ -1,4 +1,6 @@
 /** Catalog, student summaries and bounded game results. */
+import { questStart } from './keyboard-quest.js';
+import { QUEST_CODE } from '../../src/features/keyboard-quest/curriculum.js';
 import { SUPPORTED_KEYS } from '../../src/game/config.js';
 import { resultRows } from '../../src/game/results.js';
 import { ApiError, requireAdmin, fail } from '../errors.js';
@@ -94,6 +96,10 @@ export function createGames(db) {
         .eq('is_active', true)
         .single();
       fail(error, 'Trò chơi chưa được mở.');
+      if (game.engine_code === QUEST_CODE) {
+        if (game.game_code !== QUEST_CODE) throw new ApiError(400, 'Mã game chưa hợp lệ.');
+        return questStart(db, profile, game, input);
+      }
       const difficulty = input.difficulty ?? null;
       if (
         difficulty !== null &&

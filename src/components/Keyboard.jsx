@@ -1,5 +1,12 @@
 import { ROWS } from '../game/config.js';
-export default function Keyboard({ keys, onKey, editing = false, lastKey, disabled = false }) {
+export default function Keyboard({
+  keys,
+  onKey,
+  editing = false,
+  lastKey,
+  disabled = false,
+  targetKey,
+}) {
   return (
     <div
       className={`keyboard ${editing ? 'picker' : 'touchboard'}`}
@@ -14,7 +21,7 @@ export default function Keyboard({ keys, onKey, editing = false, lastKey, disabl
               aria-label={`${editing ? 'Chọn phím' : 'Gõ'} ${key}`}
               aria-pressed={editing ? keys.includes(key) : undefined}
               disabled={disabled || (!editing && !keys.includes(key))}
-              className={`key ${keys.includes(key) ? 'selected' : ''} ${lastKey === key ? 'lit' : ''}`}
+              className={`key ${keys.includes(key) ? 'selected' : ''} ${lastKey === key ? 'lit' : ''} ${targetKey === key ? 'quest-target-key' : ''}`}
               onPointerDown={(e) => {
                 if (!editing) {
                   e.preventDefault();

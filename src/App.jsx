@@ -4,6 +4,7 @@ import Account from './components/Account.jsx';
 import AudioSettings from './components/AudioSettings.jsx';
 import HomePage from './screens/HomePage.jsx';
 import GameLibrary from './screens/GameLibrary.jsx';
+const KeyboardQuest = lazy(() => import('./features/keyboard-quest/KeyboardQuest.jsx'));
 const TypingSetup = lazy(() => import('./features/typing/TypingSetup.jsx'));
 const TypingGame = lazy(() => import('./features/typing/TypingGame.jsx'));
 const ClassroomPage = lazy(() => import('./features/classroom/ClassroomPage.jsx'));
@@ -19,9 +20,11 @@ export default function App() {
       ? 'library'
       : location.hash === '#typing/setup'
         ? 'setup'
-        : location.hash === '#classroom'
-          ? 'classroom'
-          : 'home',
+        : location.hash === '#typing/quest'
+          ? 'quest'
+          : location.hash === '#classroom'
+            ? 'classroom'
+            : 'home',
   );
   const [settings, setSettings] = useState(readSettings),
     [runSettings, setRunSettings] = useState(settings);
@@ -48,13 +51,15 @@ export default function App() {
         ? '#home'
         : next === 'library'
           ? '#typing'
-          : next === 'setup'
-            ? '#typing/setup'
-            : `#${next}`,
+          : next === 'quest'
+            ? '#typing/quest'
+            : next === 'setup'
+              ? '#typing/setup'
+              : `#${next}`,
     );
   };
   const { preferences, setPreferences, play } = useGameAudio(
-    screen === 'game' && gamePlaying && !audioOpen && !accountOpen,
+    ['game', 'quest'].includes(screen) && gamePlaying && !audioOpen && !accountOpen,
   );
   useEffect(() => save('tipy-settings', settings), [settings]);
   const start = () => {
@@ -106,7 +111,7 @@ export default function App() {
           Trang chủ
         </button>
         <button
-          aria-current={['library', 'setup', 'game'].includes(screen) ? 'page' : undefined}
+          aria-current={['library', 'setup', 'game', 'quest'].includes(screen) ? 'page' : undefined}
           onClick={() => navigate('library')}
         >
           Gõ chữ
@@ -160,6 +165,16 @@ export default function App() {
           <Reveal key="library">
             <GameLibrary catalog={catalog} onChoose={navigate} onHome={() => navigate('home')} />
           </Reveal>
+        ) : screen === 'quest' ? (
+          <KeyboardQuest
+            key={user?.user_id || 'guest'}
+            user={user}
+            catalog={catalog}
+            sound={play}
+            blocked={audioOpen || accountOpen}
+            onPlayingChange={setGamePlaying}
+            onBack={() => navigate('library')}
+          />
         ) : screen === 'setup' ? (
           <Reveal key="setup">
             <TypingSetup

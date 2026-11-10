@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { ApiError } from './errors.js';
 import { createIdentity } from './modules/identity.js';
+import { createKeyboardQuest } from './modules/keyboard-quest.js';
 import { createGames } from './modules/games.js';
 import { createClassrooms } from './modules/classrooms.js';
 export { ApiError, requireAdmin } from './errors.js';
@@ -17,5 +18,10 @@ export function createBackend(env, clientFactory = createClient) {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
   const db = client();
-  return { ...createIdentity({ db, client, env }), ...createGames(db), ...createClassrooms(db) };
+  return {
+    ...createIdentity({ db, client, env }),
+    ...createGames(db),
+    ...createClassrooms(db),
+    ...createKeyboardQuest(db),
+  };
 }

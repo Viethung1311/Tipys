@@ -1,5 +1,10 @@
 /** Register a client engine here when its gameplay screen is implemented. */
 export const GAME_ENGINES = {
+  keyboard_quest: {
+    screen: 'quest',
+    icon: '🗺️',
+    features: ['5 bài làm quen', 'Gõ từ và câu', 'Telex tiếng Việt'],
+  },
   falling_letters: {
     screen: 'setup',
     icon: '⌨',
@@ -15,10 +20,23 @@ export const OFFLINE_GAMES = [
     description: 'Bắt lấy chữ đang rơi bằng cách gõ hoặc chạm đúng phím.',
     is_active: true,
   },
+  {
+    game_id: 'keyboard_quest',
+    game_code: 'keyboard_quest',
+    engine_code: 'keyboard_quest',
+    game_name: 'Bé chinh phục bàn phím',
+    description: 'Khám phá bàn phím, gõ từ và làm quen Telex.',
+    is_active: true,
+  },
 ];
 export function availableGames(catalog) {
   return (catalog === null ? OFFLINE_GAMES : catalog).filter((game) => game.is_active);
 }
 export function gameScreen(game) {
-  return game.game_code === 'falling_letters' ? GAME_ENGINES[game.engine_code]?.screen : null;
+  return ['falling_letters', 'keyboard_quest'].includes(game.game_code) &&
+    game.game_code === game.engine_code
+    ? GAME_ENGINES[game.engine_code]?.screen
+    : game.game_code === 'falling_letters'
+      ? undefined
+      : null;
 }

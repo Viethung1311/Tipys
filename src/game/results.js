@@ -22,7 +22,7 @@ export const resultType = (type) =>
   ({ best: 'Cao nhất', recent: 'Gần nhất', best_recent: 'Cao nhất & gần nhất' })[type] ||
   'Gần nhất';
 export const resultLabel = (row) =>
-  row.metrics?.wrong > 5
+  row.games?.game_code !== 'keyboard_quest' && row.metrics?.wrong > 5
     ? 'Sai quá 5 lần'
     : {
         game_over: 'Hết mạng',

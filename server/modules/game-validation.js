@@ -34,6 +34,13 @@ export function validateProgress(play, input, now = Date.now()) {
     throw new ApiError(400, 'Kết quả lượt chơi chưa hợp lệ.');
   if (seconds > Math.max(0, (now - Date.parse(play.started_at)) / 1000) + 3)
     throw new ApiError(400, 'Thời gian chơi chưa hợp lệ.');
+  if (
+    play.games.engine_code === 'keyboard_quest' &&
+    (!['in_progress', 'quit'].includes(result) ||
+      score !== 0 ||
+      (input.stageNumber !== undefined && input.stageNumber !== play.stage_number))
+  )
+    throw new ApiError(400, 'Kết thúc bài học qua hành động riêng của module.');
   const old = play.metrics || {},
     metrics = input.metrics || {};
   if (typeof metrics !== 'object' || Array.isArray(metrics))
