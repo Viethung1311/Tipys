@@ -9,6 +9,7 @@ import TipyButton from './TipyButton.jsx';
 import { UserRound, LogIn, UserPlus, LogOut, X } from 'lucide-react';
 import AvatarPicker from '../features/classroom/AvatarPicker.jsx';
 import AccountPoints from './AccountPoints.jsx';
+import '../styles/modal.css';
 export default function Account({
   onUser,
   onCatalog,
@@ -128,7 +129,7 @@ export default function Account({
           <Dialog.Overlay className="overlay" />
           <div className="dialog-viewport" style={viewportStyle}>
             <Dialog.Content
-              className={`modal account-modal ${mode === 'avatar' ? 'wide character-modal' : ''}`}
+              className={`modal account-modal tipy-scrollbar-hidden ${mode === 'avatar' ? 'wide character-modal' : ''}`}
               onPointerDownOutside={(e) => e.preventDefault()}
             >
               <div className={mode === 'avatar' ? 'character-modal-header' : undefined}>
@@ -160,12 +161,7 @@ export default function Account({
                       : 'Dùng tên đăng nhập và mật khẩu của bạn, không cần email.'}
                 </Dialog.Description>
               </div>
-              <div
-                className={mode === 'avatar' ? 'character-modal-body' : undefined}
-                role={mode === 'avatar' ? 'region' : undefined}
-                aria-label={mode === 'avatar' ? 'Danh sách nhân vật' : undefined}
-                tabIndex={mode === 'avatar' ? 0 : undefined}
-              >
+              <div className={mode === 'avatar' ? 'character-modal-body' : undefined}>
                 {!user && mode !== 'avatar' && (
                   <>
                     <div className="account-tabs">

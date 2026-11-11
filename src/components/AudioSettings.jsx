@@ -5,6 +5,7 @@ export default function AudioSettings({ preferences, onChange, onClose }) {
   const change = (key, value) => onChange((previous) => ({ ...previous, [key]: value }));
   return (
     <Modal
+      className="tipy-scrollbar-hidden"
       title="Âm thanh vui nhộn 🎵"
       description="Điều chỉnh riêng hiệu ứng và nhạc nền. Chọn âm lượng vừa đủ nghe cho lớp học."
     >

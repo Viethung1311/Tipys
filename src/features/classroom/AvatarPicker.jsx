@@ -42,83 +42,91 @@ export default function AvatarPicker({
   };
   return (
     <section className="account-avatar-editor" aria-label="Chọn nhân vật của mình">
-      <div className="avatar-picker-preview">
-        <Avatar value={value} name={user?.full_name || 'bạn'} />
-        <div>
-          <h3>Người bạn đồng hành</h3>
-          <p>Dùng chung trong lớp và các trò chơi.</p>
+      <form className="avatar-picker-form" onSubmit={submit}>
+        <div
+          className="character-picker-scroll tipy-scrollbar-hidden"
+          role="region"
+          aria-label="Danh sách nhân vật"
+          tabIndex={0}
+        >
+          <div className="avatar-picker-preview">
+            <Avatar value={value} name={user?.full_name || 'bạn'} />
+            <div>
+              <h3>Người bạn đồng hành</h3>
+              <p>Dùng chung trong lớp và các trò chơi.</p>
+            </div>
+          </div>
+          {loading && <p role="status">Đang tải nhân vật…</p>}
+          {loadError && (
+            <p role="alert">
+              {loadError}{' '}
+              <TipyButton emphasis="secondary" icon={RotateCcw} onClick={onRetry}>
+                Thử lại
+              </TipyButton>
+            </p>
+          )}
+          <fieldset disabled={loading || saving || !!loadError}>
+            <legend>Chọn một nhân vật</legend>
+            <div className="character-options">
+              {CHARACTERS.map((character) => (
+                <label
+                  key={character.id}
+                  className={
+                    'character-option ' + (value.animal === character.id ? 'is-selected' : '')
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="animal"
+                    value={character.id}
+                    checked={value.animal === character.id}
+                    onChange={() => {
+                      setValue({ ...value, animal: character.id });
+                      setNotice('');
+                    }}
+                  />
+                  <img
+                    src={character.src}
+                    alt=""
+                    width="256"
+                    height="256"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <b>{character.name}</b>
+                  {value.animal === character.id && (
+                    <span className="character-selected">
+                      <Check size={16} aria-hidden="true" /> Đang chọn
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+          </fieldset>
         </div>
-      </div>
-      {loading && <p role="status">Đang tải nhân vật…</p>}
-      {loadError && (
-        <p role="alert">
-          {loadError}{' '}
-          <TipyButton emphasis="secondary" icon={RotateCcw} onClick={onRetry}>
-            Thử lại
+        <footer className="character-confirm">
+          <TipyButton
+            className="full"
+            type="submit"
+            icon={user ? Check : LogIn}
+            disabled={loading || !!loadError}
+            loading={saving}
+            loadingLabel="Đang lưu…"
+          >
+            {user ? 'Lưu nhân vật' : 'Đăng nhập để lưu'}
           </TipyButton>
-        </p>
-      )}
-      <form onSubmit={submit}>
-        <fieldset disabled={loading || saving || !!loadError}>
-          <legend>Chọn một nhân vật</legend>
-          <div className="character-options">
-            {CHARACTERS.map((character) => (
-              <label
-                key={character.id}
-                className={
-                  'character-option ' + (value.animal === character.id ? 'is-selected' : '')
-                }
-              >
-                <input
-                  type="radio"
-                  name="animal"
-                  value={character.id}
-                  checked={value.animal === character.id}
-                  onChange={() => {
-                    setValue({ ...value, animal: character.id });
-                    setNotice('');
-                  }}
-                />
-                <img
-                  src={character.src}
-                  alt=""
-                  width="256"
-                  height="256"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <b>{character.name}</b>
-                {value.animal === character.id && (
-                  <span className="character-selected">
-                    <Check size={16} aria-hidden="true" /> Đang chọn
-                  </span>
-                )}
-              </label>
-            ))}
-          </div>
-          <div className="character-confirm">
-            <TipyButton
-              className="full"
-              type="submit"
-              icon={user ? Check : LogIn}
-              loading={saving}
-              loadingLabel="Đang lưu…"
-            >
-              {user ? 'Lưu nhân vật' : 'Đăng nhập để lưu'}
-            </TipyButton>
-          </div>
-        </fieldset>
+          {error && (
+            <p role="alert" className="account-error">
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p role="status" className="admin-success">
+              {notice}
+            </p>
+          )}
+        </footer>
       </form>
-      {error && (
-        <p role="alert" className="account-error">
-          {error}
-        </p>
-      )}
-      {notice && (
-        <p role="status" className="admin-success">
-          {notice}
-        </p>
-      )}
     </section>
   );
 }

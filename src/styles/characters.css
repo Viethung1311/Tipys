@@ -95,8 +95,40 @@
   font: 800 16px/1.5 var(--tipy-font-family);
 }
 .character-confirm {
-  padding: 24px 0 32px;
+  display: block;
+  width: 100%;
+  margin: 0;
+  color: var(--tipy-text);
+  font-size: 18px;
+  flex-shrink: 0;
+  padding: 16px 4px max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--tipy-border);
   background: var(--tipy-surface-raised);
+}
+.character-modal .character-confirm .tipy-button {
+  margin: 0;
+  padding-inline: 12px;
+}
+.character-modal .avatar-picker-preview {
+  padding: 12px;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.character-modal .avatar-picker-preview > .student-avatar {
+  width: 48px;
+  height: 48px;
+  flex-basis: 48px;
+}
+.character-modal .avatar-picker-preview h3 {
+  font-size: 18px;
+  line-height: 1.35;
+}
+.character-modal .avatar-picker-preview p {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.character-confirm :is([role='alert'], [role='status']) {
+  margin: 12px 0 0;
 }
 .account-avatar-editor {
   font-family: var(--tipy-font-family);
@@ -168,18 +200,69 @@
   outline-offset: 2px;
 }
 .character-modal-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+}
+.character-modal-body > .account-tabs {
+  flex-shrink: 0;
+}
+.character-modal .account-avatar-editor,
+.character-modal .avatar-picker-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+.character-modal .account-avatar-editor {
+  margin: 0;
+}
+.character-picker-scroll {
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   scroll-padding-block: 12px;
   padding: 4px 4px 24px;
   -webkit-overflow-scrolling: touch;
 }
-.character-modal-body::-webkit-scrollbar {
-  display: none;
-}
 .character-modal .character-options {
   padding-bottom: 12px;
+}
+@media (max-height: 480px) {
+  .dialog-viewport > .character-modal {
+    padding: 16px;
+  }
+  .character-modal-header {
+    padding-bottom: 8px;
+  }
+  .character-modal-header h2 {
+    font-size: 24px;
+    line-height: 1.25;
+    margin: 0 0 6px;
+  }
+  .character-modal-header p {
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 0;
+  }
+  .character-modal .account-tabs {
+    margin-block: 0 8px;
+  }
+  .character-modal .character-option {
+    padding: 6px 4px;
+  }
+  .character-modal .character-option img {
+    max-width: 64px;
+  }
+  .character-modal .character-confirm {
+    padding-block: 8px max(8px, env(safe-area-inset-bottom));
+  }
+  .character-modal .character-confirm .tipy-button {
+    min-height: 56px;
+    padding: 10px 16px;
+    font-size: 20px;
+  }
 }

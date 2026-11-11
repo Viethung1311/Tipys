@@ -72,6 +72,45 @@ try {
       images.every((url) => /icon_(01|10|24|29|06)\.png/.test(url)),
       'only visible avatar/illustration images before opening',
     );
+    await page.getByRole('button', { name: 'Cài đặt âm thanh', exact: true }).click();
+    let dialog = page.getByRole('dialog');
+    await dialog.waitFor();
+    assert.equal(await dialog.evaluate((e) => getComputedStyle(e).scrollbarWidth), 'none');
+    assert.equal(await dialog.getByRole('slider').count(), 2);
+    await page.locator('#effects-volume').focus();
+    await page.keyboard.press('Home');
+    await page.keyboard.press('ArrowRight');
+    await page.locator('#music-volume').focus();
+    await page.keyboard.press('Home');
+    await page.keyboard.press('ArrowRight');
+    await dialog.getByRole('switch', { name: 'Hiệu ứng', exact: true }).click();
+    await dialog.getByRole('switch', { name: 'Nhạc nền', exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('tipy-audio'))), {
+      effectsEnabled: false,
+      effectsVolume: 0.01,
+      musicEnabled: true,
+      musicVolume: 0.01,
+    });
+    const audioBox = await dialog.boundingBox();
+    assert.ok(audioBox.y >= 0 && audioBox.y + audioBox.height <= height + 1);
+    if (await dialog.evaluate((e) => e.scrollHeight > e.clientHeight + 1)) {
+      await dialog.focus();
+      await page.keyboard.press('PageDown');
+      await page.waitForFunction(() => document.querySelector('[role=dialog]').scrollTop > 0);
+    }
+    await dialog.getByRole('button', { name: 'Xong rồi', exact: true }).click();
+    await page.locator('.account-button').click();
+    await dialog.waitFor();
+    assert.equal(await dialog.evaluate((e) => getComputedStyle(e).scrollbarWidth), 'none');
+    await dialog.getByRole('button', { name: 'Đăng ký', exact: true }).click();
+    if (await dialog.evaluate((e) => e.scrollHeight > e.clientHeight + 1)) {
+      await dialog.evaluate((e) => (e.scrollTop = 0));
+      await dialog.focus();
+      await page.keyboard.press('PageDown');
+      await page.waitForFunction(() => document.querySelector('[role=dialog]').scrollTop > 0);
+    }
+    await page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
     const box = await trigger.boundingBox();
     assert.ok(box.width >= 48 && box.height >= 48);
     await trigger.focus();
@@ -100,6 +139,28 @@ try {
     assert.equal(geometry.fit, 'contain');
     const body = page.getByRole('region', { name: 'Danh sách nhân vật', exact: true }),
       close = page.getByRole('button', { name: 'Đóng chọn nhân vật', exact: true });
+    const footerBefore = await page.locator('.character-confirm').boundingBox();
+    assert.equal(
+      await page
+        .getByRole('dialog')
+        .evaluate(
+          (root) =>
+            [root, ...root.querySelectorAll('*')].filter(
+              (e) =>
+                ['auto', 'scroll'].includes(getComputedStyle(e).overflowY) &&
+                e.scrollHeight > e.clientHeight + 1,
+            ).length,
+        ),
+      1,
+      'one scroll container only',
+    );
+    assert.ok(footerBefore.y >= 0 && footerBefore.y + footerBefore.height <= height);
+    assert.equal(await page.locator('.character-picker-scroll .character-confirm').count(), 0);
+    const backgroundY = await page.evaluate(() => scrollY);
+    await page.mouse.move(2, 2);
+    await page.mouse.wheel(0, 400);
+    await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(() => scrollY), backgroundY, 'background page stays locked');
     const closeBefore = await close.boundingBox();
     assert.ok(closeBefore.width >= 48 && closeBefore.height >= 48);
     assert.equal(await body.evaluate((e) => getComputedStyle(e).scrollbarWidth), 'none');
@@ -116,21 +177,28 @@ try {
         });
       await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       await page.waitForFunction(
-        () => document.querySelector('.character-modal-body').scrollTop > 0,
+        () => document.querySelector('.character-picker-scroll').scrollTop > 0,
       );
       await body.evaluate((e) => (e.scrollTop = 0));
       await touch.detach();
     }
     await body.hover();
     await page.mouse.wheel(0, 500);
-    await page.waitForFunction(() => document.querySelector('.character-modal-body').scrollTop > 0);
+    await page.waitForFunction(
+      () => document.querySelector('.character-picker-scroll').scrollTop > 0,
+    );
     await body.evaluate((e) => (e.scrollTop = 0));
     await body.focus();
     await page.keyboard.press('PageDown');
-    await page.waitForFunction(() => document.querySelector('.character-modal-body').scrollTop > 0);
+    await page.waitForFunction(
+      () => document.querySelector('.character-picker-scroll').scrollTop > 0,
+    );
+    const footerAfter = await page.locator('.character-confirm').boundingBox();
+    assert.equal(footerBefore.y, footerAfter.y, 'save footer stays fixed during scrolling');
     await page.keyboard.press('End');
     const last = page.getByRole('radio', { name: /Cây hoa/ });
     await last.check();
+    await body.evaluate((e) => (e.scrollTop = e.scrollHeight));
     const closeAfter = await close.boundingBox();
     assert.equal(closeBefore.y, closeAfter.y, 'X stays visible after scrolling');
     const lastBox = await page.locator('.character-option').last().boundingBox(),
@@ -163,6 +231,22 @@ try {
     await page.reload();
     await trigger.click();
     await page.getByRole('radio', { name: /Cây hoa/ }).check();
+    await page
+      .getByRole('region', { name: 'Danh sách nhân vật', exact: true })
+      .evaluate((e) => (e.scrollTop = e.scrollHeight));
+    const signedLast = await page.locator('.character-option').last().boundingBox();
+    const signedFooter = await page.locator('.character-confirm').boundingBox();
+    assert.ok(
+      signedLast.y + signedLast.height <= signedFooter.y,
+      'signed-in last row stays above footer',
+    );
+    await page
+      .getByRole('region', { name: 'Danh sách nhân vật', exact: true })
+      .evaluate((e) => (e.scrollTop = 0));
+    assert.ok(
+      await page.getByRole('radio', { name: /Cây hoa/ }).isChecked(),
+      'selection survives scroll',
+    );
     await page.getByRole('button', { name: 'Lưu nhân vật', exact: true }).click();
     await page.getByText('Đã lưu nhân vật của bạn.', { exact: true }).waitFor();
     assert.equal(writes, 1);

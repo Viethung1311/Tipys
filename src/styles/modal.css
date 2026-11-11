@@ -37,3 +37,10 @@
   padding: 4px 4px 20px;
   text-align: left;
 }
+.tipy-scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.tipy-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
