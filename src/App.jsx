@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Keyboard, Volume2, VolumeX } from 'lucide-react';
 import Account from './components/Account.jsx';
 import AudioSettings from './components/AudioSettings.jsx';
+import Companion from './components/Companion.jsx';
+import useCompanion from './hooks/useCompanion.js';
 import HomePage from './screens/HomePage.jsx';
 import GameLibrary from './screens/GameLibrary.jsx';
 const KeyboardQuest = lazy(() => import('./features/keyboard-quest/KeyboardQuest.jsx'));
@@ -39,7 +41,7 @@ export default function App() {
     return () => window.removeEventListener('tipy-points-changed', clear);
   }, []);
   const [myAvatar, setMyAvatar] = useState(null);
-  useEffect(() => setMyAvatar(null), [user?.user_id]);
+  const [companion, changeCompanion] = useCompanion(user?.user_id);
   const [bootstrapReady, setBootstrapReady] = useState(false);
   const [audioOpen, setAudioOpen] = useState(false),
     [accountOpen, setAccountOpen] = useState(false),
@@ -135,9 +137,11 @@ export default function App() {
           onClasses={setClasses}
           onOpen={setAccountOpen}
           onReady={setBootstrapReady}
-          onAvatarChanged={(value) => {
+          companionVisible={companion.visible}
+          onToggleCompanion={() => changeCompanion({ visible: !companion.visible })}
+          onAvatarChanged={(value, userId) => {
             classroomCache.current.clear();
-            setMyAvatar({ userId: user?.user_id, value });
+            setMyAvatar({ userId, value });
           }}
         />
       </nav>
@@ -206,6 +210,14 @@ export default function App() {
           />
         )}
       </Suspense>
+      {user && myAvatar?.userId === user.user_id && companion.visible && (
+        <Companion
+          key={user.user_id}
+          avatar={myAvatar.value}
+          preferences={companion}
+          onPosition={changeCompanion}
+        />
+      )}
       {audioOpen && (
         <AudioSettings
           preferences={preferences}

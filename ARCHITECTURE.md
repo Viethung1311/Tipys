@@ -2,6 +2,8 @@
 
 ## Ranh giới trách nhiệm
 
+`Companion` là component ảnh nổi dùng chung ở App/AdminPage, không thuộc từng game. Nhận avatar đã lưu gắn đúng userId, vị trí kéo nằm trong state riêng của component để không render lại game khi pointer di chuyển. `useCompanion` dùng load/save của config, tùy chọn riêng từng tài khoản trong localStorage; lưu cuối kéo, không thêm database/API. Footer AvatarPicker gọi Ẩn/Hiện qua layout, không dùng giá trị nhân vật đang chọn thử để thay avatar đã lưu.
+
 | Vị trí                              | Trách nhiệm                                                     |
 | ----------------------------------- | --------------------------------------------------------------- |
 | `src/App.jsx`                       | Shell, nav, tài khoản hiện tại, cấu hình riêng cho lượt chơi    |

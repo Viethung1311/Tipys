@@ -1,4 +1,4 @@
-import { Check, LogIn, RotateCcw } from 'lucide-react';
+import { Check, LogIn, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import TipyButton from '../../components/TipyButton.jsx';
 import { api } from '../../game/backend.js';
@@ -12,6 +12,8 @@ export default function AvatarPicker({
   onRetry,
   onSaved,
   onLogin,
+  companionVisible,
+  onToggleCompanion,
 }) {
   const [value, setValue] = useState(() => normalizeAvatar(initialValue));
   const [saving, setSaving] = useState(false),
@@ -105,16 +107,27 @@ export default function AvatarPicker({
           </fieldset>
         </div>
         <footer className="character-confirm">
-          <TipyButton
-            className="full"
-            type="submit"
-            icon={user ? Check : LogIn}
-            disabled={loading || !!loadError}
-            loading={saving}
-            loadingLabel="Đang lưu…"
-          >
-            {user ? 'Lưu nhân vật' : 'Đăng nhập để lưu'}
-          </TipyButton>
+          <div className="character-confirm-actions">
+            <TipyButton
+              className="full"
+              type="submit"
+              icon={user ? Check : LogIn}
+              disabled={loading || !!loadError}
+              loading={saving}
+              loadingLabel="Đang lưu…"
+            >
+              {user ? 'Lưu nhân vật' : 'Đăng nhập để lưu'}
+            </TipyButton>
+            <TipyButton
+              emphasis="secondary"
+              icon={companionVisible ? EyeOff : Eye}
+              disabled={!user}
+              onClick={onToggleCompanion}
+              title={!user ? 'Đăng nhập để dùng người bạn đồng hành' : undefined}
+            >
+              {companionVisible ? 'Ẩn bạn' : 'Hiện bạn'}
+            </TipyButton>
+          </div>
           {error && (
             <p role="alert" className="account-error">
               {error}

@@ -9,6 +9,8 @@ import StudentsTable from '../features/admin/StudentsTable.jsx';
 import TipyButton from '../components/TipyButton.jsx';
 import { LogIn, LogOut, Save } from 'lucide-react';
 import AccountPoints from '../components/AccountPoints.jsx';
+import Companion from '../components/Companion.jsx';
+import useCompanion from '../hooks/useCompanion.js';
 const fields = [
   ['fall', 'Thời gian rơi ban đầu (giây)', 1, 30, 0.1],
   ['minFall', 'Thời gian rơi nhanh nhất (giây)', 1, 30, 0.1],
@@ -17,12 +19,14 @@ const fields = [
   ['max', 'Số chữ tối đa cùng lúc', 1, 12, 1],
 ];
 export default function AdminPage() {
+  const [companionAvatar, setCompanionAvatar] = useState(null);
   const [user, setUser] = useState(null),
     [loading, setLoading] = useState(true),
     [configured, setConfigured] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
+  const [companion, changeCompanion] = useCompanion(user?.user_id);
   const [tab, setTab] = useState('students'),
     [students, setStudents] = useState([]),
     [summary, setSummary] = useState({ students: 0, seconds: 0, plays: 0 }),
@@ -43,7 +47,11 @@ export default function AdminPage() {
       setGames(data.games);
       if (data.games.length) selectGame(data.games[0]);
       setClasses(data.classes || []);
-      const pageData = await api('students_page');
+      const [pageData, avatarData] = await Promise.all([
+        api('students_page'),
+        api('avatar').catch(() => null),
+      ]);
+      setCompanionAvatar({ userId: data.user.user_id, value: avatarData?.avatar });
       setStudents(pageData.students);
       setSummary(pageData.summary);
     }
@@ -130,6 +138,17 @@ export default function AdminPage() {
     });
   return (
     <div className="admin-shell">
+      {user?.role === 'admin' &&
+        companionAvatar?.userId === user.user_id &&
+        companionAvatar.value &&
+        companion.visible && (
+          <Companion
+            key={user.user_id}
+            avatar={companionAvatar.value}
+            preferences={companion}
+            onPosition={changeCompanion}
+          />
+        )}
       <header className="admin-header">
         <a href="/" className="brand">
           TIPY <span className="brand-stem">STEM</span>

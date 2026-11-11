@@ -129,6 +129,14 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 ## Nhân vật dùng chung
 
+### Người bạn đồng hành
+
+- Dùng cùng mã/ảnh nhân vật đã lưu; không lấy bản chọn thử trong modal. Một Companion trong layout học tập (và cùng component trong layout quản trị), giữ nguyên DOM khi chuyển màn trong App. Avatar tải theo tài khoản được gắn userId trước khi hiển thị để không lẫn người dùng.
+- Ảnh contain nền trong suốt, mặc định góc dưới phải, 96 px trên máy tính/72 px trên điện thoại. Chỉ nút nhân vật nhận pointer; z-index 600 dưới modal 1000, không tạo overlay, không animation lặp.
+- Kéo bằng Pointer Events và pointer capture; chỉ chuột trái/cảm ứng chính. Chặn kéo ảnh/chọn văn bản chỉ tại nhân vật. Phím mũi tên dịch 12 px khi focus; không phát phím vào game. Vị trí chuẩn hóa 0–1 để luôn nằm trong visual viewport sau resize/xoay.
+- Dùng load/save hiện có, khóa `tipy-companion:<userId>` trên trình duyệt; không dùng lại tùy chọn tài khoản khác. Chỉ ghi vị trí khi thả kéo hoặc kết thúc phím mũi tên, không ghi mỗi lần di chuyển. Tùy chọn hiển thị ghi ngay khi bấm Ẩn bạn/Hiện bạn. Không đổi avatar khi ẩn và không thêm API/database cho cài đặt cục bộ.
+- Footer nhân vật chứa Lưu nhân vật và Ẩn bạn/Hiện bạn (icon + chữ), có thể xuống hàng trên máy hẹp; khách cần đăng nhập để dùng người bạn đã lưu. Kiểm tra footer ở cả điện thoại ngang và dọc bằng check-characters; hành vi kéo/ẩn/đổi tài khoản bằng check-companion.
+
 Danh mục duy nhất src/characters/catalog.js dùng 36 PNG nguyên bản trong public/characters; không dùng emoji con giáp. Avatar cạnh tài khoản là nút 56 px, tên truy cập “Chọn nhân vật”. Hộp chọn dùng radio, ảnh contain đúng tỉ lệ, nhãn ngắn và dấu “Đang chọn”, TipyButton xác nhận. Khách được xem, đăng nhập trước khi lưu. Dùng chung Avatar cho header, hồ sơ, lớp và game; ảnh danh mục chỉ tải khi mở hộp, dùng lazy.
 
 Modal chọn nhân vật dùng header cố định trong khung với nút X 48 × 48 px; chỉ phần nội dung cuộn, ẩn thanh cuộn nhưng giữ chuột/cảm ứng/bàn phím. X và Esc đóng, bỏ bản chọn chưa lưu. Nút lưu đặt trong footer không cuộn ở đáy modal, bên ngoài vùng danh sách cuộn, luôn nhìn thấy; có nền rõ, viền phân cách và đệm safe area. Danh sách chừa đệm cuối 24 px để hàng cuối không bị che. Âm thanh/Tài khoản ẩn thanh cuộn bằng lớp tipy-scrollbar-hidden, giữ overflow-y: auto và khóa cuộn trang qua Radix; chỉ một vùng cuộn trong mỗi modal.

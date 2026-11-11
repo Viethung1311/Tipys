@@ -17,6 +17,8 @@ export default function Account({
   onOpen,
   onReady,
   onAvatarChanged,
+  companionVisible,
+  onToggleCompanion,
 }) {
   const [open, setOpen] = useState(false),
     [user, setUser] = useState(null),
@@ -37,7 +39,11 @@ export default function Account({
     if (user)
       api('avatar')
         .then((data) => {
-          if (live) setAvatar(normalizeAvatar(data.avatar));
+          if (live) {
+            const value = normalizeAvatar(data.avatar);
+            setAvatar(value);
+            onAvatarChanged?.(value, user.user_id);
+          }
         })
         .catch((error) => {
           if (live) setAvatarError(error.message);
@@ -284,10 +290,12 @@ export default function Account({
                     loadError={avatarError}
                     onRetry={() => setAvatarRetry((value) => value + 1)}
                     onLogin={() => setMode('login')}
+                    companionVisible={companionVisible}
+                    onToggleCompanion={onToggleCompanion}
                     onSaved={(value) => {
                       if (currentUserId.current !== user?.user_id) return;
                       setAvatar(normalizeAvatar(value));
-                      onAvatarChanged?.(value);
+                      onAvatarChanged?.(value, user?.user_id);
                     }}
                   />
                 )}

@@ -1,0 +1,46 @@
+.tipy-companion {
+  position: fixed;
+  z-index: 600;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tipy-text);
+  box-shadow: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: none;
+}
+.tipy-companion img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.tipy-companion:hover,
+.tipy-companion:active {
+  background: transparent;
+  filter: none;
+  transform: none;
+}
+.tipy-companion.is-dragging {
+  cursor: grabbing;
+}
+.tipy-companion:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 2px;
+}
+.character-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.character-modal .character-confirm-actions .tipy-button {
+  flex: 1 1 190px;
+  width: auto;
+  min-width: 0;
+}
