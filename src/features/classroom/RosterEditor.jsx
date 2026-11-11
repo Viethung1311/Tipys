@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
 import TipyButton from '../../components/TipyButton.jsx';
 import { UserPlus, UserMinus } from 'lucide-react';
+import Pagination from '../admin/Pagination.jsx';
+import useStudentsPage from '../admin/useStudentsPage.js';
+import '../admin/students.css';
 
 function SelectAll({ checked, mixed, disabled, onChange }) {
   const input = useRef(null);
@@ -23,69 +26,55 @@ function SelectAll({ checked, mixed, disabled, onChange }) {
 }
 
 /** Selection stays local. Each add/remove submits once; failures preserve the selection. */
-export default function RosterEditor({ classId, className, students, onMembersChanged }) {
+export default function RosterEditor({ classId, className, onMembersChanged }) {
   const [members, setMembers] = useState(new Set()),
-    [selected, setSelected] = useState(new Set());
-  const [loading, setLoading] = useState(true),
+    [selected, setSelected] = useState(new Set()),
     [saving, setSaving] = useState(false),
     [query, setQuery] = useState(''),
     [filter, setFilter] = useState('all'),
+    [page, setPage] = useState(1),
+    [revision, setRevision] = useState(0),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
-  const ready = useRef(false),
-    inFlight = useRef(false);
+  const inFlight = useRef(false),
+    ready = useRef(false);
+  const {
+    data,
+    loading,
+    error: readError,
+  } = useStudentsPage({ page, search: query, rosterClass: classId, membership: filter }, revision);
+  const visible = data?.students || [];
   useEffect(() => {
-    let live = true;
-    api('class_roster', undefined, { classId })
-      .then((data) => {
-        if (live) {
-          setMembers(new Set(data.userIds));
-          ready.current = true;
-        }
-      })
-      .catch((e) => {
-        if (live) setError(e.message);
-      })
-      .finally(() => {
-        if (live) setLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [classId]);
-  const refresh = async () => {
-    if (inFlight.current) return;
-    setLoading(true);
-    setError('');
-    try {
-      const data = await api('class_roster', undefined, { classId });
-      setMembers(new Set(data.userIds));
-      setSelected(new Set());
+    if (data) {
+      setMembers(new Set(data.students.filter((s) => s.joined).map((s) => s.user_id)));
+      setSelected(
+        (previous) =>
+          new Set([...previous].filter((id) => data.students.some((s) => s.user_id === id))),
+      );
       ready.current = true;
-      setNotice('Đã làm mới danh sách thành viên.');
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
+      if (page !== data.page) setPage(data.page);
     }
+  }, [data]);
+  const refresh = () => {
+    setRevision((n) => n + 1);
+    setSelected(new Set());
+    setError('');
   };
-  const normalized = query.trim().toLocaleLowerCase('vi-VN');
-  const visible = students.filter(
-    (s) =>
-      `${s.full_name} ${s.username}`.toLocaleLowerCase('vi-VN').includes(normalized) &&
-      (filter === 'all' ||
-        (filter === 'members' ? members.has(s.user_id) : !members.has(s.user_id))),
-  );
+  const change = (setter, value) => {
+    setter(value);
+    setPage(1);
+    setSelected(new Set());
+  };
   const canSelect = (student) => student.is_active || members.has(student.user_id);
   const selectable = visible.filter(canSelect),
     selectedVisible = selectable.filter((s) => selected.has(s.user_id)).length;
-  const additions = students
+  const additions = visible
     .filter((s) => selected.has(s.user_id) && !members.has(s.user_id) && s.is_active)
     .map((s) => s.user_id);
-  const removals = students
+  const removals = visible
     .filter((s) => selected.has(s.user_id) && members.has(s.user_id))
     .map((s) => s.user_id);
-  const locked = loading || saving || !ready.current;
+  const locked = loading || saving || !ready.current || !!readError;
   const toggle = (id) =>
     setSelected((previous) => {
       const next = new Set(previous);
@@ -120,6 +109,7 @@ export default function RosterEditor({ classId, className, students, onMembersCh
         return next;
       });
       onMembersChanged?.({ classId, className, userIds: data.userIds, active });
+      setRevision((n) => n + 1);
       setNotice(
         active
           ? `Đã thêm ${data.userIds.length} học sinh vào lớp.`
@@ -135,7 +125,7 @@ export default function RosterEditor({ classId, className, students, onMembersCh
   return (
     <section className="roster-editor" aria-label="Chọn thành viên lớp">
       <div className="roster-heading">
-        <h3>Thành viên · {members.size} học sinh</h3>
+        <h3>Thành viên · {data?.memberTotal ?? 0} học sinh</h3>
         <button className="text-button" disabled={loading || saving} onClick={refresh}>
           Làm mới thành viên
         </button>
@@ -147,13 +137,17 @@ export default function RosterEditor({ classId, className, students, onMembersCh
           <input
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => change(setQuery, e.target.value)}
             placeholder="Tên hoặc tên đăng nhập"
           />
         </label>
         <label>
           Hiển thị
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <select
+            aria-label="Hiển thị"
+            value={filter}
+            onChange={(e) => change(setFilter, e.target.value)}
+          >
             <option value="all">Tất cả học sinh</option>
             <option value="candidates">Chưa vào lớp</option>
             <option value="members">Đã vào lớp</option>
@@ -162,7 +156,7 @@ export default function RosterEditor({ classId, className, students, onMembersCh
       </div>
       <div className="roster-actions" aria-busy={saving}>
         <span>
-          Đã chọn <b>{selected.size}</b> bạn
+          Đã chọn <b>{selected.size}</b> bạn trên trang này
         </span>
         <TipyButton
           icon={UserPlus}
@@ -192,9 +186,9 @@ export default function RosterEditor({ classId, className, students, onMembersCh
           {saving ? 'Đang lưu danh sách đã chọn…' : 'Đang tải thành viên…'}
         </p>
       )}
-      {error && (
+      {(error || readError) && (
         <p role="alert" className="account-error">
-          {error}
+          {error || readError}
         </p>
       )}
       {notice && (
@@ -216,7 +210,8 @@ export default function RosterEditor({ classId, className, students, onMembersCh
               </th>
               <th>Học sinh</th>
               <th>Tên đăng nhập</th>
-              <th>Trong lớp</th>
+              <th>Trong lớp đang chọn</th>
+              <th>Các lớp đã tham gia</th>
             </tr>
           </thead>
           <tbody>
@@ -243,7 +238,8 @@ export default function RosterEditor({ classId, className, students, onMembersCh
                     {!student.is_active && <small className="roster-inactive">Đã khóa</small>}
                   </td>
                   <td>{student.username}</td>
-                  <td>{joined ? '✓ Đã vào lớp' : 'Chưa vào lớp'}</td>
+                  <td>{joined ? '✓ Đã vào' : 'Chưa vào'}</td>
+                  <td>{student.classes.map((c) => c.name).join(', ') || 'Chưa có lớp'}</td>
                 </tr>
               );
             })}
@@ -251,6 +247,16 @@ export default function RosterEditor({ classId, className, students, onMembersCh
         </table>
         {!visible.length && !loading && <p>Không có học sinh phù hợp.</p>}
       </div>
+      {data && (
+        <Pagination
+          {...data}
+          disabled={locked}
+          onPage={(n) => {
+            setPage(n);
+            setSelected(new Set());
+          }}
+        />
+      )}
     </section>
   );
 }

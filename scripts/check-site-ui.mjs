@@ -1,3 +1,4 @@
+import { studentPage } from '../tests/student-page-fixture.js';
 /** Whole-site visual and interaction checks; API responses are isolated fixtures. */
 import { spawn } from 'node:child_process';
 import { chromium } from '@playwright/test';
@@ -106,6 +107,16 @@ try {
         json = { user };
       }
       if (action === 'students') json = { students };
+      if (action === 'students_page')
+        json = studentPage(
+          students.map((s) => ({
+            ...s,
+            class_members: classes
+              .filter((c) => members.get(c.class_id)?.has(s.user_id))
+              .map((c) => ({ class_id: c.class_id, is_active: true, classes: c })),
+          })),
+          params,
+        );
       if (action === 'quest_progress') json = { progress: [] };
       if (action === 'quest_class_report') json = { students: [] };
       if (action === 'start') json = { data: { play_id: '66666666-6666-4666-8666-666666666666' } };

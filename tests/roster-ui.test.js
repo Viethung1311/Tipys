@@ -1,3 +1,4 @@
+import { studentPage } from './student-page-fixture.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -73,10 +74,26 @@ function setup({ fail = false } = {}) {
     const body = options.body ? JSON.parse(options.body) : null,
       action = body?.action || new URL(url, 'https://tipy.test').searchParams.get('action');
     requests.push(action);
+    if (action === 'students_page')
+      return {
+        ok: true,
+        json: async () => studentPage(students, new URL(url, 'https://tipy.test').searchParams),
+      };
     if (action === 'class_members') {
       writes.push(body);
       return new Promise((resolve) => {
-        complete = () =>
+        complete = () => {
+          if (!fail)
+            for (const s of students)
+              if (body.userIds.includes(s.user_id)) {
+                s.class_members = s.class_members.filter((m) => m.class_id !== body.classId);
+                if (body.active)
+                  s.class_members.push({
+                    class_id: body.classId,
+                    is_active: true,
+                    classes: classA,
+                  });
+              }
           resolve({
             ok: !fail,
             json: async () =>
@@ -84,6 +101,7 @@ function setup({ fail = false } = {}) {
                 ? { error: 'Mạng lỗi thử lại' }
                 : { data: { classId: body.classId, userIds: body.userIds, active: body.active } },
           });
+        };
       });
     }
     const data = {
@@ -140,18 +158,23 @@ test('bulk selection sends one request, preserves table, patches parent and supp
     assert.equal(d.querySelector('input[aria-label="Chọn Bạn Bình (binh)"]').checked, true);
     s.finish();
     await until(() => d.body.textContent.includes('Đã thêm 2 học sinh'));
-    assert.equal(s.requests.length, before + 1);
+    assert.equal(s.requests.filter((x) => x === 'class_members').length, 1);
     assert.equal(d.querySelector('input[aria-label="Chọn Bạn An (an)"]').checked, true);
     assert.equal(d.querySelector('input[aria-label="Chọn Bạn Bình (binh)"]').checked, false);
+    await until(() => button('Bỏ khỏi lớp (1)') && !button('Bỏ khỏi lớp (1)').disabled);
     button('Bỏ khỏi lớp (1)').click();
     await until(() => writes.length === 2);
     assert.equal(writes[1].active, false);
     assert.deepEqual(writes[1].userIds, ['an']);
     s.finish();
     await until(() => d.body.textContent.includes('Đã bỏ 1 học sinh'));
-    assert.equal(s.requests.length, before + 2);
+    assert.equal(s.requests.filter((x) => x === 'class_members').length, 2);
     button('Học sinh & thời gian').click();
-    await until(() => d.querySelector('table tbody'));
+    await until(() =>
+      [...d.querySelectorAll('.admin-students tbody tr')].some((r) =>
+        r.textContent.includes('Bạn An'),
+      ),
+    );
     const row = [...d.querySelectorAll('tbody tr')].find((r) => r.textContent.includes('Bạn An'));
     assert.equal(row.cells[2].textContent, 'STEM A');
     assert.deepEqual(s.errors, []);

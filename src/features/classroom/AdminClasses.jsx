@@ -5,7 +5,7 @@ import RosterEditor from './RosterEditor.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
 import { Plus, Save, Archive } from 'lucide-react';
 /** Admin owns roster changes. Students have no enrollment write action. */
-export default function AdminClasses({ students, initialClasses, onChanged, onMembersChanged }) {
+export default function AdminClasses({ initialClasses, onChanged, onMembersChanged }) {
   const [classes, setClasses] = useState(initialClasses || []),
     [selected, setSelected] = useState(''),
     [busy, setBusy] = useState(true),
@@ -127,7 +127,6 @@ export default function AdminClasses({ students, initialClasses, onChanged, onMe
                 key={selected}
                 classId={selected}
                 className={current.name}
-                students={students}
                 onMembersChanged={onMembersChanged}
               />
               <a className="lesson-link" href="/#classroom">

@@ -5,6 +5,7 @@ import { createIdentity } from './modules/identity.js';
 import { createKeyboardQuest } from './modules/keyboard-quest.js';
 import { createGames } from './modules/games.js';
 import { createClassrooms } from './modules/classrooms.js';
+import { createStudents } from './modules/students.js';
 export { ApiError, requireAdmin } from './errors.js';
 export { username, credential, emailFor } from './modules/identity.js';
 export { validateLevels, validateProgress } from './modules/game-validation.js';
@@ -20,6 +21,7 @@ export function createBackend(env, clientFactory = createClient) {
   const db = client();
   return {
     ...createIdentity({ db, client, env }),
+    ...createStudents(db),
     ...createGames(db),
     ...createClassrooms(db),
     ...createKeyboardQuest(db),

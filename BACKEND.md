@@ -1,5 +1,14 @@
 # TIPY backend · Supabase + Vercel
 
+## Phân trang quản trị và xóa học sinh
+
+- Migration cộng thêm `db/admin_students.sql` chạy sau schema, classrooms, compact_results và keyboard_quest. Không thêm bảng/cột hồ sơ hay cột cho từng lớp. `tipy_students_page` chỉ service_role được gọi, dùng security invoker và giữ RLS hiện có.
+- GET `students_page`: backend kiểm tra admin, page, search (tối đa 100 ký tự), classFilter (all/none/UUID), sort (asc/desc), rosterClass và membership (all/members/candidates). SQL lọc trên toàn bộ học sinh, cộng số giây thực từ player_game_stats, sắp xếp số + tên + UUID ổn định trước LIMIT 7; trả tổng, trang hợp lệ, các lớp đang hoạt động và tổng thống kê. Hai bảng không còn phụ thuộc danh sách 200 tài khoản. API students cũ chỉ giữ cho bộ chọn lịch sử tương thích.
+- POST `student_delete` chỉ nhận UUID và confirmUsername; quyền lấy từ session, chặn tự xóa/admin và xác nhận sai. Khóa/Mở khóa vẫn là student_active, không bị thay bằng xóa. Khi sở hữu lớp/bài/file dùng chung, từ chối xóa để tránh mất nội dung của người khác; cần chuyển quyền sở hữu trước. Nếu Auth còn sở hữu tệp Storage, Auth có thể từ chối: không dọn file chung để bỏ chặn.
+- Xóa thật gọi Auth admin.deleteUser(id,false) bằng client server. FK Auth → profiles → quan hệ lớp/nhân vật/lượt đang chơi/kết quả/tiến độ dùng ON DELETE CASCADE, nên thao tác xóa Auth sẽ xóa các hàng cá nhân trong cùng transaction. FK sở hữu classes/class_posts/class_attachments vẫn chặn xóa; không thay RLS hoặc xóa game/lớp/tài khoản khác. Token cũ không truy cập API vì session luôn đọc lại profile.
+- Sau khi yêu cầu xóa, đọc lại Auth và profile song song: chỉ trả deleted=true nếu Auth báo user_not_found/404 và profile không còn. Mất phản hồi có thể gửi lại cùng UUID/tên xác nhận; trường hợp còn hồ sơ/Auth hoặc lỗi xác minh trả lỗi rõ, không giả thành công. Không thực hiện chuỗi xóa riêng lẻ từng bảng ở backend.
+- Đã áp dụng migration trên dự án TIPY hiện có; chỉ kiểm tra đọc ở live. Test SQL dùng PGlite, Auth dùng mock và browser dùng tài khoản mô phỏng; không xóa tài khoản thật để thử nghiệm. Chạy `node scripts/check-admin-students.mjs` sau build để kiểm tra bộ lọc, phân trang, modal lỗi/thử lại, checkbox và thêm/bỏ thành viên ở 320/768/1440 px.
+
 ## Cập nhật lưu gọn và trang quản trị
 
 - Trang quản trị riêng: `/admin`. Tốc độ rơi, khoảng xuất hiện và mật độ chữ của từng độ khó dùng ô số có nhãn, không cần sửa JSON.

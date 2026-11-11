@@ -1,3 +1,4 @@
+import { studentPage } from './student-page-fixture.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createGames } from '../server/modules/games.js';
@@ -204,7 +205,7 @@ test('admin chooses students, sees bounded results, retries failures and ignores
         games: [],
         classes: [],
       };
-    if (action === 'students')
+    if (action === 'students' || action === 'students_page')
       data = {
         students: [studentId, otherId].map((id, index) => ({
           user_id: id,
@@ -215,6 +216,7 @@ test('admin chooses students, sees bounded results, retries failures and ignores
           is_active: true,
         })),
       };
+    if (action === 'students_page') data = studentPage(data.students);
     if (action === 'history') {
       const id = params.get('userId');
       reads.push(id);

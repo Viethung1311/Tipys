@@ -1,3 +1,4 @@
+import { studentPage } from './student-page-fixture.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -60,6 +61,7 @@ test('dedicated admin page shows practice totals and edits difficulty with numer
     else if (url.includes('history')) value = { history: [] };
     else
       value = { configured: true, user: { role: 'admin', full_name: 'Giáo viên' }, games: [game] };
+    if (url.includes('students_page')) value = studentPage(value.students);
     return { ok: true, json: async () => value };
   };
   const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((x) =>

@@ -5,8 +5,9 @@ import { practiceTime } from '../game/results.js';
 import Loading from '../components/Loading.jsx';
 import AdminClasses from '../features/classroom/AdminClasses.jsx';
 import StudentHistory from '../features/admin/StudentHistory.jsx';
+import StudentsTable from '../features/admin/StudentsTable.jsx';
 import TipyButton from '../components/TipyButton.jsx';
-import { History, LogIn, LogOut, Save, LockKeyhole } from 'lucide-react';
+import { LogIn, LogOut, Save } from 'lucide-react';
 import AccountPoints from '../components/AccountPoints.jsx';
 const fields = [
   ['fall', 'Thời gian rơi ban đầu (giây)', 1, 30, 0.1],
@@ -24,6 +25,7 @@ export default function AdminPage() {
     [notice, setNotice] = useState('');
   const [tab, setTab] = useState('students'),
     [students, setStudents] = useState([]),
+    [summary, setSummary] = useState({ students: 0, seconds: 0, plays: 0 }),
     [historyStudentId, setHistoryStudentId] = useState(''),
     [classes, setClasses] = useState([]),
     [games, setGames] = useState([]),
@@ -41,7 +43,9 @@ export default function AdminPage() {
       setGames(data.games);
       if (data.games.length) selectGame(data.games[0]);
       setClasses(data.classes || []);
-      setStudents((await api('students')).students);
+      const pageData = await api('students_page');
+      setStudents(pageData.students);
+      setSummary(pageData.summary);
     }
     setLoading(false);
   };
@@ -51,6 +55,27 @@ export default function AdminPage() {
       setLoading(false);
     });
   }, []);
+  useEffect(() => {
+    if (tab !== 'results' || user?.role !== 'admin') return;
+    let current = true;
+    api('students')
+      .then(({ students: rows }) => {
+        if (current)
+          setStudents((previous) => [
+            ...rows,
+            ...previous.filter(
+              (s) =>
+                s.user_id === historyStudentId && !rows.some((row) => row.user_id === s.user_id),
+            ),
+          ]);
+      })
+      .catch((error) => {
+        if (current) setError(error.message);
+      });
+    return () => {
+      current = false;
+    };
+  }, [tab, user?.user_id]);
   const run = async (action) => {
     setBusy(true);
     setError('');
@@ -180,17 +205,15 @@ export default function AdminPage() {
             <div className="admin-metrics">
               <div>
                 <small>Học sinh</small>
-                <strong>{students.length}</strong>
+                <strong>{summary.students}</strong>
               </div>
               <div>
                 <small>Tổng thời gian luyện</small>
-                <strong>
-                  {practiceTime(students.reduce((sum, s) => sum + s.total_active_seconds, 0))}
-                </strong>
+                <strong>{practiceTime(summary.seconds)}</strong>
               </div>
               <div>
                 <small>Tổng lượt luyện</small>
-                <strong>{students.reduce((sum, s) => sum + s.total_plays, 0)}</strong>
+                <strong>{summary.plays}</strong>
               </div>
             </div>
             <nav className="admin-tabs" aria-label="Quản trị">
@@ -216,89 +239,23 @@ export default function AdminPage() {
             {tab === 'classes' && (
               <AdminClasses
                 initialClasses={classes}
-                students={students}
                 onChanged={load}
                 onMembersChanged={patchMembers}
               />
             )}
             {tab === 'students' && (
-              <section className="panel">
-                <h2>Thời gian luyện tập của từng học sinh</h2>
-                <p className="muted">
-                  Sắp xếp theo tổng thời gian luyện. Kết quả cũ được thay thế, tổng thời gian vẫn
-                  cộng dồn.
-                </p>
-                {!students.length && <p className="empty-state">Chưa có học sinh.</p>}
-                <div
-                  className="table-scroll"
-                  role="region"
-                  aria-label="Danh sách học sinh"
-                  tabIndex={0}
-                >
-                  <table>
-                    <thead>
-                      <tr>
-                        {[
-                          'Học sinh',
-                          'Tên đăng nhập',
-                          'Lớp học',
-                          'Tổng thời gian luyện',
-                          'Tổng lượt',
-                          'Trạng thái',
-                          'Thao tác',
-                        ].map((x) => (
-                          <th key={x}>{x}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {students.map((student) => (
-                        <tr key={student.user_id}>
-                          <td>{student.full_name}</td>
-                          <td>{student.username}</td>
-                          <td>
-                            {student.class_members
-                              ?.filter((m) => m.is_active && !m.classes.archived_at)
-                              .map((m) => m.classes.name)
-                              .join(', ') || 'Chưa có lớp'}
-                          </td>
-                          <td>{practiceTime(student.total_active_seconds)}</td>
-                          <td>{student.total_plays}</td>
-                          <td>{student.is_active ? 'Đang mở' : 'Đã khóa'}</td>
-                          <td>
-                            <TipyButton
-                              emphasis="secondary"
-                              icon={History}
-                              onClick={() => {
-                                setHistoryStudentId(student.user_id);
-                                setTab('results');
-                              }}
-                            >
-                              Xem kết quả
-                            </TipyButton>
-                            <TipyButton
-                              emphasis="secondary"
-                              icon={LockKeyhole}
-                              disabled={busy}
-                              onClick={() =>
-                                run(async () => {
-                                  await api('student_active', {
-                                    userId: student.user_id,
-                                    active: !student.is_active,
-                                  });
-                                  await load();
-                                })
-                              }
-                            >
-                              {student.is_active ? 'Khóa tài khoản' : 'Mở tài khoản'}
-                            </TipyButton>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+              <StudentsTable
+                classes={classes}
+                onChanged={load}
+                onResults={(student) => {
+                  setStudents((previous) => [
+                    ...previous.filter((s) => s.user_id !== student.user_id),
+                    student,
+                  ]);
+                  setHistoryStudentId(student.user_id);
+                  setTab('results');
+                }}
+              />
             )}
             {tab === 'results' && (
               <StudentHistory

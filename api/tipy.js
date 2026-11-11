@@ -121,6 +121,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         });
       if (req.method === 'GET' && action === 'students')
         return res.status(200).json({ students: await backend.students(profile) });
+      if (req.method === 'GET' && action === 'students_page')
+        return res.status(200).json(await backend.studentsPage(profile, req.query));
       if (req.method === 'POST' && action === 'logout') {
         await backend.logout(access);
         setSession(res, null, production);
@@ -140,6 +142,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         progress: 'progress',
         save_game: 'saveGame',
         student_active: 'studentUpdate',
+        student_delete: 'studentDelete',
       };
       if (req.method === 'POST' && actions[action])
         return res.status(200).json({ data: await backend[actions[action]](profile, body) });

@@ -135,6 +135,12 @@ Modal chọn nhân vật dùng header cố định trong khung với nút X 48 �
 
 ## Áp dụng toàn website
 
+### Quản lý học sinh
+
+- Hai bảng học sinh/thành viên dùng phân trang chung, tối đa 7 tài khoản/trang; có tổng số phù hợp, số trang, Trước/Sau và focus bàn phím. Lọc/tìm/sắp xếp đặt ngoài bảng; đổi bộ lọc về trang 1.
+- Checkbox chọn tất cả chỉ tác động trang đang xem, đổi trang/bộ lọc bỏ chọn; số đã chọn ghi rõ “trên trang này”. Hiển thị riêng tình trạng trong lớp đang chọn và danh sách đầy đủ các lớp đang tham gia.
+- Nút thao tác quản trị dùng TipyButton gọn 48 px. Xóa tài khoản dùng màu lỗi và nhãn chữ riêng với Khóa/Mở khóa; modal ghi tên/tên đăng nhập, dữ liệu sẽ mất, yêu cầu nhập đúng tên đăng nhập. Không tự đóng hoặc báo thành công khi chưa xác minh xóa.
+
 - Font `TIPY Nunito` local nay dùng cho toàn website, thay phạm vi thử nghiệm chỉ trên nút. Nội dung học sinh 19 px, thông tin phụ 16 px, tiêu đề 28–36 px; quản trị dùng 16/14 px để bảng gọn nhưng vẫn dễ đọc.
 - Token nền, chữ phụ, viền, nền cam/xanh ngọc nhạt, bo góc và bóng dùng chung ở `src/styles/tipy-tokens.css`. `src/styles/tipy-ui.css` áp dụng các kiểu UI chung theo tên component/màn hình; các CSS cũ giữ bố cục chuyên biệt. Không đặt quy tắc rộng lên canvas, ảnh hay phần chữ rơi.
 - Nút thao tác dùng TipyButton ở cả quản trị, quản lý lớp, gửi bài và mở file. Quản trị kế thừa token nút với chiều cao 48 px, chữ 16 px; nút chính học sinh vẫn 64 px. Nút phụ giữ nền kem khi hover để không mất tương phản. Tab có trạng thái hiện tại và focus; form 48 px, nhãn rõ, bảng chỉ cuộn trong vùng riêng.
