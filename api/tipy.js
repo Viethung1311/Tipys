@@ -92,6 +92,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
           .json(await backend.questClassReport(profile, { classId: req.query?.classId }));
       if (req.method === 'GET' && action === 'quest_progress')
         return res.status(200).json(await backend.questProgress(profile));
+      if (req.method === 'GET' && action === 'class_deletions')
+        return res.status(200).json({ deletions: await backend.classDeletions(profile) });
       if (req.method === 'GET' && action === 'classes')
         return res.status(200).json({ classes: await backend.classes(profile) });
       if (req.method === 'GET' && action === 'class_roster')
@@ -131,6 +133,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
       const actions = {
         class_save: 'classSave',
         class_archive: 'classArchive',
+        class_delete: 'classDelete',
         class_member: 'classMember',
         class_members: 'classMembers',
         avatar_save: 'avatarSave',

@@ -109,3 +109,8 @@
     transition: none;
   }
 }
+.tipy-button--danger {
+  --tipy-learn: var(--tipy-danger);
+  --tipy-learn-end: var(--tipy-danger);
+  --tipy-learn-base: var(--tipy-danger);
+}

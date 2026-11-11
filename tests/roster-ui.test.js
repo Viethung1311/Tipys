@@ -114,6 +114,7 @@ function setup({ fail = false } = {}) {
       students: { students },
       history: { history: [] },
       classes: { classes: [classA, classB] },
+      class_deletions: { deletions: [] },
       class_roster: { userIds: ['an'] },
     };
     return { ok: true, json: async () => data[action] };

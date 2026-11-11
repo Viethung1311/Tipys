@@ -143,6 +143,10 @@ Modal chọn nhân vật dùng header cố định trong khung với nút X 48 �
 
 ## Áp dụng toàn website
 
+### Xóa vĩnh viễn lớp
+
+Chỉ lớp đã lưu trữ có nút Xóa vĩnh viễn cạnh Khôi phục lớp. Dùng TipyButton với lớp chung `tipy-button--danger`, modal xác nhận tên lớp chính xác, nêu dữ liệu mất và không thể khôi phục. Khóa gửi trùng/đóng khi đang xóa. Nếu database đã xóa nhưng Storage chưa dọn hết, hiển thị đúng trạng thái và nút Dọn tệp còn lại, giữ sau reload.
+
 ### Quản lý học sinh
 
 - Hai bảng học sinh/thành viên dùng phân trang chung, tối đa 7 tài khoản/trang; có tổng số phù hợp, số trang, Trước/Sau và focus bàn phím. Lọc/tìm/sắp xếp đặt ngoài bảng; đổi bộ lọc về trang 1.

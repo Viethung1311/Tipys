@@ -118,6 +118,74 @@ export function createClassrooms(db) {
       .order('created_at', { ascending: false })
       .range(input.offset || 0, (input.offset || 0) + 19);
   return {
+    async classDeletions(profile) {
+      requireAdmin(profile);
+      const { data, error } = await db
+        .from('class_deletions')
+        .select('class_id,name')
+        .neq('paths', '{}')
+        .order('deleted_at');
+      fail(error);
+      return data;
+    },
+    async classDelete(profile, input) {
+      requireAdmin(profile);
+      const classId = uuid(input.classId);
+      if (
+        typeof input.confirmName !== 'string' ||
+        !input.confirmName ||
+        input.confirmName.length > 100
+      )
+        throw new ApiError(400, 'Nhập đúng tên lớp để xác nhận.');
+      const { data, error } = await db.rpc('tipy_delete_class', {
+        p_actor: profile.user_id,
+        p_class: classId,
+        p_name: input.confirmName,
+      });
+      const deletionErrors = [
+        'Hãy lưu trữ lớp trước khi xóa vĩnh viễn.',
+        'Tên xác nhận chưa đúng.',
+        'Có tệp liên kết chéo lớp; cần kiểm tra trước khi xóa.',
+        'Không tìm thấy lớp.',
+      ];
+      fail(
+        error,
+        deletionErrors.includes(error?.message)
+          ? error.message
+          : 'Chưa xác nhận được trạng thái xóa. Hãy thử lại an toàn để kiểm tra và tiếp tục dọn tệp.',
+      );
+      // The transaction leaves a durable receipt before any Storage request.
+      const paths = data.paths.slice(0, 100);
+      let remaining = data.paths.length;
+      try {
+        if (paths.length) {
+          const removed = await db.storage.from(BUCKET).remove(paths);
+          if (removed.error) throw removed.error;
+          const ack = await db.rpc('tipy_ack_class_files', {
+            p_actor: profile.user_id,
+            p_class: classId,
+            p_paths: paths,
+          });
+          if (ack.error) throw ack.error;
+          remaining = ack.data;
+        }
+      } catch {
+        return {
+          deleted: true,
+          cleanupPending: true,
+          remaining,
+          message: 'Lớp đã xóa khỏi database. Chưa xác nhận dọn hết tệp; hãy thử lại.',
+        };
+      }
+      return {
+        deleted: true,
+        cleanupPending: remaining > 0,
+        remaining,
+        message: remaining
+          ? 'Lớp đã xóa. Còn tệp cần dọn, hãy tiếp tục.'
+          : 'Đã xóa vĩnh viễn lớp. Tệp còn được nơi khác sử dụng được giữ lại.',
+      };
+    },
     async classes(profile) {
       if (profile.role === 'admin') {
         const { data, error } = await db

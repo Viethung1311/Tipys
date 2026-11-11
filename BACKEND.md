@@ -21,6 +21,8 @@
 
 ## Cấu trúc
 
+Xóa vĩnh viễn lớp: `db/class_delete.sql` bổ sung receipt `class_deletions` (RLS, chỉ service_role) và RPC transaction kiểm tra admin đang hoạt động, tên chính xác, lớp đã lưu trữ. Xóa attachment → post → membership → class; không đụng tài khoản/nhân vật/kết quả. Schema live ngày 11/11/2026 chưa có bình luận. RPC từ chối quan hệ tệp chéo lớp. Tệp/preview trong namespace lớp được lưu vào receipt trước khi xóa DB; bỏ qua tệp còn tham chiếu trong attachment/link/nội dung lớp khác. Backend dọn tối đa 100 tệp/lần bằng Storage API, chỉ ack khi thành công; retry cùng class/name an toàn, receipt hoàn tất giữ để chống gửi lại. Admin thấy công việc dọn dở qua `class_deletions`, kể cả sau reload. Nếu thêm bảng bình luận hoặc chỗ tham chiếu tệp mới, phải bổ sung RPC trước khi bật xóa cho dữ liệu đó.
+
 File SQL Server gốc được chuyển thành `db/schema.sql` cho PostgreSQL. Ba bảng nghiệp vụ giữ quan hệ tài khoản → lịch sử ← game, không sao chép tên người/tên game vào lịch sử và không lưu tổng điểm vào hồ sơ.
 
 - `auth.users`: mật khẩu và phiên do Supabase Auth quản lý.
