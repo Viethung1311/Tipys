@@ -106,8 +106,10 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
           if (live && !current.current.detail) setList(updated);
         }
       } catch (e) {
-        if (live && /không có quyền|đăng nhập/i.test(e.message)) {
+        if (live && /không có quyền|đăng nhập|Bài kiểm tra đã được xóa/i.test(e.message)) {
           setDetail(null);
+          setList(null);
+          setHistory(false);
           setRunning(false);
           setError(e.message);
         } else if (live && !current.current.running) setError(e.message);
@@ -137,8 +139,9 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
       await task();
     } catch (e) {
       setError(e.message);
-      if (/không có quyền|đăng nhập/i.test(e.message)) {
+      if (/không có quyền|đăng nhập|Bài kiểm tra đã được xóa/i.test(e.message)) {
         setDetail(null);
+        setHistory(false);
         setRunning(false);
         setList(null);
       }
@@ -198,6 +201,8 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
           onDenied={(message) => {
             setError(message);
             setDetail(null);
+            setList(null);
+            setHistory(false);
             setRunning(false);
           }}
         />
@@ -206,61 +211,62 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
           <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
             Danh sách
           </TipyButton>
-          <AssessmentSummary definition={detail.assessment.definition} student />
-          <p>Người giao: {detail.assessment.teacher}</p>
-          <p>
-            <b>{availability(detail.assessment.definition.schedule, detail.serverNow)}</b>
-            {detail.assessment.status === 'deleted' ? ' · Bài đã ẩn, không mở lượt mới' : ''}
-          </p>
-          <p>
-            {remainingAttempts === null
-              ? 'Số lượt còn lại: Không giới hạn'
-              : `Số lượt còn lại: ${remainingAttempts}`}
-          </p>
-          <TipyButton emphasis="secondary" onClick={() => setHistory(true)}>
-            Kết quả của em
-          </TipyButton>
-          {detail.attempt?.submitted_at ? (
-            <ResultBanner attempt={detail.attempt} celebrate={celebrate} />
-          ) : null}
-          {(!detail.attempt?.submitted_at ||
-            detail.allowedAttempts === null ||
-            detail.allowedAttempts > detail.attempt.attempt_number) && (
-            <TipyButton
-              icon={Play}
-              loading={busy}
-              disabled={
-                availability(detail.assessment.definition.schedule, detail.serverNow) !==
-                  'Đang mở' ||
-                (detail.assessment.status === 'deleted' &&
-                  (!detail.attempt || detail.attempt.submitted_at))
-              }
-              onClick={() =>
-                run(async () => {
-                  const response = await api('assessment_start', {
-                    assessmentId: detail.assessment.assessment_id,
-                  });
-                  setDetail((old) => ({
-                    ...old,
-                    attempt: response.data,
-                    serverNow: response.data.server_now || old.serverNow,
-                  }));
-                  if (response.data.submitted_at) {
-                    setRunning(false);
-                    return;
-                  }
-                  setCelebrate(false);
-                  setRunning(true);
-                })
-              }
-            >
-              {detail.attempt && !detail.attempt.submitted_at
-                ? 'Tiếp tục'
-                : detail.attempt
-                  ? 'Làm lại'
-                  : 'Bắt đầu'}
+          <AssessmentSummary definition={detail.assessment.definition} student>
+            <p>Người giao: {detail.assessment.teacher}</p>
+            <p>
+              <b>{availability(detail.assessment.definition.schedule, detail.serverNow)}</b>
+              {detail.assessment.status === 'deleted' ? ' · Bài đã ẩn, không mở lượt mới' : ''}
+            </p>
+            <p>
+              {remainingAttempts === null
+                ? 'Số lượt còn lại: Không giới hạn'
+                : `Số lượt còn lại: ${remainingAttempts}`}
+            </p>
+            <TipyButton emphasis="secondary" onClick={() => setHistory(true)}>
+              Kết quả của em
             </TipyButton>
-          )}
+            {detail.attempt?.submitted_at ? (
+              <ResultBanner attempt={detail.attempt} celebrate={celebrate} />
+            ) : null}
+            {(!detail.attempt?.submitted_at ||
+              detail.allowedAttempts === null ||
+              detail.allowedAttempts > detail.attempt.attempt_number) && (
+              <TipyButton
+                icon={Play}
+                loading={busy}
+                disabled={
+                  availability(detail.assessment.definition.schedule, detail.serverNow) !==
+                    'Đang mở' ||
+                  (detail.assessment.status === 'deleted' &&
+                    (!detail.attempt || detail.attempt.submitted_at))
+                }
+                onClick={() =>
+                  run(async () => {
+                    const response = await api('assessment_start', {
+                      assessmentId: detail.assessment.assessment_id,
+                    });
+                    setDetail((old) => ({
+                      ...old,
+                      attempt: response.data,
+                      serverNow: response.data.server_now || old.serverNow,
+                    }));
+                    if (response.data.submitted_at) {
+                      setRunning(false);
+                      return;
+                    }
+                    setCelebrate(false);
+                    setRunning(true);
+                  })
+                }
+              >
+                {detail.attempt && !detail.attempt.submitted_at
+                  ? 'Tiếp tục'
+                  : detail.attempt
+                    ? 'Làm lại'
+                    : 'Bắt đầu'}
+              </TipyButton>
+            )}
+          </AssessmentSummary>
         </>
       ) : !list ? (
         !error && <Loading label="Đang tải bài kiểm tra…" />
@@ -323,7 +329,8 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
           if (live.current) {
             setMessage(text);
             setFailure(error);
-            if (error && /không có quyền|Đăng nhập/.test(text)) onDenied(text);
+            if (error && /không có quyền|Đăng nhập|Bài kiểm tra đã được xóa/.test(text))
+              onDenied(text);
           }
         },
         api,

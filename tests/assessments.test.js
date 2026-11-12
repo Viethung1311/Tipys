@@ -91,6 +91,7 @@ test('database assessment lifecycle isolates practice, freezes publication, chec
       'lesson_star_upgrades',
       'assessments',
       'assessment_policies',
+      'assessment_class_access',
     ])
       await db.exec(readFileSync(`db/${file}.sql`, 'utf8'));
     for (const n of [1, 2, 3, 5])

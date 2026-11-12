@@ -53,8 +53,8 @@ function Recipients({ draft, setDraft, classes, busy }) {
     <fieldset disabled={busy}>
       <legend>Nơi nhận bài</legend>
       <p>
-        Lớp: giao cho các thành viên hiện có lúc gửi. Học sinh cần còn trong lớp để mở bài; chọn
-        riêng học sinh thì vẫn được mở độc lập.
+        Giao cho lớp: cả thành viên hiện tại và các bạn được thêm sau đều nhận bài. Học sinh cần còn
+        trong lớp để mở bài; giao riêng thì được mở độc lập.
       </p>
       <div className="assessment-options">
         {classes
@@ -115,6 +115,7 @@ export default function AdminAssessments({ classes = [] }) {
     [preview, setPreview] = useState(null),
     [resultExam, setResultExam] = useState(null),
     [deleting, setDeleting] = useState(null),
+    [deleteConfirm, setDeleteConfirm] = useState(''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
@@ -171,6 +172,11 @@ export default function AdminAssessments({ classes = [] }) {
       setPreview(response.data);
       pending.current = null;
     });
+  const requestDelete = (exam) => {
+    setError('');
+    setDeleteConfirm('');
+    setDeleting({ ...exam, title: exam.title || exam.definition.title });
+  };
   const open = (exam) =>
     run(async () => {
       const data = await api('assessment', undefined, { assessmentId: exam.assessment_id });
@@ -212,60 +218,83 @@ export default function AdminAssessments({ classes = [] }) {
         <TeacherResults exam={resultExam} classes={classes} onBack={back} />
       ) : preview ? (
         <>
-          <AssessmentSummary definition={preview.definition} />
-          <div className="assessment-actions">
-            <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
-              Danh sách
-            </TipyButton>
-            {preview.status === 'draft' ? (
-              <>
-                <TipyButton
-                  icon={Save}
-                  emphasis="secondary"
-                  disabled={busy}
-                  onClick={() => setPreview(null)}
-                >
-                  Chỉnh sửa
-                </TipyButton>
-                <TipyButton
-                  icon={Send}
-                  loading={busy}
-                  disabled={
-                    !preview.definition.sections.length ||
-                    (!preview.definition.targets.classIds.length &&
-                      !preview.definition.targets.userIds.length)
-                  }
-                  onClick={() =>
-                    run(async () => {
-                      const response = await api('assessment_publish', {
-                        assessmentId: preview.assessment_id,
-                        version: preview.version,
-                      });
-                      setPreview(response.data);
-                      setNotice('Đã gửi bài kiểm tra cho học sinh.');
-                    })
-                  }
-                >
-                  Gửi bài
-                </TipyButton>
-              </>
-            ) : (
-              <TipyButton
-                icon={Copy}
-                onClick={() => {
-                  setDraft({
-                    ...editOf(preview),
-                    assessmentId: crypto.randomUUID(),
-                    version: 0,
-                    title: `${preview.definition.title.slice(0, 88)} (bản mới)`,
-                  });
-                  setPreview(null);
-                }}
-              >
-                Tạo bản mới
+          <AssessmentSummary definition={preview.definition}>
+            <div className="assessment-actions">
+              <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
+                Danh sách
               </TipyButton>
-            )}
-          </div>
+              {preview.status === 'draft' ? (
+                <>
+                  <TipyButton
+                    icon={Save}
+                    emphasis="secondary"
+                    disabled={busy}
+                    onClick={() => setPreview(null)}
+                  >
+                    Chỉnh sửa
+                  </TipyButton>
+                  <TipyButton
+                    icon={Send}
+                    loading={busy}
+                    disabled={
+                      !preview.definition.sections.length ||
+                      (!preview.definition.targets.classIds.length &&
+                        !preview.definition.targets.userIds.length)
+                    }
+                    onClick={() =>
+                      run(async () => {
+                        const response = await api('assessment_publish', {
+                          assessmentId: preview.assessment_id,
+                          version: preview.version,
+                        });
+                        setPreview(response.data);
+                        setNotice('Đã gửi bài kiểm tra cho học sinh.');
+                      })
+                    }
+                  >
+                    Gửi bài
+                  </TipyButton>
+                </>
+              ) : (
+                <TipyButton
+                  icon={Copy}
+                  onClick={() => {
+                    setDraft({
+                      ...editOf(preview),
+                      assessmentId: crypto.randomUUID(),
+                      version: 0,
+                      title: `${preview.definition.title.slice(0, 88)} (bản mới)`,
+                    });
+                    setPreview(null);
+                  }}
+                >
+                  Tạo bản mới
+                </TipyButton>
+              )}
+              {preview.status !== 'draft' && (
+                <TipyButton
+                  icon={ChartColumn}
+                  disabled={busy}
+                  onClick={() => {
+                    setResultExam(preview);
+                    setDraft(null);
+                    setPreview(null);
+                  }}
+                >
+                  Xem kết quả
+                </TipyButton>
+              )}
+              <TipyButton
+                icon={Trash2}
+                variant="danger"
+                emphasis="secondary"
+                disabled={busy}
+                onClick={() => requestDelete(preview)}
+              >
+                Xóa vĩnh viễn
+              </TipyButton>
+            </div>
+          </AssessmentSummary>
         </>
       ) : draft ? (
         <form
@@ -537,17 +566,17 @@ export default function AdminAssessments({ classes = [] }) {
                     Xem kết quả
                   </TipyButton>
                 )}
-                {exam.status !== 'deleted' && (
+                {
                   <TipyButton
                     icon={Trash2}
                     variant="danger"
                     emphasis="secondary"
                     disabled={busy}
-                    onClick={() => setDeleting(exam)}
+                    onClick={() => requestDelete(exam)}
                   >
-                    Xóa bài
+                    Xóa vĩnh viễn
                   </TipyButton>
-                )}
+                }
               </div>
             </article>
           ))}
@@ -556,12 +585,29 @@ export default function AdminAssessments({ classes = [] }) {
       )}
       {deleting && (
         <Modal
-          title="Xóa bài kiểm tra?"
-          description={`Bài: ${deleting.title}. Nháp chưa có lượt sẽ bị xóa hẳn. Bài đã gửi sẽ ẩn, giữ kết quả; lượt đang làm vẫn tiếp tục theo lịch ban đầu.`}
+          className="assessments"
+          title="Xóa vĩnh viễn bài kiểm tra?"
+          description={`Bài: ${deleting.title}. Xóa toàn bộ nội dung giao bài, người nhận, lượt làm và kết quả của bài này. Không thể khôi phục. Tài khoản, lớp, kho nội dung và kết quả luyện tập được giữ nguyên.`}
           onClose={() => {
             if (!busy) setDeleting(null);
           }}
         >
+          {error && (
+            <p className="account-error" role="alert">
+              {error}
+            </p>
+          )}
+          <label className="account-field">
+            Nhập accept để xác nhận
+            <input
+              aria-label="Nhập accept để xác nhận"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              disabled={busy}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </label>
           <div className="assessment-actions">
             <TipyButton emphasis="secondary" disabled={busy} onClick={() => setDeleting(null)}>
               Quay lại
@@ -569,20 +615,29 @@ export default function AdminAssessments({ classes = [] }) {
             <TipyButton
               icon={Trash2}
               variant="danger"
+              disabled={deleteConfirm !== 'accept'}
               loading={busy}
+              loadingLabel="Đang xóa…"
               onClick={() =>
                 run(async () => {
-                  await api('assessment_delete', {
+                  const result = await api('assessment_delete', {
                     assessmentId: deleting.assessment_id,
                     title: deleting.title,
+                    confirm: deleteConfirm,
                   });
+                  if (!result.data?.deleted || !result.data?.permanent)
+                    throw Error('Chưa xác nhận được việc xóa vĩnh viễn. Hãy thử lại.');
                   setDeleting(null);
-                  setNotice('Đã xóa bài. Kết quả đã có được giữ lại.');
+                  setDraft(null);
+                  setPreview(null);
+                  setResultExam(null);
+                  setList(null);
+                  setNotice('Đã xóa vĩnh viễn bài kiểm tra và kết quả liên quan.');
                   setRevision((n) => n + 1);
                 })
               }
             >
-              Xóa bài
+              Xóa vĩnh viễn
             </TipyButton>
           </div>
         </Modal>

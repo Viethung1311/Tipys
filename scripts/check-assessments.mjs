@@ -36,6 +36,7 @@ try {
         'lesson_star_upgrades',
         'assessments',
         'assessment_policies',
+        'assessment_class_access',
       ])
         await db.exec(readFileSync(`db/${file}.sql`, 'utf8'));
       for (const n of [...Array.from({ length: 15 }, (_, i) => i + 1), 99])
@@ -218,6 +219,16 @@ try {
       await teacher.getByRole('button', { name: 'Xem trước', exact: true }).click();
       await teacher.getByRole('button', { name: 'Gửi bài', exact: true }).waitFor();
       await fit(teacher);
+      const cardStyle = await teacher.locator('.assessment-summary').evaluate((el) => ({
+        width: el.getBoundingClientRect().width,
+        background: getComputedStyle(el).backgroundColor,
+        border: getComputedStyle(el).borderTopStyle,
+      }));
+      assert.ok(cardStyle.width <= 940);
+      assert.equal(cardStyle.background, 'rgb(255, 255, 255)');
+      assert.equal(cardStyle.border, 'solid');
+      if (await teacher.locator('.tipy-companion').count())
+        assert.equal(await teacher.locator('.tipy-companion').isVisible(), false);
       await teacher.screenshot({
         path: `test-results/assessments/${width}-preview.png`,
         fullPage: true,
@@ -330,9 +341,38 @@ try {
       }, examId);
       assert.equal(denied.status, 403);
       assert.doesNotMatch(denied.text, /Gõ và viết chữ|Phép thuật/);
+      await db.query('insert into class_members(class_id,user_id) values($1,$2)', [id(50), id(3)]);
       await teacher.getByRole('button', { name: 'Danh sách', exact: true }).click();
       await teacher.getByRole('button', { name: 'Xem kết quả', exact: true }).click();
-      await teacher.getByRole('button', { name: 'Cho làm lại', exact: true }).click();
+      await teacher
+        .locator('tbody tr')
+        .filter({ hasText: 'Học sinh 3' })
+        .getByText('Chưa làm', { exact: true })
+        .waitFor();
+      await outsider.reload();
+      await outsider.getByRole('button', { name: 'Xem bài', exact: true }).click();
+      const privateCard = await outsider.locator('.assessment-summary').innerText();
+      assert.doesNotMatch(privateCard, /Lớp thử A|kid09|Nơi nhận/);
+      if (await outsider.locator('.tipy-companion').count())
+        assert.equal(await outsider.locator('.tipy-companion').isVisible(), false);
+      await outsider.getByRole('button', { name: 'Bắt đầu', exact: true }).click();
+      await outsider
+        .locator('.assessment-run-header')
+        .getByRole('button', { name: 'Nộp bài', exact: true })
+        .click();
+      await outsider
+        .getByRole('dialog')
+        .getByRole('button', { name: 'Nộp bài', exact: true })
+        .click();
+      await outsider.getByRole('heading', { name: 'Cần luyện thêm', exact: true }).waitFor();
+      await db.query('update class_members set is_active=false where user_id=$1', [id(3)]);
+      await outsider.reload();
+      await outsider.getByText('Chưa có bài kiểm tra nào', { exact: true }).waitFor();
+      await teacher
+        .locator('tbody tr')
+        .filter({ hasText: 'Học sinh 1' })
+        .getByRole('button', { name: 'Cho làm lại', exact: true })
+        .click();
       await teacher.getByText('Đã cho làm lại', { exact: true }).waitFor();
       await student.reload();
       await student.getByRole('button', { name: 'Xem bài', exact: true }).click();
@@ -395,7 +435,11 @@ try {
       await direct.getByRole('heading', { name: 'Hoàn thành tốt', exact: true }).waitFor();
       assert.equal(await direct.evaluate(() => window.__recordNotes), 0);
       await direct.getByText('Số lượt còn lại: 1', { exact: true }).waitFor();
-      await direct.getByRole('button', { name: 'Làm lại', exact: true }).waitFor();
+      await direct.getByRole('button', { name: 'Làm lại', exact: true }).click();
+      await direct.locator('.assessment-runner').waitFor();
+      const staleAttempt = (
+        await service.assessment({ user_id: id(9), role: 'student' }, { assessmentId: extraId })
+      ).attempt;
       await teacher.reload();
       await teacher.getByRole('button', { name: 'Bài kiểm tra', exact: true }).click();
       const extraCard = teacher.locator('article').filter({ hasText: 'Bài mục tiêu thử' });
@@ -431,27 +475,65 @@ try {
       await teacher.getByLabel('Trạng thái', { exact: true }).selectOption('not_started');
       await teacher.getByText('Chưa có học sinh phù hợp.', { exact: true }).waitFor();
       await teacher.getByRole('button', { name: 'Danh sách', exact: true }).click();
-      await extraCard.getByRole('button', { name: 'Xóa bài', exact: true }).click();
+      await extraCard.getByRole('button', { name: 'Xóa vĩnh viễn', exact: true }).click();
       await teacher
         .getByRole('dialog')
         .getByRole('button', { name: 'Quay lại', exact: true })
         .click();
-      await extraCard.getByRole('button', { name: 'Xóa bài', exact: true }).click();
-      await teacher
-        .getByRole('dialog')
-        .getByRole('button', { name: 'Xóa bài', exact: true })
-        .click();
-      await extraCard.getByText('Đã xóa / Ẩn', { exact: false }).waitFor();
-      await direct.reload();
-      await direct
-        .locator('article')
-        .filter({ hasText: 'Bài mục tiêu thử' })
-        .getByRole('button', { name: 'Xem bài', exact: true })
-        .click();
+      await extraCard.getByRole('button', { name: 'Xóa vĩnh viễn', exact: true }).click();
+      const deleteDialog = teacher.getByRole('dialog');
       assert.equal(
-        await direct.getByRole('button', { name: 'Làm lại', exact: true }).isDisabled(),
+        await deleteDialog.getByRole('button', { name: 'Xóa vĩnh viễn', exact: true }).isDisabled(),
         true,
       );
+      await deleteDialog.getByLabel('Nhập accept để xác nhận', { exact: true }).fill('ACCEPT');
+      assert.equal(
+        await deleteDialog.getByRole('button', { name: 'Xóa vĩnh viễn', exact: true }).isDisabled(),
+        true,
+      );
+      await deleteDialog.getByLabel('Nhập accept để xác nhận', { exact: true }).fill('accept');
+      await deleteDialog.getByRole('button', { name: 'Xóa vĩnh viễn', exact: true }).click();
+      await teacher
+        .getByText('Đã xóa vĩnh viễn bài kiểm tra và kết quả liên quan.', { exact: true })
+        .waitFor();
+      assert.equal(await extraCard.count(), 0);
+      for (const table of [
+        'assessments',
+        'assessment_assignments',
+        'assessment_attempts',
+        'assessment_class_targets',
+      ])
+        assert.equal(
+          (await db.query(`select count(*)::int n from ${table} where assessment_id=$1`, [extraId]))
+            .rows[0].n,
+          0,
+        );
+      const stale = await direct.evaluate(
+        async ({ assessmentId, attemptId }) => {
+          const r = await fetch('/api/tipy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'assessment_submit',
+              assessmentId,
+              attemptId,
+              revision: 0,
+              requestId: crypto.randomUUID(),
+              payload: {},
+            }),
+          });
+          return { status: r.status, body: await r.json() };
+        },
+        { assessmentId: extraId, attemptId: staleAttempt.attempt_id },
+      );
+      assert.equal(stale.status, 410);
+      assert.equal(stale.body.error, 'Bài kiểm tra đã được xóa');
+      await direct.evaluate(() => window.dispatchEvent(new Event('focus')));
+      await direct
+        .getByRole('alert')
+        .getByText('Bài kiểm tra đã được xóa', { exact: false })
+        .waitFor();
+      assert.equal(await direct.locator('.assessment-runner').count(), 0);
       if (width === 1440) {
         const timedId = id(501);
         const timed = await service.assessmentSave(fixtureAdmin, {
@@ -542,7 +624,9 @@ try {
           successfulTargetAndSoundOnce: true,
           teacherSevenRowTableAndFilters: true,
           ownHistory: true,
-          deleteAndPreserveResults: true,
+          permanentDeleteAndStaleTab: true,
+          lateClassMemberReceives: true,
+          privateSummaryCards: true,
           practiceUntouched: true,
           errors,
         }),

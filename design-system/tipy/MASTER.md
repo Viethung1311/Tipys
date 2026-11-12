@@ -2,10 +2,13 @@
 
 ### Bài kiểm tra: lịch, lượt và kết quả
 
+- Chi tiết/xem trước dùng panel chung như bài đăng lớp: nền trắng, bo góc/viền/bóng theo token, tối đa 940 px, căn giữa. Chia tên bài, giới thiệu, cách chơi, thời gian, số lượt; mỗi phần chơi là thẻ nhỏ, nút trong footer thẻ. Giữ xuống dòng nội dung; một cột ở máy hẹp. Không tái sử dụng PostComposer như một form giả: dùng lớp panel chung hiện có.
+- Trong lúc đọc thẻ, tạm không hiển thị nhân vật/bong bóng nổi để tránh che nội dung, giữ nguyên tùy chọn đã lưu. Học sinh không thấy nơi nhận của người khác.
+
 - Form giáo viên dùng giờ Việt Nam; chọn rõ Theo lịch/Luôn mở và số lần làm thêm sau lượt đầu. Chỉ nháp được sửa; bài đã gửi tạo bản mới để đổi luật/lịch.
 - Mục tiêu chỉ thuộc phần Chữ rơi. Kết quả đạt mục tiêu có tiêu đề “Hoàn thành tốt” lớn, đậm, căn giữa; hiệu ứng một lần, tắt khi giảm chuyển động. Âm chúc mừng dùng hệ thống âm thanh chung, không phát lại khi mở lịch sử hoặc reload. Chưa đạt dùng “Cần luyện thêm”, không hiệu ứng thắng.
 - Kết quả giáo viên: bảng 7 học sinh/trang, lọc/sắp xếp phía backend; hiển thị lượt đã nộp gần nhất, trạng thái lượt hiện tại, chi tiết từng lượt và tốt nhất riêng từng phần. Không cộng điểm khác đơn vị. Điện thoại cuộn ngang riêng bảng, không làm tràn trang.
-- “Kết quả của em” chỉ tải lượt của tài khoản trong phiên. Modal dùng X/Esc và component chung. Bài đã ẩn vẫn cho lượt đang dở nộp theo lịch cũ, không mở lượt mới.
+- “Kết quả của em” chỉ tải lượt của tài khoản trong phiên. Modal dùng X/Esc và component chung. Xóa bài dùng nhãn “Xóa vĩnh viễn”, modal ghi rõ mất nội dung/người nhận/lượt làm/kết quả và yêu cầu đúng accept. Tab cũ phải ngừng khi backend báo bài đã được xóa.
 
 Thương hiệu hiển thị duy nhất: **Zunimo**, gồm header, footer, metadata và thông báo mặc định. Giữ định danh kỹ thuật cũ (TipyButton, font `TIPY Nunito`, token, API, cookie, bucket, đường dẫn); không thay chuỗi hàng loạt vào dữ liệu người dùng. Logo là chữ/SVG dựng bằng code, không có bitmap thương hiệu cũ trong bộ ảnh đang sử dụng. Bỏ khối địa chỉ và khoảng trống của nó.
 

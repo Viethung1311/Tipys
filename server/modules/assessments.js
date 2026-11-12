@@ -319,6 +319,9 @@ export function createAssessments(db) {
     });
     if (result.error) {
       const message = result.error.message || '';
+      if (/Assessment deleted/.test(message)) throw new ApiError(410, 'Bài kiểm tra đã được xóa');
+      if (/Confirmation required/.test(message))
+        throw new ApiError(400, 'Nhập chính xác accept để xóa vĩnh viễn.');
       if (/Access denied|Admin required|Student assignment/.test(message))
         throw new ApiError(403, 'Bạn không có quyền mở bài kiểm tra này.');
       if (/Conflict/.test(message))
@@ -423,9 +426,12 @@ export function createAssessments(db) {
     async assessmentDelete(profile, input) {
       requireAdmin(profile);
       scope(input);
+      if (input.confirm !== 'accept')
+        throw new ApiError(400, 'Nhập chính xác accept để xóa vĩnh viễn.');
       return rpc(profile, 'delete', {
         assessmentId: input.assessmentId,
         title: text(input.title, 100, 'Tên bài'),
+        confirm: input.confirm,
       });
     },
     async assessmentRetake(profile, input) {

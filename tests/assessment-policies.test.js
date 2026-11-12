@@ -143,6 +143,7 @@ test('real database: deadlines, snapshot grading, concurrent starts, limits, unl
       ],
     );
     await db.exec(readFileSync('db/assessment_policies.sql', 'utf8'));
+    await db.exec(readFileSync('db/assessment_class_access.sql', 'utf8'));
     const rpc = async (actor, action, input = {}) =>
       (await db.query('select tipy_assessment($1,$2,$3) data', [actor.user_id, action, input]))
         .rows[0].data;
@@ -336,24 +337,59 @@ test('real database: deadlines, snapshot grading, concurrent starts, limits, unl
     await publish(104);
     a = await service.assessmentStart(student, scope(104));
     await assert.rejects(
-      service.assessmentDelete(student, { ...scope(104), title: 'Fixture 104' }),
+      service.assessmentDelete(student, { ...scope(104), title: 'Fixture 104', confirm: 'accept' }),
       (e) => e.status === 403,
     );
-    await assert.rejects(service.assessmentDelete(admin, { ...scope(104), title: 'wrong' }));
-    await service.assessmentDelete(admin, { ...scope(104), title: 'Fixture 104' });
-    await service.assessmentDelete(admin, { ...scope(104), title: 'Fixture 104' });
-    assert.equal((await service.assessmentStart(student, scope(104))).attempt_id, a.attempt_id);
-    await finish(104, a, 2);
-    await assert.rejects(service.assessmentStart(student, scope(104)));
-    await assert.rejects(service.assessmentStart({ user_id: id(2), role: 'student' }, scope(104)));
-    assert.equal(
-      (await service.assessmentResults(admin, scope(104))).items[0].latest_submitted.results[0]
-        .score,
-      20,
+    await assert.rejects(service.assessmentDelete(admin, { ...scope(104), title: 'Fixture 104' }));
+    await assert.rejects(
+      service.assessmentDelete(admin, { ...scope(104), title: 'wrong', confirm: 'accept' }),
     );
+    await service.assessmentDelete(admin, {
+      ...scope(104),
+      title: 'Fixture 104',
+      confirm: 'accept',
+    });
+    await service.assessmentDelete(admin, {
+      ...scope(104),
+      title: 'Fixture 104',
+      confirm: 'accept',
+    });
+    await assert.rejects(service.assessmentStart(student, scope(104)), (e) => e.status === 410);
+    await assert.rejects(
+      service.assessmentSubmit(student, {
+        ...scope(104),
+        attemptId: a.attempt_id,
+        revision: 0,
+        requestId: crypto.randomUUID(),
+        payload: {},
+      }),
+      (e) => e.status === 410,
+    );
+    for (const table of [
+      'assessments',
+      'assessment_assignments',
+      'assessment_attempts',
+      'assessment_class_targets',
+    ])
+      assert.equal(
+        (
+          await db.query(`select count(*)::integer n from ${table} where assessment_id=$1`, [
+            id(104),
+          ])
+        ).rows[0].n,
+        0,
+      );
     await service.assessmentSave(admin, draft(105));
-    await service.assessmentDelete(admin, { ...scope(105), title: 'Fixture 105' });
-    await service.assessmentDelete(admin, { ...scope(105), title: 'Fixture 105' });
+    await service.assessmentDelete(admin, {
+      ...scope(105),
+      title: 'Fixture 105',
+      confirm: 'accept',
+    });
+    await service.assessmentDelete(admin, {
+      ...scope(105),
+      title: 'Fixture 105',
+      confirm: 'accept',
+    });
     assert.equal(
       (
         await db.query('select count(*)::integer n from assessments where assessment_id=$1', [
@@ -363,7 +399,7 @@ test('real database: deadlines, snapshot grading, concurrent starts, limits, unl
       0,
     );
     await assert.rejects(
-      service.assessmentSave(admin, { ...draft(104), version: 1, title: 'changed' }),
+      service.assessmentSave(admin, { ...draft(100), version: 1, title: 'changed' }),
     );
     await db.exec('set role authenticated');
     await assert.rejects(db.query('select tipy_expire_assessments()'));
