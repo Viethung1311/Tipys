@@ -114,7 +114,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 ### Sao của bạn và bản đồ căn giữa
 
 - AccountPoints là tên component kỹ thuật giữ tương thích, hiển thị **Sao của bạn** từ sổ thưởng server; không cộng điểm các game, không quy đổi điểm cũ. Nhóm tài khoản/avatar/sao nằm cột cuối bên phải dù không có Lớp học; điện thoại xuống hàng trong cùng nhóm, không tràn ngang.
-- Mỗi bài ổn định của Bé chinh phục bàn phím chỉ nhận 1–3 sao ở lần hoàn thành đầu tiên. Luyện lại cập nhật sao thành tích tốt nhất nhưng không thêm sao thưởng; kết quả nêu Nhận lần này và Bài đã nhận sao. Bài hoàn thành cũ thiếu bằng chứng lần đầu được đánh dấu legacy, không tự cấp bù và không cấp lại khi chơi lại. Khách chỉ chơi thử, không nhận sao tài khoản.
+- Mỗi mã bài ổn định của Bé chinh phục bàn phím nhận tối đa 3 sao: lượt hợp lệ chỉ cộng `max(0, sao lượt mới − sao đã thưởng)`. Bằng/thấp hơn không cộng, cao hơn nhận chênh lệch; đủ 3 vẫn được luyện. Kết quả nêu “Nhận thêm … sao”, kèm “Chưa vượt thành tích cũ” nếu không tăng hoặc “Đã nhận đủ 3 sao” khi đủ. Tiến độ phân biệt sao tốt nhất với sao bài học đã nhận. Dữ liệu cũ giữ số sao thực thưởng trong ledger, không tự cấp bù theo best_stars; bài legacy 0 chỉ nhận theo lượt hợp lệ mới. Khách chỉ chơi thử, không nhận sao tài khoản.
 - Chữ rơi có nút Thi đấu tuần: Khó/A–Z theo cấu hình hard-v1 cố định (fall 3, minFall 1, spawn 0,95, minSpawn 0,65, max 10; +10/chữ, 3 mạng, sai lần 6 thua, tăng tốc mỗi 500). Luyện tự do giữ cấu hình giáo viên và không trộn vào bảng tuần. Chỉ kết thúc game_over hợp lệ, điểm >0, thành viên từ khi bắt đầu đến khi ghi/chốt mới đủ điều kiện. Rời/vào lại là kỳ tham gia mới.
 - Hai tab lớp đánh số: **1. Vượt ải** xếp theo sao bài học thực nhận, không tính thưởng tuần hoặc quà tặng; **2. Chữ rơi · Khó** dùng điểm tốt nhất trong tuần. Chỉ hiển thị thứ hạng, avatar, tên và sao/điểm; tuần dùng nhãn ngày ngắn và nút Trước/Sau. Hòa: chính xác cao hơn → đạt sớm hơn → user_id ổn định. Tuần thứ Hai 00:00 đến thứ Hai kế tiếp 00:00 theo Asia/Ho_Chi_Minh. Giải thích chuyển vào Hướng dẫn, không đưa mã cấu hình vào giao diện. Sao header tự làm mới khi hoàn tất, lấy bảng lớp, focus và mỗi phút khi tab hiện.
 - Unique nguồn thưởng và transaction SQL chống gửi lại/hai tab/chốt lại. Tổng sao là SUM sổ thưởng nên không có bộ đếm lệch. Cron backend chốt 00:05 hằng ngày giờ Việt Nam, gồm tuần kết thúc và các tuần bị bỏ lỡ; không phụ thuộc mở trang. Không tái dựng tuần cũ từ best/latest. Chưa có store.
@@ -125,7 +125,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 - Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount ảnh đảo và 5 vùng bấm; sau khi chọn mới mount 5–8 bài tương ứng. Thẻ bài hiện trực tiếp trên nền cảnh, giữ nền riêng từng thẻ; không có khung trắng lớn hoặc tiêu đề/mô tả màn phía trên. Kiểu chơi là điều khiển nhỏ có nền đọc rõ, đặt ngoài thẻ.
 - “Bản đồ đảo” và “Bản đồ” trên thanh điều hướng về đảo; “Danh sách bài” trở về màn đang học. Trở lại từ một bài chơi giữ thế giới hiện tại, chuyển bài sang thế giới khác cập nhật đúng thế giới. Focus về tiêu đề khi đổi cấp.
-- Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Giữ điều kiện mở khóa và sao thành tích; sao thưởng theo quy tắc lần đầu ở trên.
+- Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Giữ điều kiện mở khóa và sao thành tích; sao thưởng theo phần tăng thêm ở trên.
 
 ### Minh họa phiêu lưu
 
@@ -136,7 +136,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 ### Thao tác giáo viên và hướng dẫn lớp
 
-- Lịch sử học sinh có “Làm lại từ đầu”: chọn trò chơi, gõ đúng `accept` mới xác nhận. Chỉ admin (vai trò giáo viên hiện có) được gọi API/RPC. Xóa kết quả, tiến độ, sao thành tích, lượt đang dở và sao bài học của trò đó; cho nhận lại một lần. Giữ thời gian tích lũy, tài khoản, nhân vật, lớp, game khác, sao tặng và thưởng tuần đã chốt. Kết quả thi đấu chưa chốt của Chữ rơi được xóa khi đặt lại Chữ rơi. Lượt cũ mất hiệu lực.
+- Lịch sử học sinh có “Làm lại từ đầu”: chọn trò chơi, gõ đúng `accept` mới xác nhận. Chỉ admin (vai trò giáo viên hiện có) được gọi API/RPC. Xóa kết quả, tiến độ, sao thành tích, lượt đang dở và sao bài học của trò đó; sau đó nhận lại theo phần tăng thêm, tối đa 3 sao/bài. Giữ thời gian tích lũy, tài khoản, nhân vật, lớp, game khác, sao tặng và thưởng tuần đã chốt. Kết quả thi đấu chưa chốt của Chữ rơi được xóa khi đặt lại Chữ rơi. Lượt cũ mất hiệu lực.
 - “Tặng sao” ở quản lý học sinh: số nguyên dương, lời nhắn tùy chọn tối đa 240 ký tự. Sổ thưởng lưu người tặng/nhận, số sao, thời điểm và lời nhắn; khóa yêu cầu chống cộng trùng. Tổng Sao của bạn gồm bài học, tuần và quà tặng; hai bảng lớp không tính quà tặng.
 - Top thành tích giữ hai tab đánh số, chỉ thứ hạng, ảnh, tên và sao/điểm. Tuần hiện dạng `09/11–15/11`. Tách “Chưa có học sinh”, “Chưa có thành tích” và lỗi tải có thử lại. Nút Hướng dẫn thay làm mới thủ công; modal chung có X/Esc, giải thích ngắn theo quy tắc thật. Cập nhật tự động sau thao tác và đổi lớp vẫn giữ.
 - Mỗi thao tác giáo viên dùng một mã yêu cầu ổn định khi thử lại; database ghi thay đổi và biên nhận cùng transaction. Không thử đặt lại hoặc tặng sao trên tài khoản thật.

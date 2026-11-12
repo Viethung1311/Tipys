@@ -83,7 +83,7 @@ test('shared account points refresh after a saved lesson, survive navigation and
       await sleep(15);
     }
     await until(() => d.querySelector('.account-points').textContent.includes('3'));
-    assert.match(d.body.textContent, /Nhận lần này: 3 sao/);
+    assert.match(d.body.textContent, /Nhận thêm 3 sao · Đã nhận đủ 3 sao/);
     assert.doesNotMatch(d.querySelector('.account-points').textContent, /Điểm chung/);
     d.querySelector('[aria-label="Zunimo trang chủ"]').click();
     await until(() => d.querySelector('.welcome-hero'));

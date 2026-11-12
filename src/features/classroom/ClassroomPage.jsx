@@ -249,8 +249,9 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
           <section>
             <h3>Vượt ải</h3>
             <p>
-              Hoàn thành mỗi bài để nhận từ 1 đến 3 sao. Luyện lại giúp bạn tiến bộ nhưng không cộng
-              thêm sao. Nếu thầy cô cho làm lại từ đầu, bạn có thể nhận sao bài học lại.
+              Hoàn thành mỗi bài để nhận từ 1 đến 3 sao. Đạt mức cao hơn sẽ nhận thêm phần sao còn
+              thiếu. Mỗi bài nhận tối đa 3 sao; đủ sao vẫn được luyện lại. Nếu thầy cô cho làm lại
+              từ đầu, bạn có thể nhận sao bài học lại.
             </p>
           </section>
           <section>

@@ -96,7 +96,7 @@ export function createKeyboardQuest(db) {
         return {
           progress: {
             ...existing,
-            award_this_play: existing.award_play_id === input.playId ? existing.awarded_stars : 0,
+            award_this_play: existing.last_award_delta ?? 0,
           },
         };
       const result = await db

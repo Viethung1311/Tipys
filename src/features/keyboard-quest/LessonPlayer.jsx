@@ -288,14 +288,14 @@ export default function LessonPlayer({
         {saved && (
           <p role="status">
             {!user
-              ? 'Chơi thử · Nhận lần này: 0 sao tài khoản.'
-              : reward?.reward_status === 'legacy'
-                ? 'Bài cũ: không cấp bù sao · Nhận lần này: 0 sao.'
-                : reward?.award_this_play > 0
-                  ? `Nhận lần này: ${reward.award_this_play} sao`
-                  : reward?.reward_status === 'awarded'
-                    ? 'Bài đã nhận sao · Nhận lần này: 0 sao'
-                    : 'Chưa hoàn thành bài · Nhận lần này: 0 sao.'}
+              ? 'Chơi thử · Nhận thêm 0 sao tài khoản.'
+              : `Nhận thêm ${reward?.award_this_play || 0} sao · ${
+                  reward?.awarded_stars >= 3
+                    ? 'Đã nhận đủ 3 sao'
+                    : reward?.award_this_play > 0
+                      ? `Bài này đã nhận ${reward.awarded_stars}/3 sao`
+                      : 'Chưa vượt thành tích cũ'
+                }`}
           </p>
         )}
         <div className="quest-metrics">

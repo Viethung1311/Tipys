@@ -48,6 +48,7 @@ export function learningSummary(rows) {
   return {
     completed: LESSONS.filter((lesson) => done(lesson.id)).length,
     stars,
+    awardedStars: known.reduce((n, row) => n + Number(row.awarded_stars || 0), 0),
     correct,
     weakKeys: weakest('weak_keys'),
     weakRules: weakest('weak_rules'),

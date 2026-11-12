@@ -106,7 +106,8 @@ export default function StudentActionDialog({
             <p>
               Sẽ xóa kết quả, tiến độ, sao thành tích, trạng thái mở khóa và lượt chơi đang dở của
               trò chơi đã chọn. Sao bài học của trò chơi này được thu hồi; học sinh có thể nhận lại
-              một lần khi hoàn thành lại. Kết quả Chữ rơi chưa chốt được xóa nếu chọn Chữ rơi.
+              theo phần tăng thêm, tối đa 3 sao mỗi bài. Kết quả Chữ rơi chưa chốt được xóa nếu chọn
+              Chữ rơi.
             </p>
             <p>
               <strong>Giữ nguyên tổng thời gian luyện tích lũy</strong>, tài khoản, nhân vật, thành

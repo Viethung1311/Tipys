@@ -27,6 +27,11 @@ export default function LearningProfile({ progress, avatar, user }) {
         <p>
           <b>{summary.stars} ★</b> sao tốt nhất
         </p>
+        {user && (
+          <p>
+            <b>{summary.awardedStars} ★</b> sao bài học đã nhận
+          </p>
+        )}
         <p>
           <b>{practiceTime(summary.seconds)}</b> thời gian luyện
         </p>

@@ -44,7 +44,16 @@ async function setup(user = null, progress = [], fixtureOptions = {}) {
     if (action === 'start') data = { data: { play_id: '11111111-1111-4111-8111-111111111111' } };
     if (action === 'quest_finish') {
       await fixtureOptions.finish?.();
-      data = { data: { progress: { lesson_id: 'keys-as', completed: true, best_stars: 3 } } };
+      data = {
+        data: {
+          progress: {
+            lesson_id: 'keys-as',
+            completed: true,
+            best_stars: 3,
+            ...fixtureOptions.reward,
+          },
+        },
+      };
     }
     return { ok: true, json: async () => data };
   };
@@ -62,6 +71,59 @@ async function setup(user = null, progress = [], fixtureOptions = {}) {
   };
   return { dom, w, d: w.document, calls, click };
 }
+test('reward messages show only the delta, capped stars never block replay, and earned progress survives remount', async () => {
+  const user = { user_id: 'reward-fixture', role: 'student', full_name: 'Fixture' };
+  for (const [awarded, extra, message] of [
+    [2, 1, 'Bài này đã nhận 2/3 sao'],
+    [2, 0, 'Chưa vượt thành tích cũ'],
+    [3, 0, 'Đã nhận đủ 3 sao'],
+  ]) {
+    const reward = {
+      lesson_id: 'keys-as',
+      completed: true,
+      best_stars: 3,
+      awarded_stars: awarded,
+      last_award_delta: extra,
+      award_this_play: extra,
+      reward_status: 'awarded',
+    };
+    const { dom, d, click } = await setup(user, [{ ...reward, awarded_stars: awarded - extra }], {
+      reward,
+    });
+    try {
+      d.querySelector('[data-world-id="1"]').click();
+      await sleep(20);
+      await click('Bắt đầu');
+      await click('Luyện lại');
+      await until(() => d.querySelector('.quest-target'));
+      for (const item of LESSONS[0].items) {
+        d.querySelector(`[aria-label="Gõ ${item.target}"]`).click();
+        await sleep(12);
+      }
+      await until(() => d.body.textContent.includes(`Nhận thêm ${extra} sao`));
+      assert.ok(d.body.textContent.includes(message));
+      await click('Danh sách bài');
+      await click('Tiến bộ');
+      assert.match(
+        d.querySelector('.quest-profile').textContent,
+        new RegExp(`${awarded} ★ sao bài học đã nhận`),
+      );
+    } finally {
+      dom.window.close();
+    }
+    const reloaded = await setup(user, [reward]);
+    try {
+      await reloaded.click('Tiến bộ');
+      assert.match(
+        reloaded.d.querySelector('.quest-profile').textContent,
+        new RegExp(`${awarded} ★ sao bài học đã nhận`),
+      );
+    } finally {
+      reloaded.dom.window.close();
+    }
+  }
+});
+
 test('guest quest completes with physical/touch keys, pauses, unlocks next lesson and keeps one local summary', async () => {
   const { dom, w, d, calls, click } = await setup();
   try {

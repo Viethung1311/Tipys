@@ -43,7 +43,7 @@ export default function AccountPoints({ user }) {
     <span
       className="account-points"
       aria-live="polite"
-      title="Sao thưởng bài học lần đầu và thưởng Chữ rơi theo tuần"
+      title="Sao bài học, thưởng Chữ rơi theo tuần và sao thầy cô tặng"
     >
       <Star size={20} aria-hidden="true" />
       {error ? (
