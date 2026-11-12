@@ -1,7 +1,43 @@
-import { ApiError, fail } from '../errors.js';
+import { ApiError, fail, requireAdmin } from '../errors.js';
 import { uuid } from './classrooms.js';
 export function createStars(db) {
   return {
+    async studentReset(profile, input) {
+      requireAdmin(profile);
+      uuid(input.userId);
+      uuid(input.gameId);
+      uuid(input.requestId);
+      if (input.confirm !== 'accept') throw new ApiError(400, 'Nhập chính xác accept để xác nhận.');
+      const result = await db.rpc('tipy_student_reset', {
+        p_actor: profile.user_id,
+        p_user: input.userId,
+        p_game: input.gameId,
+        p_request: input.requestId,
+        p_confirm: input.confirm,
+      });
+      fail(result.error, 'Chưa xác nhận được đặt lại. Thử lại cùng yêu cầu để kiểm tra an toàn.');
+      return result.data;
+    },
+    async starGift(profile, input) {
+      requireAdmin(profile);
+      uuid(input.userId);
+      uuid(input.requestId);
+      if (!Number.isInteger(input.amount) || input.amount < 1 || input.amount > 2147483647)
+        throw new ApiError(400, 'Nhập số sao nguyên dương hợp lệ.');
+      if (input.message !== undefined && typeof input.message !== 'string')
+        throw new ApiError(400, 'Lời nhắn chưa hợp lệ.');
+      const message = (input.message || '').trim();
+      if (message.length > 240) throw new ApiError(400, 'Lời nhắn tối đa 240 ký tự.');
+      const result = await db.rpc('tipy_teacher_gift', {
+        p_actor: profile.user_id,
+        p_user: input.userId,
+        p_request: input.requestId,
+        p_amount: input.amount,
+        p_message: message,
+      });
+      fail(result.error, 'Chưa xác nhận được tặng sao. Thử lại cùng yêu cầu để tránh cộng trùng.');
+      return result.data;
+    },
     async stars(profile) {
       const result = await db.rpc('tipy_star_total', { p_user: profile.user_id });
       fail(result.error, 'Chưa tải được sao của bạn.');

@@ -95,6 +95,14 @@ try {
       if (action === 'bootstrap')
         json = { configured: true, user, games: emptyGames ? [] : games, classes };
       if (action === 'stars') json = { stars: 150 };
+      if (action === 'class_stars')
+        json = {
+          lessons: [],
+          weekly: [],
+          memberCount: students.length,
+          weekStart: '2026-11-09',
+          currentWeek: '2026-11-09',
+        };
       if (action === 'avatar')
         json = { avatar: { animal: avatar, accessory: 'none', color: 'sun' } };
       if (action === 'avatar_save') {
@@ -298,9 +306,9 @@ try {
     await nav('Lớp học').click();
     await page.locator('.class-desks').waitFor();
     await check('classroom-top');
-    await page.getByRole('button', { name: 'Làm mới lớp học', exact: true }).hover();
+    await page.getByRole('button', { name: 'Hướng dẫn', exact: true }).hover();
     const secondary = await page
-      .getByRole('button', { name: 'Làm mới lớp học', exact: true })
+      .getByRole('button', { name: 'Hướng dẫn', exact: true })
       .evaluate((e) => {
         const s = getComputedStyle(e);
         return [s.color, s.backgroundColor];
@@ -308,7 +316,7 @@ try {
     assert.ok(contrast(...secondary) >= 4.5, 'secondary hover text contrast');
     assert.equal(
       await page
-        .getByRole('button', { name: 'Làm mới lớp học', exact: true })
+        .getByRole('button', { name: 'Hướng dẫn', exact: true })
         .evaluate((e) => getComputedStyle(e).filter),
       'none',
       'secondary hover preserves its token colors',

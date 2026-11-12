@@ -128,6 +128,8 @@ API classroom actions are authenticated. Every membership-gated action checks th
 
 ## Điểm chung toàn website
 
+**Đã thay bằng Sao của bạn:** API `points` đã ngừng; mô tả dưới đây là thiết kế cũ, không được dùng để cộng điểm vào sao. Tổng hiện tại lấy từ `star_rewards` qua `tipy_star_total`: sao bài học lần đầu, thưởng tuần đã chốt và sao giáo viên tặng. Hai bảng lớp loại quà tặng; Vượt ải cũng loại thưởng tuần.
+
 GET points đọc đúng tài khoản của phiên (kể cả admin), dùng hai truy vấn độc lập chạy song song. Hàm thuần src/game/points.js cộng điểm cao nhất mỗi game, bỏ snapshot keyboard_quest vì đó là accuracy, rồi cộng 10 điểm mỗi sao tốt nhất của bài hợp lệ. Không ghi thêm bảng, không thay dữ liệu cũ, không cộng lại khi retry/replay. Bản ghi game/bài trùng được gộp theo mã trước khi tính.
 
 Top lớp dùng cùng hàm và chỉ nhận các thành viên đã được kiểm tra quyền. Dữ liệu sao nhúng trong truy vấn roster hiện có, không thêm truy vấn từng học sinh. AccountPoints nhận sự kiện sau lưu thành công, hủy cập nhật khi đổi tài khoản, không hiển thị 0 giả khi API lỗi. Cache lớp được xóa khi điểm thay đổi. Store và ledger chi tiêu chưa thuộc phạm vi này.
@@ -147,3 +149,12 @@ CHECK vẫn chấp nhận 12 mã cũ để tab đang mở và deployment cũ cò
 GET `history&userId=<UUID học sinh>` dùng lại service history và player_game_stats. Backend kiểm tra admin trước mọi truy vấn, kiểm tra UUID và hồ sơ có role student, rồi lọc stats theo đúng user_id đó. Học sinh gửi userId (kể cả giả role trong query) nhận 403; GET history không tham số vẫn chỉ trả dữ liệu của chính học sinh để tương thích API cũ. Admin không truyền userId vẫn giữ khả năng đọc tổng hợp trước đây, nhưng giao diện mới luôn yêu cầu chọn học sinh.
 
 Không migration, không ghi thêm lịch sử hay đổi RPC ghi kết quả. Tối đa 200 bản tổng hợp/game trong lần đọc theo giới hạn sẵn có; mỗi game có cao nhất/gần nhất, trùng play_id chỉ một dòng. Tổng luyện và tổng lượt lấy từ bản tổng hợp, không cộng hai snapshot thành tổng thời gian. Keyboard Quest lưu score snapshot là accuracy nên bảng hiển thị %. Danh sách chọn học sinh vẫn dùng API students (tối đa 200 tài khoản theo giới hạn hiện tại).
+
+## Giáo viên đặt lại kết quả và tặng sao
+
+`db/student_actions.sql` bổ sung `student_admin_actions` (biên nhận chống gửi trùng), nguồn thưởng `teacher`, cột người tặng/lời nhắn và kiểu integer cho số sao. RLS bật, không có quyền bảng/RPC cho anon/authenticated. Chỉ backend service_role gọi RPC; cả service JavaScript và SQL xác minh phiên có role admin (giáo viên hiện tại).
+
+- POST `student_reset`: userId/gameId/requestId UUID, confirm đúng `accept`. `tipy_student_reset` khóa cùng hàng thống kê như begin/save/finish; xóa lượt cũ, tiến độ, lịch sử cũ và biên nhận sao bài học đúng game. Xóa kết quả tuần chưa chốt nếu đặt lại Chữ rơi, phối hợp cùng khóa class/tuần của cron. Giữ bằng chứng và thưởng tuần đã chốt, quà tặng, thời gian tích lũy, dữ liệu khác. Tổng lượt/snapshots của game về đầu; bài học có thể được thưởng lại một lần. UUID lượt bị xóa không thể ghi lại tiến độ.
+- POST `star_gift`: userId/requestId UUID, amount là số nguyên dương trong giới hạn PostgreSQL integer, message tùy chọn tối đa 240 ký tự. `tipy_teacher_gift` ghi ledger người tặng, người nhận, số sao, thời điểm, lời nhắn. Tổng là SUM ledger, không có bộ đếm rời.
+- Hai RPC ghi thay đổi và biên nhận trong cùng transaction, khóa theo requestId. Thử lại cùng requestId/payload trả kết quả cũ, không sửa dữ liệu lần nữa; đổi payload phải mở thao tác mới. Client giữ requestId khi mạng lỗi, chặn gửi trùng/đóng modal khi đang xử lý. Không tự gọi hai thao tác này trên dữ liệu thật để thử nghiệm.
+- `class_stars` bổ sung memberCount sau khi kiểm tra quyền, giúp giao diện phân biệt lớp trống với chưa có thành tích. Lỗi API luôn có thông báo thử lại. Hướng dẫn thay nút làm mới; cơ chế nạp lại sau thao tác/đổi lớp vẫn giữ.

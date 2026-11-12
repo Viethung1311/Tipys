@@ -76,6 +76,10 @@
 .week-controls small {
   display: block;
 }
+.class-top-list li > b {
+  flex: 1;
+  min-width: 0;
+}
 .class-top-tabs button:focus-visible,
 .week-controls button:focus-visible {
   outline: 3px solid var(--tipy-focus);

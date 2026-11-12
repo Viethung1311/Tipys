@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { History, LockKeyhole, Trash2 } from 'lucide-react';
+import { History, LockKeyhole, Trash2, Star } from 'lucide-react';
+import StudentActionDialog from './StudentActionDialog.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
 import Modal from '../../components/Modal.jsx';
 import { api } from '../../game/backend.js';
@@ -16,6 +17,7 @@ export default function StudentsTable({ classes, onResults, onChanged }) {
     [revision, setRevision] = useState(0),
     [busy, setBusy] = useState(false),
     [target, setTarget] = useState(null),
+    [giftTarget, setGiftTarget] = useState(null),
     [confirmation, setConfirmation] = useState(''),
     [failure, setFailure] = useState(''),
     [notice, setNotice] = useState('');
@@ -130,6 +132,14 @@ export default function StudentsTable({ classes, onResults, onChanged }) {
                     </TipyButton>
                     <TipyButton
                       emphasis="secondary"
+                      icon={Star}
+                      disabled={loading || busy || !!error}
+                      onClick={() => setGiftTarget(s)}
+                    >
+                      Tặng sao
+                    </TipyButton>
+                    <TipyButton
+                      emphasis="secondary"
                       icon={LockKeyhole}
                       disabled={loading || busy || !!error}
                       onClick={() =>
@@ -216,6 +226,21 @@ export default function StudentsTable({ classes, onResults, onChanged }) {
             </TipyButton>
           </div>
         </Modal>
+      )}
+      {giftTarget && (
+        <StudentActionDialog
+          kind="gift"
+          student={giftTarget}
+          onClose={() => setGiftTarget(null)}
+          onDone={(data) => {
+            setNotice(`Đã tặng ${data.amount} sao cho ${giftTarget.full_name}.`);
+            setGiftTarget(null);
+            setRevision((n) => n + 1);
+            Promise.resolve(onChanged?.()).catch(() =>
+              setFailure('Đã tặng sao, nhưng chưa tải lại được danh sách.'),
+            );
+          }}
+        />
       )}
     </section>
   );

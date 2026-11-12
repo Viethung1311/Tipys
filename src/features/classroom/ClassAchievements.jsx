@@ -3,6 +3,7 @@ import Avatar from './Avatar.jsx';
 import { api } from '../../game/backend.js';
 import TipyButton from '../../components/TipyButton.jsx';
 import { RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { weekLabel } from '../../game/week-label.js';
 const shiftWeek = (date, days) => {
   const d = new Date(date + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + days);
@@ -20,6 +21,12 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
     setError('');
     api('class_stars', undefined, { classId, ...(week ? { week } : {}) })
       .then((value) => {
+        if (
+          !Array.isArray(value.lessons) ||
+          !Array.isArray(value.weekly) ||
+          !Number.isInteger(value.memberCount)
+        )
+          throw Error('Chưa tải được thành tích. Bạn thử lại nhé.');
         if (live) {
           setData(value);
           window.dispatchEvent(new Event('tipy-points-changed'));
@@ -32,7 +39,9 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
       live = false;
     };
   }, [classId, week, revision]);
-  const rows = data?.[tab] || [];
+  const rows = (data?.[tab] || []).filter(
+    (row) => tab === 'weekly' || Number(row.stars) > 0 || Number(row.completed) > 0,
+  );
   return (
     <aside className="panel class-achievements" aria-labelledby="class-top-heading">
       <h2 id="class-top-heading">Top thành tích</h2>
@@ -77,44 +86,23 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
         <p role="status">Đang tải thành tích…</p>
       ) : (
         <>
-          {tab === 'weekly' ? (
-            <>
-              <div className="week-controls">
-                <button
-                  aria-label="Tuần trước"
-                  onClick={() => setWeek(shiftWeek(data.weekStart, -7))}
-                >
-                  <ChevronLeft />
-                </button>
-                <span>
-                  {data.weekStart} → {data.weekEnd}
-                  <small>Thứ Hai 00:00 · Asia/Ho_Chi_Minh</small>
-                </span>
-                <button
-                  aria-label="Tuần sau"
-                  disabled={data.weekStart >= data.currentWeek}
-                  onClick={() => setWeek(shiftWeek(data.weekStart, 7))}
-                >
-                  <ChevronRight />
-                </button>
-              </div>
-              <p>{data.rule} · Kết quả tốt nhất trong tuần</p>
-              <p>
-                {data.closure?.winnerId
-                  ? data.weekly?.some((row) => row.user_id === data.closure.winnerId)
-                    ? 'Đã chốt · Người nhận thưởng có nhãn Đã thưởng 5 sao'
-                    : 'Đã chốt · Người nhận 5 sao không còn trong danh sách lớp'
-                  : data.closure
-                    ? 'Đã chốt · Không có bạn đủ điều kiện nhận thưởng'
-                    : data.weekStart < data.currentWeek
-                      ? rows.length
-                        ? 'Đang chờ chốt thưởng'
-                        : 'Tuần này không có lượt hợp lệ, không thưởng'
-                      : 'Tuần đang diễn ra · Hạng nhất sau khi chốt nhận 5 sao'}
-              </p>
-            </>
-          ) : (
-            <p>Sao bài học đã nhận, không gồm thưởng Chữ rơi.</p>
+          {tab === 'weekly' && (
+            <div className="week-controls">
+              <button
+                aria-label="Tuần trước"
+                onClick={() => setWeek(shiftWeek(data.weekStart, -7))}
+              >
+                <ChevronLeft />
+              </button>
+              <span>{weekLabel(data.weekStart)}</span>
+              <button
+                aria-label="Tuần sau"
+                disabled={data.weekStart >= data.currentWeek}
+                onClick={() => setWeek(shiftWeek(data.weekStart, 7))}
+              >
+                <ChevronRight />
+              </button>
+            </div>
           )}
           {rows.length ? (
             <ol className="class-top-list">
@@ -129,20 +117,10 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
                     }
                     name={row.name}
                   />
-                  <div>
-                    <b>
-                      {row.name}
-                      {row.user_id === user.user_id ? ' · Bạn' : ''}
-                    </b>
-                    <small>
-                      {tab === 'lessons'
-                        ? `${row.completed} bài hoàn thành`
-                        : `Chính xác ${Number(row.accuracy).toLocaleString('vi-VN', { maximumFractionDigits: 2 })}%`}
-                    </small>
-                    {data.closure?.winnerId === row.user_id && tab === 'weekly' && (
-                      <small>Đã thưởng 5 sao</small>
-                    )}
-                  </div>
+                  <b>
+                    {row.name}
+                    {row.user_id === user.user_id ? ' · Bạn' : ''}
+                  </b>
                   <strong>
                     {Number(tab === 'lessons' ? row.stars : row.score).toLocaleString('vi-VN')}
                     <small>{tab === 'lessons' ? 'sao' : 'điểm'}</small>
@@ -152,9 +130,7 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
             </ol>
           ) : (
             <p className="class-top-empty">
-              {tab === 'lessons'
-                ? 'Chưa có thành viên hoặc sao bài học.'
-                : 'Chưa có lượt Chữ rơi · Khó hợp lệ trong tuần này.'}
+              {data.memberCount === 0 ? 'Chưa có học sinh' : 'Chưa có thành tích'}
             </p>
           )}
         </>

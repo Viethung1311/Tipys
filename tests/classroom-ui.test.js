@@ -68,6 +68,13 @@ test('member sees square roster and class top, then changes avatar through accou
       bootstrap: { configured: true, user: child, games: [], classes: [classroom] },
       classes: { classes: [classroom] },
       classroom: detail,
+      class_stars: {
+        lessons: [],
+        weekly: [],
+        memberCount: 1,
+        weekStart: '2026-11-09',
+        currentWeek: '2026-11-09',
+      },
       class_posts: { posts: [{ ...detail.posts[0], post_id: 'older-post', title: 'Bài cũ hơn' }] },
       class_file: {
         url: 'https://files.test/original.jpg',

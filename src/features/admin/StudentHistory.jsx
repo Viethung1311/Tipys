@@ -5,14 +5,23 @@ import { practiceTime } from '../../game/results.js';
 import ResultsTable from '../../components/ResultsTable.jsx';
 import Loading from '../../components/Loading.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
+import StudentActionDialog from './StudentActionDialog.jsx';
 
 /** Only existing best/latest snapshots are available, not a per-play timeline. */
-export default function StudentHistory({ students, studentId, onStudentChange }) {
+export default function StudentHistory({
+  students,
+  studentId,
+  onStudentChange,
+  catalog = [],
+  onReset,
+}) {
   const [result, setResult] = useState(null),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false),
     [revision, setRevision] = useState(0),
     [gameId, setGameId] = useState('');
+  const [resetting, setResetting] = useState(false),
+    [notice, setNotice] = useState('');
   const student = students.find((item) => item.user_id === studentId);
   useEffect(() => {
     if (!studentId || !student) return;
@@ -36,6 +45,9 @@ export default function StudentHistory({ students, studentId, onStudentChange })
   }, [studentId, !!student, revision]);
   const rows = result?.userId === studentId ? result.rows : [];
   const games = [...new Map(rows.map((row) => [row.game_id, row.games.game_name])).entries()];
+  const resetGames = catalog.length
+    ? catalog
+    : games.map(([game_id, game_name]) => ({ game_id, game_name }));
   return (
     <section className="panel student-history" aria-labelledby="student-history-heading">
       <h2 id="student-history-heading">Lịch sử chơi của học sinh</h2>
@@ -86,7 +98,21 @@ export default function StudentHistory({ students, studentId, onStudentChange })
             Làm mới kết quả
           </TipyButton>
         )}
+        {student && (
+          <TipyButton
+            emphasis="secondary"
+            icon={RotateCcw}
+            disabled={loading || !resetGames.length}
+            onClick={() => {
+              setNotice('');
+              setResetting(true);
+            }}
+          >
+            Làm lại từ đầu
+          </TipyButton>
+        )}
       </div>
+      {notice && <p role="status">{notice}</p>}
       {!students.length ? (
         <p className="empty-state">Chưa có học sinh.</p>
       ) : !student ? (
@@ -119,6 +145,24 @@ export default function StudentHistory({ students, studentId, onStudentChange })
             <ResultsTable rows={gameId ? rows.filter((row) => row.game_id === gameId) : rows} />
           ) : null}
         </>
+      )}
+      {resetting && student && (
+        <StudentActionDialog
+          kind="reset"
+          student={student}
+          games={resetGames}
+          initialGameId={gameId}
+          onClose={() => setResetting(false)}
+          onDone={(data) => {
+            setResetting(false);
+            setResult(null);
+            setRevision((n) => n + 1);
+            setNotice(
+              `Đã đặt lại trò chơi. Thu hồi ${data.revokedStars} sao bài học; giữ nguyên thời gian luyện tích lũy.`,
+            );
+            onReset?.(student.user_id, data);
+          }}
+        />
       )}
     </section>
   );

@@ -52,7 +52,14 @@ export default function AdminPage() {
         api('avatar').catch(() => null),
       ]);
       setCompanionAvatar({ userId: data.user.user_id, value: avatarData?.avatar });
-      setStudents(pageData.students);
+      setStudents((previous) => [
+        ...pageData.students,
+        ...previous.filter(
+          (s) =>
+            s.user_id === historyStudentId &&
+            !pageData.students.some((row) => row.user_id === s.user_id),
+        ),
+      ]);
       setSummary(pageData.summary);
     }
     setLoading(false);
@@ -278,6 +285,23 @@ export default function AdminPage() {
             )}
             {tab === 'results' && (
               <StudentHistory
+                catalog={games}
+                onReset={(userId, data) => {
+                  setStudents((rows) =>
+                    rows.map((s) =>
+                      s.user_id === userId
+                        ? {
+                            ...s,
+                            total_plays: Math.max(
+                              0,
+                              s.total_plays - Number(data.removedPlays || 0),
+                            ),
+                          }
+                        : s,
+                    ),
+                  );
+                  load().catch(() => setError('Đã đặt lại, nhưng chưa tải lại được danh sách.'));
+                }}
                 students={students}
                 studentId={historyStudentId}
                 onStudentChange={setHistoryStudentId}

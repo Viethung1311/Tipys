@@ -7,10 +7,12 @@ import Attachment from './Attachment.jsx';
 import PostComposer from './PostComposer.jsx';
 import ClassAchievements from './ClassAchievements.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
-import { RotateCcw, BookOpen } from 'lucide-react';
+import { CircleHelp, BookOpen } from 'lucide-react';
+import Modal from '../../components/Modal.jsx';
 const ClassQuestReport = lazy(() => import('./ClassQuestReport.jsx'));
 export default function ClassroomPage({ user, classes: availableClasses, cache, avatarOverride }) {
   const classes = availableClasses.filter((c) => !c.archived_at);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [classId, setClassId] = useState(() => classes[0]?.class_id || ''),
     [detail, setDetail] = useState(null),
     [busy, setBusy] = useState(true),
@@ -98,22 +100,8 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
         </section>
       ) : (
         <>
-          <TipyButton
-            emphasis="secondary"
-            icon={RotateCcw}
-            disabled={saving}
-            onClick={() =>
-              run(async () => {
-                cache.delete(user.user_id + ':' + classId);
-                const requestedClass = classId;
-                const data = await api('classroom', undefined, { classId });
-                if (latestClassId.current !== requestedClass) return;
-                setDetail(data);
-                setHasMore(data.posts.length === 20);
-              })
-            }
-          >
-            Làm mới lớp học
+          <TipyButton emphasis="secondary" icon={CircleHelp} onClick={() => setGuideOpen(true)}>
+            Hướng dẫn
           </TipyButton>
           <label className="class-select">
             Chọn lớp
@@ -252,6 +240,40 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
         </>
       )}
       {saving && <Loading label="Đang lưu thay đổi…" />}
+      {guideOpen && (
+        <Modal
+          title="Hướng dẫn lớp học"
+          description="Cùng học vui và nhận sao nhé!"
+          onClose={() => setGuideOpen(false)}
+        >
+          <section>
+            <h3>Vượt ải</h3>
+            <p>
+              Hoàn thành mỗi bài để nhận từ 1 đến 3 sao. Luyện lại giúp bạn tiến bộ nhưng không cộng
+              thêm sao. Nếu thầy cô cho làm lại từ đầu, bạn có thể nhận sao bài học lại.
+            </p>
+          </section>
+          <section>
+            <h3>Chữ rơi</h3>
+            <p>
+              Bấm Thi đấu tuần để chơi mức Khó và tranh hạng cùng lớp. Mọi bạn dùng chung bộ chữ cái
+              và tốc độ. Bạn đứng đầu nhận 5 sao khi tuần kết thúc.
+            </p>
+            <p>
+              Cùng điểm thì bạn gõ chính xác hơn, rồi bạn đạt điểm sớm hơn được xếp trước. Tuần tính
+              từ đầu thứ Hai đến hết Chủ nhật theo giờ Việt Nam. Hệ thống tự chốt và thưởng sau khi
+              tuần kết thúc.
+            </p>
+          </section>
+          <section>
+            <h3>Sao của bạn</h3>
+            <p>
+              Gồm sao bài học, thưởng tuần và sao thầy cô tặng. Sao tặng không tính vào hai bảng xếp
+              hạng. Làm lại từ đầu vẫn giữ sao thầy cô tặng và thưởng tuần đã chốt.
+            </p>
+          </section>
+        </Modal>
+      )}
     </main>
   );
 }

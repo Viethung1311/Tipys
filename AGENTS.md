@@ -2,7 +2,7 @@
 
 Thương hiệu hiển thị là Zunimo. Các tên kỹ thuật `tipy`, `TipyButton`, token/font CSS, cookie, API, bucket và đường dẫn `design-system/tipy` được giữ để tương thích. Không đổi tên miền khi chủ dự án chưa yêu cầu.
 
-Header dùng nhóm tài khoản cố định bên phải, không phụ thuộc mục Lớp học. Tiền thưởng hiển thị là Sao của bạn: chỉ sao bài học được thưởng lần đầu và thưởng tuần; không cộng điểm game hoặc quy đổi điểm cũ. Xem quy tắc thưởng/tuần trong MASTER.md và db/stars.sql, không cho frontend gửi số sao để cộng.
+Header dùng nhóm tài khoản cố định bên phải, không phụ thuộc mục Lớp học. Tiền thưởng hiển thị là Sao của bạn: gồm sao bài học được thưởng lần đầu, thưởng tuần và sao giáo viên tặng; không cộng điểm game hoặc quy đổi điểm cũ. Xem quy tắc trong MASTER.md, db/stars.sql và db/student_actions.sql. Học sinh không được tự cộng sao.
 
 Zunimo là website học tập có học sinh từ lớp 1 sử dụng. Các quy tắc dưới đây được chép từ Custom instructions của Project do chủ dự án cung cấp. Chúng áp dụng cho mọi lần sửa giao diện trong repository này.
 

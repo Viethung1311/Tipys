@@ -157,6 +157,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         return res.status(200).json({ ok: true });
       }
       const actions = {
+        student_reset: 'studentReset',
+        star_gift: 'starGift',
         class_save: 'classSave',
         class_archive: 'classArchive',
         class_delete: 'classDelete',

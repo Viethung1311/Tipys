@@ -53,6 +53,7 @@ try {
         if (action === 'stars') json = { stars: 8 };
         if (action === 'class_stars')
           json = {
+            memberCount: 1,
             lessons: [{ user_id: 'an', name: 'Bạn An', animal: 'icon_01', stars: 3, completed: 1 }],
             weekly: [
               { user_id: 'an', name: 'Bạn An', animal: 'icon_01', score: 100, accuracy: 95 },
@@ -134,11 +135,17 @@ try {
         if (role === 'member') {
           await page.getByRole('tab', { name: '1. Vượt ải', exact: true }).waitFor();
           await page.getByRole('tab', { name: '2. Chữ rơi · Khó', exact: true }).click();
-          await page
-            .getByText('Khó · A–Z · hard-v1 · Kết quả tốt nhất trong tuần', { exact: true })
-            .waitFor();
+          await page.getByText('09/11–15/11', { exact: true }).waitFor();
+          assert.doesNotMatch(
+            await page.locator('.class-achievements').innerText(),
+            /hard-v1|múi giờ/,
+          );
           await page.getByRole('button', { name: 'Tuần trước', exact: true }).click();
-          await page.getByText('Đã thưởng 5 sao', { exact: true }).waitFor();
+          await page.getByText('02/11–08/11', { exact: true }).waitFor();
+          await page.getByRole('button', { name: 'Hướng dẫn', exact: true }).click();
+          await page.getByRole('dialog').getByText('Sao của bạn', { exact: true }).waitFor();
+          await page.keyboard.press('Escape');
+          await page.getByRole('dialog').waitFor({ state: 'hidden' });
           assert.match(await page.locator('.account-points').innerText(), /Sao của bạn: 8/);
           const headerRight =
             (await page.locator('.header-account-group').boundingBox()).x +
