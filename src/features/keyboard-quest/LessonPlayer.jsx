@@ -17,6 +17,7 @@ import { physicalKey, SUPPORTED_KEYS } from '../../game/config.js';
 import { FINGER_HINTS } from './curriculum.js';
 import { createAnswers, errorKind, gradeLesson, matchesTarget } from './engine.js';
 import { createLessonSession } from './session.js';
+import { companionSay } from '../../characters/companion-speech.js';
 
 export default function LessonPlayer({
   lesson,
@@ -51,6 +52,21 @@ export default function LessonPlayer({
     input = useRef(null),
     live = useRef(true);
   const target = lesson.items[index];
+  const greeted = useRef(false),
+    previousPhase = useRef(null);
+  useEffect(() => {
+    if (phase === 'playing' && !blocked && !greeted.current) {
+      greeted.current = true;
+      companionSay('start');
+    }
+    if (phase === 'paused' && previousPhase.current !== 'paused') companionSay('rest');
+    if (phase === 'result' && previousPhase.current !== 'result') {
+      const result = gradeLesson(lesson, answers.current);
+      const record = previous && result.accuracy > previous.best_accuracy;
+      companionSay(record ? 'record' : result.completed ? 'complete' : 'finish');
+    }
+    previousPhase.current = phase;
+  }, [phase, blocked, lesson, previous]);
   const kind = target.kind || lesson.kind;
   const pause = useCallback(() => setPhase((old) => (old === 'playing' ? 'paused' : old)), []);
   useEffect(() => {
@@ -127,6 +143,7 @@ export default function LessonPlayer({
         row.answer = target.target;
         setFeedback('Đúng rồi!');
         sound('correct');
+        companionSay('correct');
         if (index + 1 === lesson.items.length) setPhase('result');
         else {
           setIndex(index + 1);
@@ -138,6 +155,7 @@ export default function LessonPlayer({
         row[errorKind({ ...lesson, kind }, answer, target.target)]++;
         setFeedback('Thử lại nhé! Nhìn mẫu một lần nữa.');
         sound('wrong');
+        companionSay('wrong');
       }
     },
     [phase, blocked, index, target, lesson, sound, kind],

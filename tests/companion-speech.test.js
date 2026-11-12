@@ -1,0 +1,32 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { bubblePosition, createSpeechGate, DIALOGUE } from '../src/characters/companion-speech.js';
+test('speech uses supplied groups, suppresses typing spam, prioritizes important events and never queues', () => {
+  const say = createSpeechGate(() => 0);
+  assert.equal(say('welcome', 0).text, DIALOGUE.welcome[0]);
+  assert.equal(say('correct', 100), null);
+  assert.equal(say('start', 200).text, DIALOGUE.start[0]);
+  assert.equal(say('wrong', 300), null);
+  assert.equal(say('missed', 400).text, DIALOGUE.missed[0]);
+  assert.equal(say('finish', 450).text, DIALOGUE.finish[0]);
+  assert.equal(say('record', 500).text, DIALOGUE.record[0]);
+  assert.equal(say('correct', 3000), null);
+  assert.equal(say('correct', 10000).text, DIALOGUE.correct[0]);
+  assert.equal(say('correct', 10001), null);
+  assert.equal(say('correct', 20000).text, DIALOGUE.correct[1]);
+  assert.equal(say('speed', 30000), null, 'speed increase is not a completed stage');
+  assert.equal(say('drag', 30000).until, 32500);
+  assert.equal(say('click', 30000), null);
+  const delayed = createSpeechGate(() => 0);
+  delayed('welcome', 0);
+  assert.equal(delayed('start', 2600).text, DIALOGUE.start[0]);
+});
+test('bubble switches sides at edges and hides instead of covering gameplay', () => {
+  const viewport = { left: 0, top: 0, right: 360, bottom: 800 };
+  const box = { width: 220, height: 90 };
+  const left = { left: 12, top: 400, right: 84, bottom: 472, width: 72, height: 72 };
+  assert.equal(bubblePosition(left, box, viewport, []).left, 94);
+  const right = { ...left, left: 276, right: 348 };
+  assert.equal(bubblePosition(right, box, viewport, []).left, 46);
+  assert.equal(bubblePosition(left, box, viewport, [viewport]), null);
+});

@@ -19,6 +19,9 @@ export default function Account({
   onAvatarChanged,
   companionVisible,
   onToggleCompanion,
+  companionSize,
+  onPreviewCompanion,
+  onSaveCompanion,
 }) {
   const [open, setOpen] = useState(false),
     [user, setUser] = useState(null),
@@ -291,9 +294,12 @@ export default function Account({
                     onRetry={() => setAvatarRetry((value) => value + 1)}
                     onLogin={() => setMode('login')}
                     companionVisible={companionVisible}
+                    companionSize={companionSize}
+                    onPreviewCompanion={onPreviewCompanion}
                     onToggleCompanion={onToggleCompanion}
-                    onSaved={(value) => {
+                    onSaved={(value, size) => {
                       if (currentUserId.current !== user?.user_id) return;
+                      onSaveCompanion?.(size);
                       setAvatar(normalizeAvatar(value));
                       onAvatarChanged?.(value, user?.user_id);
                     }}

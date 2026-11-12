@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import TipyButton from '../../components/TipyButton.jsx';
 import { api } from '../../game/backend.js';
 import Avatar from './Avatar.jsx';
-import { CHARACTERS, normalizeAvatar } from '../../characters/catalog.js';
+import { CHARACTERS, characterFor, normalizeAvatar } from '../../characters/catalog.js';
+import { companionSize as normalizeSize } from '../../characters/companion-settings.js';
 export default function AvatarPicker({
   user,
   initialValue,
@@ -14,8 +15,17 @@ export default function AvatarPicker({
   onLogin,
   companionVisible,
   onToggleCompanion,
+  companionSize,
+  onPreviewCompanion,
 }) {
   const [value, setValue] = useState(() => normalizeAvatar(initialValue));
+  const [size, setSize] = useState(() => normalizeSize(companionSize));
+  useEffect(() => () => onPreviewCompanion?.(null), [onPreviewCompanion]);
+  const resize = (next) => {
+    setSize(next);
+    onPreviewCompanion?.(next);
+    setNotice('');
+  };
   const [saving, setSaving] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
@@ -34,7 +44,7 @@ export default function AvatarPicker({
     try {
       const { data } = await api('avatar_save', value);
       setValue(normalizeAvatar(data));
-      onSaved(data);
+      onSaved(data, size);
       setNotice('Đã lưu nhân vật của bạn.');
     } catch (error) {
       setError(error.message);
@@ -67,44 +77,77 @@ export default function AvatarPicker({
               </TipyButton>
             </p>
           )}
-          <fieldset disabled={loading || saving || !!loadError}>
-            <legend>Chọn một nhân vật</legend>
-            <div className="character-options">
-              {CHARACTERS.map((character) => (
-                <label
-                  key={character.id}
-                  className={
-                    'character-option ' + (value.animal === character.id ? 'is-selected' : '')
-                  }
-                >
-                  <input
-                    type="radio"
-                    name="animal"
-                    value={character.id}
-                    checked={value.animal === character.id}
-                    onChange={() => {
-                      setValue({ ...value, animal: character.id });
-                      setNotice('');
-                    }}
-                  />
-                  <img
-                    src={character.src}
-                    alt=""
-                    width="256"
-                    height="256"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <b>{character.name}</b>
-                  {value.animal === character.id && (
-                    <span className="character-selected">
-                      <Check size={16} aria-hidden="true" /> Đang chọn
-                    </span>
-                  )}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          <div className="character-picker-layout">
+            <fieldset disabled={loading || saving || !!loadError}>
+              <legend>Chọn một nhân vật</legend>
+              <div className="character-options">
+                {CHARACTERS.map((character) => (
+                  <label
+                    key={character.id}
+                    className={
+                      'character-option ' + (value.animal === character.id ? 'is-selected' : '')
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="animal"
+                      value={character.id}
+                      checked={value.animal === character.id}
+                      onChange={() => {
+                        setValue({ ...value, animal: character.id });
+                        setNotice('');
+                      }}
+                    />
+                    <img
+                      src={character.src}
+                      alt=""
+                      width="256"
+                      height="256"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <b>{character.name}</b>
+                    {value.animal === character.id && (
+                      <span className="character-selected">
+                        <Check size={16} aria-hidden="true" /> Đang chọn
+                      </span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <section className="companion-size-panel" aria-label="Kích thước bạn đồng hành">
+              <h3>Kích thước</h3>
+              <div className="companion-size-preview">
+                <img
+                  src={characterFor(value.animal).src}
+                  alt="Xem trước kích thước"
+                  style={{ width: size * 0.96, height: size * 0.96 }}
+                />
+              </div>
+              <label htmlFor="companion-size">
+                Nhỏ đến Lớn · <output>{size}%</output>
+              </label>
+              <input
+                id="companion-size"
+                type="range"
+                min="60"
+                max="160"
+                step="1"
+                value={size}
+                disabled={!user || saving}
+                onChange={(e) => resize(Number(e.target.value))}
+              />
+              <TipyButton
+                emphasis="secondary"
+                icon={RotateCcw}
+                disabled={!user || saving}
+                onClick={() => resize(100)}
+              >
+                Mặc định
+              </TipyButton>
+            </section>
+          </div>
         </div>
         <footer className="character-confirm">
           <div className="character-confirm-actions">

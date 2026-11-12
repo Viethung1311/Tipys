@@ -131,6 +131,9 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 ### Người bạn đồng hành
 
+- Lời thoại nguyên văn nằm trong `src/characters/companion-speech.js`, nhóm theo sự kiện thật của game. Hiện 2,5 giây, không lặp liên tiếp, không xếp hàng; phản hồi gõ cách tối thiểu 9 giây, sự kiện quan trọng ưu tiên thay câu phụ. Chữ 18 px đậm, nền kem/viền xanh ngọc, pointer-events none và dưới modal. Tự đổi phía theo mép màn hình; nếu không còn chỗ cạnh nhân vật mà không đè gameplay/nút, tạm không hiện câu đó. Ẩn bạn dọn luôn lời thoại và timer/listener. Nghỉ khi tạm dừng hoặc không thao tác 2 phút. Không thêm giọng đọc.
+- Kích thước nổi 60–160%, mặc định 100% tương ứng 96/72 px; luôn giới hạn visual viewport. Bảng kích thước ở phải danh sách trên máy tính, dưới danh sách trên điện thoại, dùng chung một vùng cuộn; footer lưu/ẩn hiện giữ cố định. Kéo thanh chỉ xem trước, Lưu nhân vật thành công mới lưu kích thước; đóng/hủy khôi phục kích thước cũ. Cài đặt vẫn cục bộ theo tài khoản như cơ chế hiện có, không ghi database theo từng chuyển động.
+
 - Dùng cùng mã/ảnh nhân vật đã lưu; không lấy bản chọn thử trong modal. Một Companion trong layout học tập (và cùng component trong layout quản trị), giữ nguyên DOM khi chuyển màn trong App. Avatar tải theo tài khoản được gắn userId trước khi hiển thị để không lẫn người dùng.
 - Ảnh contain nền trong suốt, mặc định góc dưới phải, 96 px trên máy tính/72 px trên điện thoại. Chỉ nút nhân vật nhận pointer; z-index 600 dưới modal 1000, không tạo overlay, không animation lặp.
 - Kéo bằng Pointer Events và pointer capture; chỉ chuột trái/cảm ứng chính. Chặn kéo ảnh/chọn văn bản chỉ tại nhân vật. Phím mũi tên dịch 12 px khi focus; không phát phím vào game. Vị trí chuẩn hóa 0–1 để luôn nằm trong visual viewport sau resize/xoay.

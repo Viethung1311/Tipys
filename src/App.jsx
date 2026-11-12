@@ -41,7 +41,9 @@ export default function App() {
     return () => window.removeEventListener('tipy-points-changed', clear);
   }, []);
   const [myAvatar, setMyAvatar] = useState(null);
-  const [companion, changeCompanion] = useCompanion(user?.user_id);
+  const [companion, changeCompanion, companionPreview, previewCompanion] = useCompanion(
+    user?.user_id,
+  );
   const [bootstrapReady, setBootstrapReady] = useState(false);
   const [audioOpen, setAudioOpen] = useState(false),
     [accountOpen, setAccountOpen] = useState(false),
@@ -138,6 +140,9 @@ export default function App() {
           onOpen={setAccountOpen}
           onReady={setBootstrapReady}
           companionVisible={companion.visible}
+          companionSize={companion.size}
+          onPreviewCompanion={previewCompanion}
+          onSaveCompanion={(size) => changeCompanion({ size })}
           onToggleCompanion={() => changeCompanion({ visible: !companion.visible })}
           onAvatarChanged={(value, userId) => {
             classroomCache.current.clear();
@@ -214,7 +219,7 @@ export default function App() {
         <Companion
           key={user.user_id}
           avatar={myAvatar.value}
-          preferences={companion}
+          preferences={{ ...companion, size: companionPreview ?? companion.size }}
           onPosition={changeCompanion}
         />
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createGame, advance, press, speed } from '../game/engine.js';
 import { physicalKey } from '../game/config.js';
+import { companionSay } from '../characters/companion-speech.js';
 export default function useFallingGame(settings, onFinish, onSound, onProgress) {
   const model = useRef(null);
   if (!model.current) model.current = createGame(settings);
@@ -22,6 +23,7 @@ export default function useFallingGame(settings, onFinish, onSound, onProgress) 
       const old = speed(s);
       press(s, key);
       sound.current(s.feedback);
+      companionSay(s.feedback);
       const next = speed(s);
       if (next.fall < old.fall || next.spawn < old.spawn) sound.current('speed');
       publish();
@@ -33,6 +35,7 @@ export default function useFallingGame(settings, onFinish, onSound, onProgress) 
     if (['playing', 'countdown'].includes(s.status)) {
       s.previous = s.status;
       s.status = 'paused';
+      companionSay('rest');
       publish();
     }
   }, [publish]);
@@ -74,8 +77,14 @@ export default function useFallingGame(settings, onFinish, onSound, onProgress) 
         oldLives = s.lives,
         oldSpeed = speed(s);
       advance(s, dt);
-      if (previousStatus === 'countdown' && s.status === 'playing') sound.current('start');
-      if (s.lives < oldLives) sound.current('missed');
+      if (previousStatus === 'countdown' && s.status === 'playing') {
+        sound.current('start');
+        companionSay('start');
+      }
+      if (s.lives < oldLives) {
+        sound.current('missed');
+        companionSay('missed');
+      }
       const nextSpeed = speed(s);
       if (
         s.status === 'playing' &&
@@ -85,6 +94,7 @@ export default function useFallingGame(settings, onFinish, onSound, onProgress) 
       if (s.status === 'result' && !reported) {
         const newRecord = finish.current({ ...s });
         sound.current(newRecord ? 'record' : 'finish');
+        companionSay(newRecord ? 'record' : 'finish');
         reported = true;
       }
       if (now - paint > 32) {

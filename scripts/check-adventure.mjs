@@ -22,6 +22,12 @@ try {
     });
     const errors = [],
       requests = [];
+    await page.addInitScript(() => {
+      window.companionEvents = [];
+      window.addEventListener('tipy-companion-speech', (event) =>
+        window.companionEvents.push(event.detail),
+      );
+    });
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('request', (request) => requests.push(new URL(request.url()).pathname));
     await page.route('**/api/tipy*', async (route) => {
@@ -125,6 +131,10 @@ try {
       await page.getByRole('button', { name: `Gõ ${item.target}`, exact: true }).click();
     }
     await page.getByText('Đã lưu bản chơi thử trên máy này.', { exact: true }).waitFor();
+    const speechEvents = await page.evaluate(() => window.companionEvents);
+    for (const event of ['start', 'correct', 'complete'])
+      assert.ok(speechEvents.includes(event), `lesson emits ${event}`);
+    assert.equal(speechEvents.includes('missed'), false, 'lessons never invent lost lives');
     await fit();
     await page.getByRole('button', { name: 'Danh sách bài', exact: true }).click();
     assert.equal(
