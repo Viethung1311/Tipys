@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { api } from './game/backend.js';
 import { Keyboard, Volume2, VolumeX } from 'lucide-react';
 import Account from './components/Account.jsx';
 import AudioSettings from './components/AudioSettings.jsx';
@@ -51,7 +52,51 @@ export default function App() {
   const canClassroom = Boolean(
     user && (user.role === 'admin' || classes.some((c) => !c.archived_at)),
   );
+  const [classCheck, setClassCheck] = useState(null);
+  const currentUser = useRef(user?.user_id);
+  currentUser.current = user?.user_id;
+  const checkClasses = useCallback(async () => {
+    const owner = user?.user_id;
+    classroomCache.current.clear();
+    setClassCheck(null);
+    if (!owner) return;
+    try {
+      const data = await api('classes');
+      if (currentUser.current !== owner) return;
+      setClasses(data.classes || []);
+      setClassCheck(owner);
+    } catch {
+      if (currentUser.current === owner) {
+        setClasses([]);
+        setClassCheck(owner);
+      }
+    }
+  }, [user?.user_id]);
+  useEffect(() => {
+    if (screen === 'classroom') checkClasses();
+  }, [screen, checkClasses]);
+  useEffect(() => {
+    const visible = () => {
+      if (!document.hidden) checkClasses();
+      else {
+        classroomCache.current.clear();
+        setClassCheck(null);
+      }
+    };
+    window.addEventListener('focus', checkClasses);
+    window.addEventListener('tipy-class-access-changed', checkClasses);
+    document.addEventListener('visibilitychange', visible);
+    return () => {
+      window.removeEventListener('focus', checkClasses);
+      window.removeEventListener('tipy-class-access-changed', checkClasses);
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, [checkClasses]);
   const navigate = (next) => {
+    if (next === 'classroom') {
+      setClassCheck(null);
+      if (screen === next) checkClasses();
+    }
     setScreen(next);
     history.replaceState(
       null,
@@ -87,12 +132,12 @@ export default function App() {
   return (
     <>
       <header className="site-header">
-        <button className="brand" onClick={() => navigate('home')} aria-label="TIPY STEM trang chủ">
+        <button className="brand" onClick={() => navigate('home')} aria-label="Zunimo trang chủ">
           <span className="brand-icon">
             <Keyboard size={23} />
           </span>
           <span>
-            TIPY<span className="brand-stem"> STEM</span>
+            Zunimo
             <small>HỌC VUI MỖI NGÀY</small>
           </span>
         </button>
@@ -125,14 +170,15 @@ export default function App() {
         >
           Gõ chữ
         </button>
-        <button
-          disabled={!canClassroom}
-          title={canClassroom ? 'Mở lớp học' : 'Giáo viên cần thêm bạn vào lớp trước'}
-          aria-current={screen === 'classroom' ? 'page' : undefined}
-          onClick={() => navigate('classroom')}
-        >
-          Lớp học
-        </button>
+        {canClassroom && (
+          <button
+            title="Mở lớp học"
+            aria-current={screen === 'classroom' ? 'page' : undefined}
+            onClick={() => navigate('classroom')}
+          >
+            Lớp học
+          </button>
+        )}
         <Account
           onUser={setUser}
           onCatalog={setCatalog}
@@ -153,7 +199,9 @@ export default function App() {
       <Suspense fallback={<Loading label="Đang mở trang…" />}>
         {screen === 'classroom' ? (
           <Reveal key={user?.user_id || 'guest'}>
-            {canClassroom ? (
+            {user && classCheck !== user.user_id ? (
+              <Loading label="Đang kiểm tra lớp học…" />
+            ) : canClassroom ? (
               <ClassroomPage
                 user={user}
                 classes={classes}
@@ -232,7 +280,7 @@ export default function App() {
       )}
       <footer>
         <span>
-          TIPY STEM <i>✦</i> Khơi mở tiềm năng từ những điều nhỏ
+          Zunimo <i>✦</i> Khơi mở tiềm năng từ những điều nhỏ
         </span>
         <span>Được tạo cho những đôi tay ham học hỏi.</span>
       </footer>

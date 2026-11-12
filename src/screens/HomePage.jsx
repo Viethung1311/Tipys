@@ -1,5 +1,5 @@
 import Avatar from '../features/classroom/Avatar.jsx';
-import { ArrowRight, Keyboard, Puzzle, Users, MapPin, Sparkles, Check } from 'lucide-react';
+import { Keyboard, Puzzle, Users, Sparkles, Check } from 'lucide-react';
 import Reveal from '../shared/Reveal.jsx';
 import TipyButton from '../components/TipyButton.jsx';
 import scratchCat from '../assets/scratch-cat.jpg';
@@ -12,20 +12,23 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
     <main className="welcome-page">
       <section className={`hero welcome-hero ${ready ? 'hero-ready' : ''}`}>
         <div className="hero-copy">
-          <span className="eyebrow hero-reveal hero-reveal-title">
-            ✦ TIPY STEM CẨM LỆ · HỌC VUI MỖI NGÀY
-          </span>
+          <span className="eyebrow hero-reveal hero-reveal-title">✦ Zunimo · HỌC VUI MỖI NGÀY</span>
           <h1 className="hero-reveal hero-reveal-title">
             Học thật vui.
             <br />
             Sáng tạo <span>thật hay.</span>
           </h1>
           <p className="hero-reveal hero-reveal-intro">
-            Từ những phím gõ đầu tiên đến câu chuyện Scratch của riêng mình. Cùng TIPY STEM khám phá
-            công nghệ trong một lớp học đầy niềm vui!
+            {canClassroom
+              ? 'Cùng Zunimo luyện gõ, sáng tạo với Scratch và khám phá bài học từ thầy cô trong lớp của mình.'
+              : 'Từ những phím gõ đầu tiên đến câu chuyện Scratch của riêng mình. Cùng Zunimo luyện bàn phím và khám phá công nghệ mỗi ngày!'}
           </p>
-          <TipyButton variant="play" className="hero-reveal hero-reveal-actions" onClick={onPlay}>
-            Chơi ngay
+          <TipyButton
+            variant="learn"
+            className="hero-reveal hero-reveal-actions"
+            onClick={canClassroom ? onClassroom : onPlay}
+          >
+            {canClassroom ? 'Vào học' : 'Luyện bàn phím'}
           </TipyButton>
           <div className="hero-meta hero-reveal hero-reveal-actions">
             <span>
@@ -83,7 +86,7 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
           <div className="section-heading">
             <div>
               <span className="eyebrow">MỖI NGÀY MỘT ĐIỀU MỚI</span>
-              <h2 id="learn-heading">Cùng TIPY học những gì?</h2>
+              <h2 id="learn-heading">Cùng Zunimo học những gì?</h2>
             </div>
             <p>Một chút tò mò, thật nhiều niềm vui.</p>
           </div>
@@ -107,7 +110,9 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
                 Users,
                 '🌈',
                 'Lớp học vui nhộn',
-                'Học cùng bạn bè, nhận bài từ giáo viên và chọn nhân vật con giáp yêu thích. Cùng nhau thử, cùng nhau tiến bộ.',
+                canClassroom
+                  ? 'Học cùng bạn bè, nhận bài từ giáo viên và chọn nhân vật yêu thích. Cùng nhau tiến bộ.'
+                  : 'Góc học tập dành cho các bạn đã được giáo viên thêm vào lớp. Bạn có thể bắt đầu với trò chơi luyện bàn phím.',
                 'class',
               ],
             ].map(([Icon, emoji, title, copy, id]) => (
@@ -127,10 +132,15 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
         <section className="welcome-class panel">
           <div>
             <span className="eyebrow">MỘT GÓC NHỎ, NHIỀU KHÁM PHÁ</span>
-            <h2>Lớp học của những nhà sáng tạo nhỏ</h2>
+            <h2>
+              {canClassroom
+                ? 'Lớp học của những nhà sáng tạo nhỏ'
+                : 'Luyện mỗi ngày, tiến bộ từng phím'}
+            </h2>
             <p>
-              Thử một cách làm mới, chia sẻ một ý tưởng hay và vui vì mình đã tiến bộ. Ở TIPY, mỗi
-              bạn mang đến một màu sắc riêng cho lớp học.
+              {canClassroom
+                ? 'Thử một cách làm mới, chia sẻ ý tưởng và nhận bài từ giáo viên trong lớp Zunimo của mình.'
+                : 'Chọn trò chơi, làm quen bàn phím và luyện theo nhịp của mình. Mỗi lần thử là một lần tiến bộ cùng Zunimo.'}
             </p>
           </div>
           <div className="class-preview" aria-hidden="true">
@@ -138,40 +148,9 @@ export default function HomePage({ onPlay, onClassroom, canClassroom, ready = tr
               <Avatar key={animal} value={{ animal }} />
             ))}
           </div>
-          <TipyButton
-            variant="learn"
-            disabled={!canClassroom}
-            aria-describedby={!canClassroom ? 'classroom-entry-help' : undefined}
-            onClick={onClassroom}
-          >
-            Vào học
+          <TipyButton variant="learn" onClick={canClassroom ? onClassroom : onPlay}>
+            {canClassroom ? 'Vào học' : 'Luyện bàn phím'}
           </TipyButton>
-          {!canClassroom && (
-            <small id="classroom-entry-help">
-              Đăng nhập và được giáo viên thêm vào lớp để mở lớp học của mình.
-            </small>
-          )}
-        </section>
-      </Reveal>
-      <Reveal>
-        <section className="location-card" aria-labelledby="location-heading">
-          <div className="location-icon">
-            <MapPin size={30} />
-          </div>
-          <div>
-            <span className="eyebrow">GHÉ TIPY CÙNG HỌC NHÉ!</span>
-            <h2 id="location-heading">TIPY STEM Cẩm Lệ</h2>
-            <address>68 Phạm Tứ, Cẩm Lệ, Đà Nẵng</address>
-            <p>Cùng học Typing, khám phá Scratch và tạo nên những giờ học vui nhộn.</p>
-          </div>
-          <a
-            className="tipy-button tipy-button--learn tipy-button--secondary"
-            href="https://www.google.com/maps/search/?api=1&query=68+Ph%E1%BA%A1m+T%E1%BB%A9%2C+C%E1%BA%A9m+L%E1%BB%87%2C+%C4%90%C3%A0+N%E1%BA%B5ng"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Xem đường đi <ArrowRight size={17} />
-          </a>
         </section>
       </Reveal>
     </main>

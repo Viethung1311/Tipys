@@ -1,5 +1,9 @@
 # TIPY backend · Supabase + Vercel
 
+## Quyền lớp và Zunimo
+
+Thương hiệu hiển thị Zunimo, định danh kỹ thuật và APP_ORIGIN giữ nguyên. RLS live đã kiểm tra: classes/members/posts/attachments dùng can_read_class, bucket private, không có policy trực tiếp storage.objects. Không cần migration. Mỗi lần tải tài liệu đi qua GET class_download: phiên HttpOnly, kiểm tra lớp hoạt động/thành viên và bài chưa gỡ, download Storage phía server rồi stream phản hồi private/no-store; không đưa signed URL ra client. Preview cũng kiểm tra quyền riêng, file tối đa 5 MB được stream để tránh giới hạn phản hồi buffer. Lần truy cập sau khi bỏ thành viên bị chặn; dữ liệu đã tải trước đó không thể thu hồi khỏi thiết bị. Link đã ký do bản cũ cấp có thể còn hiệu lực tối đa 5 phút sau khi phát hành, bản mới không cấp thêm.
+
 ## Phân trang quản trị và xóa học sinh
 
 - Migration cộng thêm `db/admin_students.sql` chạy sau schema, classrooms, compact_results và keyboard_quest. Không thêm bảng/cột hồ sơ hay cột cho từng lớp. `tipy_students_page` chỉ service_role được gọi, dùng security invoker và giữ RLS hiện có.

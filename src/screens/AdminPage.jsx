@@ -151,7 +151,7 @@ export default function AdminPage() {
         )}
       <header className="admin-header">
         <a href="/" className="brand">
-          TIPY <span className="brand-stem">STEM</span>
+          Zunimo
         </a>
         <span>TRANG QUẢN TRỊ</span>
         <AccountPoints key={user?.user_id || 'guest'} user={user} />

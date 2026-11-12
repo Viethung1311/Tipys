@@ -51,7 +51,7 @@ export function createIdentity({ db, client, env }) {
               email: emailFor('admin'),
               password,
               email_confirm: true,
-              user_metadata: { username: 'admin', full_name: 'Giáo viên TIPY' },
+              user_metadata: { username: 'admin', full_name: 'Giáo viên Zunimo' },
               app_metadata: { tipy_role: 'admin' },
             });
             // A concurrent first login may already have created the same admin.
@@ -111,7 +111,9 @@ export function createIdentity({ db, client, env }) {
         .single();
       if (error || !data?.is_active)
         throw new ApiError(403, 'Tài khoản đang được khóa. Bạn nhờ giáo viên hỗ trợ nhé.');
-      return data;
+      return data.role === 'admin' && data.full_name === 'Giáo viên TIPY'
+        ? { ...data, full_name: 'Giáo viên Zunimo' }
+        : data;
     },
     async session(access, refresh) {
       let rotated = null;

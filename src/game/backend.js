@@ -28,7 +28,15 @@ async function request(action, body, params) {
   } catch {
     throw Error('Phần tài khoản đang được thiết lập. Bạn vẫn có thể chơi thử.');
   }
-  if (!response.ok) throw Error(data.error || 'Chưa xử lý được yêu cầu.');
+  if (!response.ok) {
+    if (
+      typeof window !== 'undefined' &&
+      [401, 403, 404].includes(response.status) &&
+      ['classroom', 'class_posts', 'class_file'].includes(action)
+    )
+      window.dispatchEvent(new window.Event('tipy-class-access-changed'));
+    throw Error(data.error || 'Chưa xử lý được yêu cầu.');
+  }
   if (
     typeof window !== 'undefined' &&
     (action === 'quest_finish' ||

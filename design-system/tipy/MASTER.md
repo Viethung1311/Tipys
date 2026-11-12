@@ -1,4 +1,8 @@
-# TIPY STEM — chuẩn giao diện dùng chung
+# Zunimo — chuẩn giao diện dùng chung
+
+Thương hiệu hiển thị duy nhất: **Zunimo**, gồm header, footer, metadata và thông báo mặc định. Giữ định danh kỹ thuật cũ (TipyButton, font `TIPY Nunito`, token, API, cookie, bucket, đường dẫn); không thay chuỗi hàng loạt vào dữ liệu người dùng. Logo là chữ/SVG dựng bằng code, không có bitmap thương hiệu cũ trong bộ ảnh đang sử dụng. Bỏ khối địa chỉ và khoảng trống của nó.
+
+Điều hướng Lớp học chỉ hiện với admin hoặc học sinh có lớp đang hoạt động do backend xác nhận. Người chưa có lớp dùng CTA **Luyện bàn phím** → Gõ chữ; thành viên dùng **Vào học** → các lớp được tham gia. Mỗi lần vào/quay lại lớp hoặc lấy tệp phải kiểm tra lại quyền; không hiển thị cache trước xác minh. Khi tab trở lại/focus hoặc API báo mất quyền, xóa nội dung và nạp lại danh sách lớp. Tệp dùng endpoint cùng origin kiểm tra phiên/quyền mỗi lần tải, không phát link Storage đã ký ra trình duyệt.
 
 Nguồn yêu cầu: Custom instructions của Project “Web game Tipy”, do chủ dự án cung cấp trong chat. Đọc cùng `AGENTS.md` trước mọi thay đổi UI. Giữ nguyên các hướng dẫn kỹ thuật ở `ARCHITECTURE.md` và `BACKEND.md`; đây là chuẩn thiết kế, không thay đổi quyền hoặc dữ liệu.
 

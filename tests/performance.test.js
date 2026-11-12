@@ -216,9 +216,9 @@ test('original and preview links require current membership and reject archived 
     storage: {
       from() {
         return {
-          createSignedUrl: async (path, ttl) => {
-            signed.push([path, ttl]);
-            return { data: { signedUrl: 'https://files.test/' + path } };
+          download: async (path) => {
+            signed.push(path);
+            return { data: new Blob(['test']) };
           },
         };
       },
@@ -231,12 +231,16 @@ test('original and preview links require current membership and reject archived 
   assert.equal(signed.length, 0);
   member = true;
   const result = await service.classFile(profile, input);
-  assert.ok(result.previewUrl.endsWith('.jpg.webp'));
-  assert.ok(result.url.endsWith('.jpg'));
-  assert.deepEqual(
-    signed.map((x) => x[1]),
-    [300, 300],
-  );
+  assert.ok(result.previewUrl.endsWith('&preview=1'));
+  assert.ok(result.url.startsWith('/api/tipy?action=class_download'));
+  assert.equal(signed.length, 0);
+  await service.classDownload(profile, { ...input, preview: true });
+  await service.classDownload(profile, input);
+  assert.deepEqual(signed, ['class/image.previewable.jpg.webp', 'class/image.previewable.jpg']);
+  member = false;
+  await assert.rejects(service.classDownload(profile, input), (e) => e.status === 403);
+  assert.equal(signed.length, 2);
+  member = true;
   archived = true;
   await assert.rejects(service.classFile(profile, input), (e) => e.status === 404);
   assert.equal(signed.length, 2);

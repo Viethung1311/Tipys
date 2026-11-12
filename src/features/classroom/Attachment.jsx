@@ -6,19 +6,18 @@ import { Paperclip } from 'lucide-react';
 export default function Attachment({ file }) {
   const [url, setUrl] = useState(''),
     [previewUrl, setPreviewUrl] = useState(''),
-    [expiresAt, setExpiresAt] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   const open = async () => {
-    if (url && Date.now() < expiresAt) return;
     setBusy(true);
     setError('');
     try {
       const data = await api('class_file', undefined, { attachmentId: file.attachment_id });
       setUrl(data.url);
       setPreviewUrl(data.previewUrl || data.url);
-      setExpiresAt(Date.now() + 240000);
     } catch (e) {
+      setUrl('');
+      setPreviewUrl('');
       setError(e.message);
     } finally {
       setBusy(false);

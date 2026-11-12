@@ -27,13 +27,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
     }
     let live = true;
     const key = user.user_id + ':' + classId;
-    const cached = cache.get(key);
-    if (cached && Date.now() - cached.time < 15000) {
-      setDetail(cached.data);
-      setHasMore(cached.data.posts.length === 20);
-      setBusy(false);
-      return;
-    }
+    // Recheck membership before displaying any cached class content.
     setDetail(null);
     setBusy(true);
     setError('');
@@ -72,6 +66,8 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
     try {
       await task();
     } catch (e) {
+      setDetail(null);
+      cache.delete(user.user_id + ':' + classId);
       setError(e.message);
     } finally {
       setSaving(false);
@@ -81,7 +77,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
     <main className="classroom-page">
       <Reveal>
         <div className="page-title">
-          <span className="eyebrow">GÓC LỚP HỌC TIPY</span>
+          <span className="eyebrow">GÓC LỚP HỌC Zunimo</span>
           <h1>
             Lớp học của mình<span>.</span>
           </h1>
@@ -129,7 +125,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
               ))}
             </select>
           </label>
-          {detail && (
+          {detail && detail.classroom.class_id === classId && (
             <>
               <Reveal key={`roster-${classId}`}>
                 <div className="classroom-layout">
@@ -193,7 +189,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
                 <Reveal key={post.post_id}>
                   <article className="panel class-post">
                     <small>
-                      👩‍🏫 Giáo viên TIPY · {new Date(post.created_at).toLocaleString('vi-VN')}
+                      👩‍🏫 Giáo viên Zunimo · {new Date(post.created_at).toLocaleString('vi-VN')}
                     </small>
                     <h2>{post.title}</h2>
                     <p className="post-body">{post.body}</p>

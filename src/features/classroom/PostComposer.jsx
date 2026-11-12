@@ -160,7 +160,7 @@ export default function PostComposer({ classId, onPosted }) {
         <aside className="composer-preview" aria-label="Xem trước bài đăng">
           <span className="preview-eyebrow">XEM TRƯỚC BÀI ĐĂNG</span>
           <article className="preview-paper">
-            <small>👩‍🏫 Giáo viên TIPY · Bản nháp</small>
+            <small>👩‍🏫 Giáo viên Zunimo · Bản nháp</small>
             <h3>{fields.title || 'Tiêu đề bài học'}</h3>
             <p>{fields.body || 'Nội dung bài học sẽ hiện ở đây khi bạn nhập.'}</p>
             {fields.link &&

@@ -144,6 +144,19 @@ test('Postgres classrooms enforce membership, preserve archived rosters and atom
       ]),
     );
     await db.exec('reset role');
+    await db.query('update class_members set is_active=false where class_id=$1 and user_id=$2', [
+      classroom,
+      student,
+    ]);
+    await db.exec(`set role authenticated;set request.jwt.claim.sub='${student}'`);
+    for (const table of ['classes', 'class_members', 'class_posts', 'class_attachments'])
+      assert.equal((await db.query(`select * from ${table}`)).rows.length, 0);
+    await assert.rejects(db.exec('select * from storage.objects'), /permission denied/);
+    await db.exec('reset role');
+    await db.query('update class_members set is_active=true where class_id=$1 and user_id=$2', [
+      classroom,
+      student,
+    ]);
     await db.query('update classes set archived_at=now() where class_id=$1', [classroom]);
     await db.exec(`set role authenticated;set request.jwt.claim.sub='${student}'`);
     assert.equal((await db.query('select * from class_posts')).rows.length, 0);

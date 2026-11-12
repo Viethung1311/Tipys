@@ -12,7 +12,7 @@ export default function GameLibrary({ catalog, onChoose, onHome }) {
         <ArrowLeft size={17} /> Về trang chủ
       </button>
       <div className="page-title">
-        <span className="eyebrow">KHO TRÒ CHƠI TIPY</span>
+        <span className="eyebrow">KHO TRÒ CHƠI Zunimo</span>
         <h1>
           Gõ chữ, chơi thật vui<span>.</span>
         </h1>

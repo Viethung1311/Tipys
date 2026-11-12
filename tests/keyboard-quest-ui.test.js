@@ -115,7 +115,7 @@ test('signed-in quest reads own progress and saves through existing authenticate
       d.querySelector(`[aria-label="Gõ ${item.target}"]`).click();
       await sleep(12);
     }
-    await until(() => d.body.textContent.includes('Đã lưu vào tài khoản TIPY'));
+    await until(() => d.body.textContent.includes('Đã lưu vào tài khoản Zunimo'));
     assert.equal(calls.filter((row) => row.action === 'quest_finish').length, 1);
     assert.equal(calls.find((row) => row.action === 'start').body.lessonId, 'keys-as');
     assert.equal(w.localStorage.getItem('tipy-quest-guest-v1'), '[]');
@@ -148,7 +148,7 @@ test('external navigation waits for final save and signed-in reload reads the sa
       [...d.querySelectorAll('.adventure-breadcrumbs button')].every((button) => button.disabled),
     );
     release();
-    await until(() => d.body.textContent.includes('Đã lưu vào tài khoản TIPY'));
+    await until(() => d.body.textContent.includes('Đã lưu vào tài khoản Zunimo'));
     await until(() => !d.querySelector('.adventure-breadcrumbs button').disabled);
     await click('Bản đồ đảo');
     assert.match(d.querySelector('[data-world-id="1"]').getAttribute('aria-label'), /1\/5/);

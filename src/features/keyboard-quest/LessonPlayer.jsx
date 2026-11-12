@@ -324,7 +324,7 @@ export default function LessonPlayer({
             ? 'Đang lưu tiến độ…'
             : saved
               ? user
-                ? 'Đã lưu vào tài khoản TIPY.'
+                ? 'Đã lưu vào tài khoản Zunimo.'
                 : 'Đã lưu bản chơi thử trên máy này.'
               : ''}
         </p>

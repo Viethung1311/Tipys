@@ -107,6 +107,18 @@ export function createClassrooms(db) {
     }
     return result.data;
   };
+  const attachment = async (profile, attachmentId) => {
+    const { data, error } = await db
+      .from('class_attachments')
+      .select('*,class_posts!inner(archived_at)')
+      .eq('attachment_id', uuid(attachmentId))
+      .not('post_id', 'is', null)
+      .single();
+    fail(error, 'Không tìm thấy tài liệu.');
+    await access(profile, data.class_id);
+    if (data.class_posts.archived_at) throw new ApiError(404, 'Bài đã được gỡ.');
+    return data;
+  };
   const postsQuery = (input) =>
     db
       .from('class_posts')
@@ -460,29 +472,30 @@ export function createClassrooms(db) {
       return data;
     },
     async classFile(profile, input) {
-      const { data, error } = await db
-        .from('class_attachments')
-        .select('*,class_posts!inner(archived_at)')
-        .eq('attachment_id', uuid(input.attachmentId))
-        .not('post_id', 'is', null)
-        .single();
-      fail(error, 'Không tìm thấy tài liệu.');
-      await access(profile, data.class_id);
-      if (data.class_posts.archived_at) throw new ApiError(404, 'Bài đã được gỡ.');
-      const [signed, preview] = await Promise.all([
-        db.storage.from(BUCKET).createSignedUrl(data.storage_path, 300, {
-          download: data.mime_type.startsWith('image/') ? false : data.name,
-        }),
-        data.storage_path.includes('.previewable.') && data.mime_type.startsWith('image/')
-          ? db.storage.from(BUCKET).createSignedUrl(data.storage_path + '.webp', 300)
-          : null,
-      ]);
-      fail(signed.error);
+      const data = await attachment(profile, input.attachmentId);
+      const url =
+        '/api/tipy?' +
+        new URLSearchParams({ action: 'class_download', attachmentId: input.attachmentId });
       return {
-        url: signed.data.signedUrl,
-        previewUrl: preview?.error ? undefined : preview?.data?.signedUrl,
+        url,
+        previewUrl:
+          data.storage_path.includes('.previewable.') && data.mime_type.startsWith('image/')
+            ? url + '&preview=1'
+            : undefined,
         mime: data.mime_type,
       };
+    },
+    async classDownload(profile, input) {
+      const file = await attachment(profile, input.attachmentId);
+      const preview =
+        input.preview &&
+        file.mime_type.startsWith('image/') &&
+        file.storage_path.includes('.previewable.');
+      const { data, error } = await db.storage
+        .from(BUCKET)
+        .download(file.storage_path + (preview ? '.webp' : ''));
+      if (error || !data) throw new ApiError(404, 'Chưa tải được tài liệu.');
+      return { blob: data, mime: preview ? 'image/webp' : file.mime_type, name: file.name };
     },
   };
 }

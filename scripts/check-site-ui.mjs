@@ -44,7 +44,7 @@ const student = {
 const admin = {
   user_id: '44444444-4444-4444-8444-444444444444',
   username: 'admin',
-  full_name: 'Giáo viên TIPY',
+  full_name: 'Giáo viên Zunimo',
   role: 'admin',
 };
 const students = [
@@ -232,9 +232,10 @@ try {
     await check('home');
     await nav('Gõ chữ').focus();
     assert.equal(await nav('Gõ chữ').evaluate((e) => getComputedStyle(e).outlineWidth), '3px');
-    await page.getByRole('button', { name: 'Chơi ngay', exact: true }).hover();
+    await page.getByRole('button', { name: 'Vào học', exact: true }).first().hover();
     const primary = await page
-      .getByRole('button', { name: 'Chơi ngay', exact: true })
+      .getByRole('button', { name: 'Vào học', exact: true })
+      .first()
       .evaluate((e) => {
         const s = getComputedStyle(e);
         return [s.color, s.backgroundColor];

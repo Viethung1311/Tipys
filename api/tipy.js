@@ -1,4 +1,6 @@
 import { ApiError, createBackend, ready } from '../server/backend.js';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 export function readCookies(header = '') {
   return Object.fromEntries(
@@ -115,6 +117,23 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         return res
           .status(200)
           .json(await backend.classFile(profile, { attachmentId: req.query?.attachmentId }));
+      if (req.method === 'GET' && action === 'class_download') {
+        if (req.query?.preview !== undefined && req.query.preview !== '1')
+          throw new ApiError(400, 'Ảnh xem trước chưa hợp lệ.');
+        const file = await backend.classDownload(profile, {
+          attachmentId: req.query?.attachmentId,
+          preview: req.query?.preview === '1',
+        });
+        res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+        res.setHeader('Content-Type', file.mime);
+        res.setHeader(
+          'Content-Disposition',
+          `${file.mime.startsWith('image/') ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(file.name).replace(/'/g, '%27')}`,
+        );
+        res.status(200);
+        await pipeline(Readable.fromWeb(file.blob.stream()), res);
+        return;
+      }
       if (req.method === 'GET' && action === 'avatar')
         return res.status(200).json({ avatar: await backend.avatar(profile) });
       if (req.method === 'GET' && action === 'history')
@@ -151,6 +170,10 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         return res.status(200).json({ data: await backend[actions[action]](profile, body) });
       throw new ApiError(404, 'Chức năng chưa được hỗ trợ.');
     } catch (error) {
+      if (res.headersSent) {
+        res.destroy();
+        return;
+      }
       return res.status(error instanceof ApiError ? error.status : 500).json({
         error:
           error instanceof ApiError

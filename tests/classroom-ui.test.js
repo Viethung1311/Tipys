@@ -105,7 +105,7 @@ test('member sees square roster and class top, then changes avatar through accou
     await sleep(20);
     assert.equal(
       requests.filter((r) => typeof r === 'string' && r.includes('action=class_file')).length,
-      1,
+      2,
     );
     button('Trang chủ').click();
     await until(() => d.querySelector('.welcome-hero'));
@@ -113,13 +113,13 @@ test('member sees square roster and class top, then changes avatar through accou
     await until(() => d.querySelector('.class-desks'));
     assert.equal(
       requests.filter((r) => typeof r === 'string' && r.includes('action=classroom')).length,
-      1,
+      2,
     );
     button('Xem bài cũ hơn').click();
     await until(() => d.querySelectorAll('.class-post').length === 21);
     assert.equal(
       requests.filter((r) => typeof r === 'string' && r.includes('action=classroom')).length,
-      1,
+      2,
     );
     assert.ok(
       requests.some(
@@ -171,13 +171,10 @@ test('guest cannot activate classroom navigation', async () => {
   try {
     await until(() => d.querySelector('.main-nav'));
     assert.equal(
-      [...d.querySelectorAll('.main-nav button')].find((b) => b.textContent === 'Lớp học').disabled,
-      true,
+      [...d.querySelectorAll('.main-nav button')].find((b) => b.textContent === 'Lớp học'),
+      undefined,
     );
-    assert.match(
-      d.querySelector('.main-nav').textContent,
-      /Trang chủ.*Gõ chữ.*Lớp học.*Tài khoản/s,
-    );
+    assert.match(d.querySelector('.main-nav').textContent, /Trang chủ.*Gõ chữ.*Tài khoản/s);
   } finally {
     w.close();
   }

@@ -1,12 +1,14 @@
-# Hướng dẫn làm việc với TIPY STEM
+# Hướng dẫn làm việc với Zunimo
 
-TIPY STEM là website học tập có học sinh từ lớp 1 sử dụng. Các quy tắc dưới đây được chép từ Custom instructions của Project do chủ dự án cung cấp. Chúng áp dụng cho mọi lần sửa giao diện trong repository này.
+Thương hiệu hiển thị là Zunimo. Các tên kỹ thuật `tipy`, `TipyButton`, token/font CSS, cookie, API, bucket và đường dẫn `design-system/tipy` được giữ để tương thích. Không đổi tên miền khi chủ dự án chưa yêu cầu.
+
+Zunimo là website học tập có học sinh từ lớp 1 sử dụng. Các quy tắc dưới đây được chép từ Custom instructions của Project do chủ dự án cung cấp. Chúng áp dụng cho mọi lần sửa giao diện trong repository này.
 
 ## Trước khi thay đổi
 
 - Đọc file này, `design-system/tipy/MASTER.md`, component và CSS của phần đang sửa; giữ nguyên các hướng dẫn kỹ thuật hiện có trong `ARCHITECTURE.md`, `BACKEND.md` và hướng dẫn ở thư mục con nếu có.
 - `design-system/tipy/MASTER.md` là chuẩn thiết kế dùng chung. Khi thêm một kiểu mới, cập nhật chuẩn và component/token chung trong cùng thay đổi. Không tạo bảng màu hoặc kiểu nút riêng ở từng trang.
-- Nếu có skill `ui-ux-pro-max`, dùng để hỗ trợ; quy tắc TIPY STEM được ưu tiên khi khác biệt. Không tự cài thêm skill hoặc thư viện lớn chỉ để chỉnh giao diện.
+- Nếu có skill `ui-ux-pro-max`, dùng để hỗ trợ; quy tắc Zunimo được ưu tiên khi khác biệt. Không tự cài thêm skill hoặc thư viện lớn chỉ để chỉnh giao diện.
 - Giữ nguyên chức năng, dữ liệu, phân quyền và luồng nghiệp vụ khi nhiệm vụ chỉ yêu cầu sửa giao diện. Các thay đổi tài khoản/lớp/ảnh private vẫn phải giữ kiểm tra quyền tại backend.
 
 ## 1. Định hướng chung

@@ -94,7 +94,7 @@ test('audio controls persist independently; countdown plays once per beat and op
     assert.equal(saved.musicEnabled, true);
     assert.equal(saved.effectsEnabled, true);
     await click('Xong rồi');
-    await click('Chơi ngay');
+    await click('Luyện bàn phím');
     await click('Chơi');
     notes.length = 0;
     await click('Bắt đầu chơi');

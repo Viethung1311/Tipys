@@ -38,7 +38,7 @@ export default function LearningProfile({ progress, avatar, user }) {
         <section className="quest-certificate">
           <h3>Chứng nhận chinh phục bàn phím</h3>
           <p>🌟 Chúc mừng {user?.full_name || 'bạn'} đã hoàn thành 30 bài học!</p>
-          <p>TIPY STEM · Học vui mỗi ngày</p>
+          <p>Zunimo · Học vui mỗi ngày</p>
           <TipyButton icon={Printer} emphasis="secondary" onClick={() => window.print()}>
             In chứng nhận
           </TipyButton>

@@ -47,10 +47,10 @@ test('complete UI flow: setup, custom keys, input, pause, results, replay, persi
     await until(() => d.querySelector('h1'));
     assert.match(d.body.textContent, /Học thật vui/);
     assert.match(d.body.textContent, /Scratch/);
-    assert.match(d.body.textContent, /68 Phạm Tứ, Cẩm Lệ, Đà Nẵng/);
+    assert.doesNotMatch(d.body.textContent, /68 Phạm Tứ/);
     assert.equal(d.querySelector('.game-card'), null);
     assert.equal(d.querySelector('.leaderboard'), null);
-    await click('Chơi ngay');
+    await click('Luyện bàn phím');
     await click('Chơi');
     await click('Bỏ chọn tất cả');
     assert.equal(button('Bắt đầu chơi').disabled, true);
@@ -95,7 +95,7 @@ test('complete UI flow: setup, custom keys, input, pause, results, replay, persi
     await until(() => d.querySelector('[role="dialog"]'));
     await click('Về trang chủ');
     await until(() => d.querySelector('.hero'));
-    await click('Chơi ngay');
+    await click('Luyện bàn phím');
     await click('Chơi');
     assert.match(d.body.textContent, /Đã chọn: 4 phím/);
     assert.deepEqual(errors, []);

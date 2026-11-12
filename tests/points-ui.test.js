@@ -74,7 +74,7 @@ test('shared account points refresh after a saved lesson, survive navigation and
       await sleep(15);
     }
     await until(() => d.querySelector('.account-points').textContent.includes('130'));
-    d.querySelector('[aria-label="TIPY STEM trang chủ"]').click();
+    d.querySelector('[aria-label="Zunimo trang chủ"]').click();
     await until(() => d.querySelector('.welcome-hero'));
     assert.match(d.querySelector('.account-points').textContent, /130/);
     hold = true;
