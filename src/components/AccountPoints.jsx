@@ -15,10 +15,10 @@ export default function AccountPoints({ user }) {
     const refresh = async () => {
       const request = ++latest;
       try {
-        const result = await api('points');
-        if (!Number.isFinite(result.points)) throw Error('Invalid points');
+        const result = await api('stars');
+        if (!Number.isFinite(result.stars)) throw Error('Invalid stars');
         if (live && request === latest) {
-          setValue(result.points);
+          setValue(result.stars);
           setError(false);
         }
       } catch {
@@ -28,10 +28,14 @@ export default function AccountPoints({ user }) {
     refresh();
     window.addEventListener('tipy-points-changed', refresh);
     window.addEventListener('focus', refresh);
+    const timer = setInterval(() => {
+      if (!document.hidden) refresh();
+    }, 60000);
     return () => {
       live = false;
       window.removeEventListener('tipy-points-changed', refresh);
       window.removeEventListener('focus', refresh);
+      clearInterval(timer);
     };
   }, [user?.user_id, revision]);
   if (!user) return null;
@@ -39,17 +43,17 @@ export default function AccountPoints({ user }) {
     <span
       className="account-points"
       aria-live="polite"
-      title="Điểm cao nhất mỗi game + 10 điểm cho mỗi sao tốt nhất của bài học"
+      title="Sao thưởng bài học lần đầu và thưởng Chữ rơi theo tuần"
     >
       <Star size={20} aria-hidden="true" />
       {error ? (
         <button type="button" onClick={() => setRevision((old) => old + 1)}>
-          Tải lại điểm
+          Tải lại sao
         </button>
       ) : value === null ? (
-        'Đang tải điểm…'
+        'Đang tải sao…'
       ) : (
-        `Điểm chung: ${value.toLocaleString('vi-VN')}`
+        `Sao của bạn: ${value.toLocaleString('vi-VN')}`
       )}
     </span>
   );

@@ -42,6 +42,7 @@ export default function LessonPlayer({
     [saving, setSaving] = useState(false),
     [saveError, setSaveError] = useState(''),
     [saved, setSaved] = useState(false),
+    [reward, setReward] = useState(null),
     [lastKey, setLastKey] = useState(''),
     [ime, setIme] = useState(false);
   const answers = useRef(createAnswers(lesson)),
@@ -197,6 +198,7 @@ export default function LessonPlayer({
           await session.current.finish(Math.floor(elapsed.current / 1000), answers.current)
         ).data.progress;
       if (!live.current) return;
+      setReward(progress || null);
       onSaved(
         lesson,
         gradeLesson(lesson, answers.current),
@@ -279,6 +281,23 @@ export default function LessonPlayer({
           {'★'.repeat(grade.stars)}
           {'☆'.repeat(3 - grade.stars)}
         </p>
+        <p>
+          Sao thành tích lần này: {grade.stars}/3 · Tốt nhất:{' '}
+          {Math.max(grade.stars, previous?.best_stars || 0)}/3
+        </p>
+        {saved && (
+          <p role="status">
+            {!user
+              ? 'Chơi thử · Nhận lần này: 0 sao tài khoản.'
+              : reward?.reward_status === 'legacy'
+                ? 'Bài cũ: không cấp bù sao · Nhận lần này: 0 sao.'
+                : reward?.award_this_play > 0
+                  ? `Nhận lần này: ${reward.award_this_play} sao`
+                  : reward?.reward_status === 'awarded'
+                    ? 'Bài đã nhận sao · Nhận lần này: 0 sao'
+                    : 'Chưa hoàn thành bài · Nhận lần này: 0 sao.'}
+          </p>
+        )}
         <div className="quest-metrics">
           <p>
             <b>{grade.correct}</b> lượt đúng

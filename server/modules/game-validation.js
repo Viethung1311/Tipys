@@ -1,5 +1,6 @@
 /** Validate monotonic scores/time before the transactional persistence RPC. */
 import { ApiError } from '../errors.js';
+import { RANKED_RULE } from '../../src/game/ranked.js';
 export function validateLevels(levels) {
   if (!levels || !['easy', 'normal', 'hard'].every((key) => levels[key]))
     throw new ApiError(400, 'Chữ rơi cần ba độ khó: easy, normal, hard.');
@@ -62,6 +63,11 @@ export function validateProgress(play, input, now = Date.now()) {
       result === 'completed'
     )
       throw new ApiError(400, 'Số chữ hoặc điểm chưa hợp lệ.');
+    if (
+      old.config_snapshot?.ranked_rule === RANKED_RULE &&
+      correct > Math.floor((seconds + 1) / 0.65) + 1
+    )
+      throw new ApiError(400, 'Số chữ vượt giới hạn sinh chữ của lượt xếp hạng.');
   }
   const stage = input.stageNumber ?? play.stage_number ?? null;
   if (

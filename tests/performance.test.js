@@ -62,7 +62,7 @@ test('posts-only pagination checks membership and never reads player statistics'
         },
       },
     ])[0].best_score,
-    500,
+    undefined,
   );
 });
 

@@ -26,18 +26,58 @@
   outline: 3px solid var(--tipy-focus);
   outline-offset: 4px;
 }
-.main-nav:has(> .account-points) {
-  grid-template-columns: repeat(3, max-content) minmax(0, 1fr) max-content;
-}
-.main-nav > .account-points {
+.header-account-group {
+  grid-column: 4;
   justify-self: end;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 @media (max-width: 680px) {
-  .main-nav:has(> .account-points) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .main-nav > .account-points {
+  .header-account-group {
     grid-column: 1/-1;
     justify-self: stretch;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
+  .header-account-group .account-controls {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+}
+.class-top-tabs,
+.week-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.class-top-tabs button,
+.week-controls button {
+  min-height: 48px;
+  min-width: 48px;
+  padding: 8px;
+  border: 1px solid var(--tipy-border);
+  border-radius: 12px;
+  background: var(--tipy-surface);
+  color: var(--tipy-text);
+  font: inherit;
+}
+.class-top-tabs [aria-selected='true'] {
+  border-color: var(--tipy-play);
+  font-weight: 800;
+}
+.week-controls span {
+  flex: 1;
+  min-width: 0;
+}
+.week-controls small {
+  display: block;
+}
+.class-top-tabs button:focus-visible,
+.week-controls button:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 2px;
 }

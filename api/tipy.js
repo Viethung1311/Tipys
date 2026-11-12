@@ -86,8 +86,15 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         });
       }
       const { profile, access } = await current();
-      if (req.method === 'GET' && action === 'points')
-        return res.status(200).json(await backend.points(profile));
+      if (req.method === 'GET' && action === 'stars')
+        return res.status(200).json(await backend.stars(profile));
+      if (req.method === 'GET' && action === 'class_stars')
+        return res.status(200).json(
+          await backend.classStars(profile, {
+            classId: req.query?.classId,
+            week: req.query?.week,
+          }),
+        );
       if (req.method === 'GET' && action === 'quest_class_report')
         return res
           .status(200)

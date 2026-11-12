@@ -111,10 +111,13 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 - Xe chỉ di chuyển khi hoàn thành một lượt đúng, không chạy hiệu ứng liên tục. Không gây áp lực thời gian. Hồ sơ hiển thị 5 bài gần đây và chứng nhận khi đủ 30 màn.
 - Báo cáo giáo viên là bảng riêng, có vùng cuộn bàn phím trên máy hẹp, loading/lỗi/thử lại rõ. Báo cáo không xuất hiện với học sinh; quyền còn được kiểm tra ở backend.
 
-### Điểm chung và bản đồ căn giữa
+### Sao của bạn và bản đồ căn giữa
 
-- Chỉ một điểm chung của tài khoản trên toàn website, hiển thị bằng AccountPoints cạnh tài khoản và ở trang quản trị. Điểm = tổng điểm cao nhất mỗi game (không cộng snapshot accuracy của keyboard_quest) + 10 × sao tốt nhất mỗi bài học. Top lớp dùng cùng công thức, vẫn giới hạn trong lớp được phép xem.
-- Điểm lấy từ server, tự cập nhật sau khi lưu lượt/bài và khi quay lại tab; không dùng số client gửi lên hoặc cộng lặp theo lần chơi. Chưa có store, số dư tiêu dùng hay ví riêng.
+- AccountPoints là tên component kỹ thuật giữ tương thích, hiển thị **Sao của bạn** từ sổ thưởng server; không cộng điểm các game, không quy đổi điểm cũ. Nhóm tài khoản/avatar/sao nằm cột cuối bên phải dù không có Lớp học; điện thoại xuống hàng trong cùng nhóm, không tràn ngang.
+- Mỗi bài ổn định của Bé chinh phục bàn phím chỉ nhận 1–3 sao ở lần hoàn thành đầu tiên. Luyện lại cập nhật sao thành tích tốt nhất nhưng không thêm sao thưởng; kết quả nêu Nhận lần này và Bài đã nhận sao. Bài hoàn thành cũ thiếu bằng chứng lần đầu được đánh dấu legacy, không tự cấp bù và không cấp lại khi chơi lại. Khách chỉ chơi thử, không nhận sao tài khoản.
+- Chữ rơi có nút Thi đấu tuần: Khó/A–Z theo cấu hình hard-v1 cố định (fall 3, minFall 1, spawn 0,95, minSpawn 0,65, max 10; +10/chữ, 3 mạng, sai lần 6 thua, tăng tốc mỗi 500). Luyện tự do giữ cấu hình giáo viên và không trộn vào bảng tuần. Chỉ kết thúc game_over hợp lệ, điểm >0, thành viên từ khi bắt đầu đến khi ghi/chốt mới đủ điều kiện. Rời/vào lại là kỳ tham gia mới.
+- Hai tab lớp đánh số: **1. Vượt ải** dùng sao bài học thực nhận và số bài hoàn thành, không tính thưởng tuần; **2. Chữ rơi · Khó** dùng điểm tốt nhất trong tuần, chính xác, tuần và nhãn người đã nhận 5 sao. Hòa: chính xác cao hơn → đạt sớm hơn → user_id ổn định. Tuần thứ Hai 00:00 đến thứ Hai kế tiếp 00:00 theo Asia/Ho_Chi_Minh. Có Trước/Sau, trạng thái trống/chờ chốt/đã chốt. Sao header tự làm mới khi hoàn tất, lấy bảng lớp, focus và mỗi phút khi tab hiện.
+- Unique nguồn thưởng và transaction SQL chống gửi lại/hai tab/chốt lại. Tổng sao là SUM sổ thưởng nên không có bộ đếm lệch. Cron backend chốt 00:05 hằng ngày giờ Việt Nam, gồm tuần kết thúc và các tuần bị bỏ lỡ; không phụ thuộc mở trang. Không tái dựng tuần cũ từ best/latest. Chưa có store.
 - Không có nút Đặt lại hoặc đường API xóa tiến độ cho học sinh. Các hàm SQL bảo trì chỉ service_role được gọi vẫn giữ để tương thích, không có thao tác xóa dữ liệu trong lần sửa này.
 - Bản đồ ảnh giữ đúng tỉ lệ 1672/941, dùng tọa độ phần trăm trong `adventure.js`. Trên điện thoại, vùng bản đồ cuộn ngang riêng với chiều rộng tối thiểu 960 px; trang không tràn ngang. Chọn màn bằng nhân vật/điểm bấm trên đảo; không dùng nút bảng gỗ hoặc menu chọn màn. Danh sách bài chỉ hiện sau khi chọn màn; điện thoại dùng một cột.
 
@@ -122,7 +125,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 - Bỏ hoàn toàn phần “Hôm nay mình luyện gì?”, các nút học tiếp/ôn tập/thử hôm nay. Mặc định chỉ mount ảnh đảo và 5 vùng bấm; sau khi chọn mới mount 5–8 bài tương ứng. Thẻ bài hiện trực tiếp trên nền cảnh, giữ nền riêng từng thẻ; không có khung trắng lớn hoặc tiêu đề/mô tả màn phía trên. Kiểu chơi là điều khiển nhỏ có nền đọc rõ, đặt ngoài thẻ.
 - “Bản đồ đảo” và “Bản đồ” trên thanh điều hướng về đảo; “Danh sách bài” trở về màn đang học. Trở lại từ một bài chơi giữ thế giới hiện tại, chuyển bài sang thế giới khác cập nhật đúng thế giới. Focus về tiêu đề khi đổi cấp.
-- Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Điều kiện mở khóa, sao và điểm chung giữ nguyên.
+- Kiểu chơi Cùng học/Đua xe một mình đặt trong thế giới đã chọn, không còn panel gợi ý riêng. Giữ điều kiện mở khóa và sao thành tích; sao thưởng theo quy tắc lần đầu ở trên.
 
 ### Minh họa phiêu lưu
 

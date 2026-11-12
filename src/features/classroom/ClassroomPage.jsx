@@ -165,7 +165,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
                     )}
                   </section>
                   <ClassAchievements
-                    rows={detail.achievements}
+                    classId={classId}
                     user={user}
                     avatarOverride={avatarOverride}
                   />

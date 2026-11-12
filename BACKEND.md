@@ -1,5 +1,15 @@
 # TIPY backend · Supabase + Vercel
 
+## Sao thưởng và xếp hạng tuần
+
+`db/stars.sql` bổ sung sổ `star_rewards` unique user/source/key (không đổi điểm cũ), cột awarded_stars/award_play_id/reward_status riêng với best_stars. Bài cũ đã hoàn thành chỉ có receipt legacy 0 sao vì snapshot best/latest không chứng minh lần đầu; không cấp bù suy đoán. Wrapper RPC kết thúc bài khóa cùng hàng stats như begin/save, ghi tiến độ và nguồn thưởng trong cùng transaction; tổng từ SUM receipt nên ghi thưởng và tổng hiển thị nguyên tử. Reset kỹ thuật không xóa receipt. RPC/table chỉ service_role, không có HTTP cộng sao/chốt thưởng cho học sinh.
+
+Thi đấu tuần dùng cấu hình server cố định `hard-v1`/A–Z, tách cấu hình luyện của giáo viên. Canonical JS ở ranked.js được test bằng SQL config. Begin chụp kỳ thành viên vào ranked_class_entries (chỉ kỳ đang chơi); finish game_over được validator hiện có kiểm tra số đúng/sai/mất mạng/điểm/thời gian và thêm trần sinh chữ chuẩn, rồi wrapper lưu best cho user/lớp/tuần trong cùng transaction trước khi active_plays bị dọn. Không ghi từng phím; bằng chứng gồm UUID lượt, luật/bộ phím, counters, thời gian đạt, thời gian tham gia. Cơ chế này kiểm tra tính nhất quán của kết quả, không phải chống bot hoặc chứng thực bàn phím vật lý.
+
+Tuần do server chấp nhận kết quả xác định trong Asia/Ho_Chi_Minh. class_week_scores một hàng/user/lớp/tuần, score cao nhất rồi tỷ lệ đúng chính xác (không làm tròn để so sánh), rồi đạt sớm, rồi UUID. Chỉ thành viên đang hoạt động cùng joined_at chụp lúc bắt đầu mới xuất hiện/được thưởng; trigger đổi joined_at khi vào lại. class_week_closures unique lớp/tuần kể cả không có winner đủ điều kiện; row locks/advisory lock chống chốt đồng thời, receipt weekly unique chống thưởng lại. Học sinh nhiều lớp được xét riêng. Xóa lớp cascade bằng chứng/closure/entry riêng lớp, giữ sao đã thưởng của tài khoản; xóa tài khoản cascade receipt và kết quả riêng.
+
+`db/star_schedule.sql` cài pg_cron và job `zunimo-weekly-stars`: 17:05 UTC hằng ngày = 00:05 Việt Nam. Hàm chỉ chốt tuần đã đóng và truy hồi tất cả tuần còn thiếu có dữ liệu, chốt lại an toàn. Không chạy hàm chốt trên dữ liệu thật để thử; kiểm thử dùng PGlite/fixture riêng. Rollback UI không xóa sổ thưởng. API GET stars chỉ lấy tài khoản trong phiên; class_stars kiểm tra thành viên/admin trong RPC, không nhận userId hoặc số sao từ browser.
+
 ## Quyền lớp và Zunimo
 
 Thương hiệu hiển thị Zunimo, định danh kỹ thuật và APP_ORIGIN giữ nguyên. RLS live đã kiểm tra: classes/members/posts/attachments dùng can_read_class, bucket private, không có policy trực tiếp storage.objects. Không cần migration. Mỗi lần tải tài liệu đi qua GET class_download: phiên HttpOnly, kiểm tra lớp hoạt động/thành viên và bài chưa gỡ, download Storage phía server rồi stream phản hồi private/no-store; không đưa signed URL ra client. Preview cũng kiểm tra quyền riêng, file tối đa 5 MB được stream để tránh giới hạn phản hồi buffer. Lần truy cập sau khi bỏ thành viên bị chặn; dữ liệu đã tải trước đó không thể thu hồi khỏi thiết bị. Link đã ký do bản cũ cấp có thể còn hiệu lực tối đa 5 phút sau khi phát hành, bản mới không cấp thêm.

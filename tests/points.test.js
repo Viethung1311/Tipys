@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { accountPoints } from '../src/game/points.js';
 import { classMembersView } from '../server/modules/classrooms.js';
-import { createGames } from '../server/modules/games.js';
+import { createStars } from '../server/modules/stars.js';
 import { createHandler } from '../api/tipy.js';
 test('one site total uses each game best and each lesson best stars without duplicate quest score', () => {
   const stats = [
@@ -26,36 +26,25 @@ test('one site total uses each game best and each lesson best stars without dupl
         profiles: { full_name: 'Test', player_game_stats: stats, player_lesson_progress: lessons },
       },
     ])[0].best_score,
-    560,
+    undefined,
   );
 });
-test('points endpoint service scopes both independent reads to the current account even for admin', async () => {
+test('star service reads only the current account, never a browser-supplied user or star amount', async () => {
   const calls = [];
-  const db = {
-    from(table) {
-      return {
-        select() {
-          return this;
-        },
-        eq(key, value) {
-          calls.push([table, key, value]);
-          return Promise.resolve({
-            data:
-              table === 'player_game_stats'
-                ? [{ best_play: { score: 100 }, games: { game_code: 'falling_letters' } }]
-                : [{ lesson_id: 'keys-as', best_stars: 3, games: { game_code: 'keyboard_quest' } }],
-          });
-        },
-      };
+  const service = createStars({
+    rpc: async (name, args) => {
+      calls.push([name, args]);
+      return { data: { stars: 3, lessonStars: 3, weeklyStars: 0 } };
     },
-  };
-  const result = await createGames(db).points(
-    { user_id: 'current-admin', role: 'admin' },
-    { userId: 'another-child' },
+  });
+  assert.deepEqual(
+    await service.stars(
+      { user_id: 'current-admin', role: 'admin' },
+      { userId: 'another-child', stars: 999 },
+    ),
+    { stars: 3, lessonStars: 3, weeklyStars: 0 },
   );
-  assert.deepEqual(result, { points: 130 });
-  assert.equal(calls.length, 2);
-  assert.ok(calls.every((call) => call[1] === 'user_id' && call[2] === 'current-admin'));
+  assert.deepEqual(calls, [['tipy_star_total', { p_user: 'current-admin' }]]);
 });
 test('retired reset and direct point writes cannot be called through authenticated API', async () => {
   const handler = createHandler({

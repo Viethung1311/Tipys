@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './game/backend.js';
+import { rankedSettings } from './game/ranked.js';
 import { Keyboard, Volume2, VolumeX } from 'lucide-react';
 import Account from './components/Account.jsx';
 import AudioSettings from './components/AudioSettings.jsx';
@@ -116,9 +117,11 @@ export default function App() {
     ['game', 'quest'].includes(screen) && gamePlaying && !audioOpen && !accountOpen,
   );
   useEffect(() => save('tipy-settings', settings), [settings]);
-  const start = () => {
+  const start = (ranked = false) => {
     const game = catalog?.find((g) => g.game_code === 'falling_letters');
-    setRunSettings({ ...settings, levels: game?.config?.levels || LEVELS });
+    setRunSettings(
+      ranked === true ? rankedSettings() : { ...settings, levels: game?.config?.levels || LEVELS },
+    );
     setScreen('game');
   };
   const finish = (state) => {
@@ -179,22 +182,24 @@ export default function App() {
             Lớp học
           </button>
         )}
-        <Account
-          onUser={setUser}
-          onCatalog={setCatalog}
-          onClasses={setClasses}
-          onOpen={setAccountOpen}
-          onReady={setBootstrapReady}
-          companionVisible={companion.visible}
-          companionSize={companion.size}
-          onPreviewCompanion={previewCompanion}
-          onSaveCompanion={(size) => changeCompanion({ size })}
-          onToggleCompanion={() => changeCompanion({ visible: !companion.visible })}
-          onAvatarChanged={(value, userId) => {
-            classroomCache.current.clear();
-            setMyAvatar({ userId, value });
-          }}
-        />
+        <div className="header-account-group">
+          <Account
+            onUser={setUser}
+            onCatalog={setCatalog}
+            onClasses={setClasses}
+            onOpen={setAccountOpen}
+            onReady={setBootstrapReady}
+            companionVisible={companion.visible}
+            companionSize={companion.size}
+            onPreviewCompanion={previewCompanion}
+            onSaveCompanion={(size) => changeCompanion({ size })}
+            onToggleCompanion={() => changeCompanion({ visible: !companion.visible })}
+            onAvatarChanged={(value, userId) => {
+              classroomCache.current.clear();
+              setMyAvatar({ userId, value });
+            }}
+          />
+        </div>
       </nav>
       <Suspense fallback={<Loading label="Đang mở trang…" />}>
         {screen === 'classroom' ? (
@@ -244,6 +249,7 @@ export default function App() {
         ) : screen === 'setup' ? (
           <Reveal key="setup">
             <TypingSetup
+              user={user}
               settings={settings}
               setSettings={setSettings}
               onHome={() => navigate('library')}

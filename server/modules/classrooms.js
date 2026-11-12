@@ -4,7 +4,6 @@ import { randomUUID } from 'node:crypto';
 import { ApiError, requireAdmin, fail } from '../errors.js';
 import { QUEST_CODE, findLesson } from '../../src/features/keyboard-quest/curriculum.js';
 import { learningSummary } from '../../src/features/keyboard-quest/progress.js';
-import { accountPoints } from '../../src/game/points.js';
 import {
   ACCESSORIES,
   COLORS,
@@ -65,22 +64,9 @@ export function classMembersView(rows) {
       user_id: row.user_id,
       name: row.profiles.full_name,
       avatar: normalizeAvatar(row.profiles.student_avatars),
-      best_score: accountPoints(stats, row.profiles.player_lesson_progress || []),
       total_active_seconds: stats.reduce((sum, s) => sum + Number(s.total_active_seconds || 0), 0),
     };
   });
-}
-export function classTop(members) {
-  return members
-    .filter((m) => m.best_score > 0)
-    .sort(
-      (a, b) =>
-        b.best_score - a.best_score ||
-        b.total_active_seconds - a.total_active_seconds ||
-        a.user_id.localeCompare(b.user_id),
-    )
-    .slice(0, 10)
-    .map((m, index) => ({ ...m, rank: index + 1 }));
 }
 export function createClassrooms(db) {
   const access = async (profile, classId, adminOnly = false) => {
@@ -388,7 +374,6 @@ export function createClassrooms(db) {
       return {
         classroom,
         members: visibleMembers,
-        achievements: classTop(visibleMembers),
         posts: posts.data,
       };
     },

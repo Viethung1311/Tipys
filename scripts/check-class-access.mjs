@@ -50,7 +50,19 @@ try {
           json = { configured: true, user: user(), games: [], classes: classes() };
         if (action === 'classes') json = { classes: classes() };
         if (action === 'avatar') json = { avatar: { animal: 'icon_01' } };
-        if (action === 'points') json = { points: 0 };
+        if (action === 'stars') json = { stars: 8 };
+        if (action === 'class_stars')
+          json = {
+            lessons: [{ user_id: 'an', name: 'Bạn An', animal: 'icon_01', stars: 3, completed: 1 }],
+            weekly: [
+              { user_id: 'an', name: 'Bạn An', animal: 'icon_01', score: 100, accuracy: 95 },
+            ],
+            weekStart: q.get('week') || '2026-11-09',
+            weekEnd: q.has('week') ? '2026-11-09' : '2026-11-16',
+            currentWeek: '2026-11-09',
+            closure: q.has('week') ? { winnerId: 'an' } : null,
+            rule: 'Khó · A–Z · hard-v1',
+          };
         if (action === 'students_page')
           json = {
             students: [],
@@ -120,6 +132,17 @@ try {
         await page.getByRole('button', { name: 'Vào học', exact: true }).first().click();
         await page.getByRole('heading', { name: 'Bài riêng của lớp An', exact: true }).waitFor();
         if (role === 'member') {
+          await page.getByRole('tab', { name: '1. Vượt ải', exact: true }).waitFor();
+          await page.getByRole('tab', { name: '2. Chữ rơi · Khó', exact: true }).click();
+          await page
+            .getByText('Khó · A–Z · hard-v1 · Kết quả tốt nhất trong tuần', { exact: true })
+            .waitFor();
+          await page.getByRole('button', { name: 'Tuần trước', exact: true }).click();
+          await page.getByText('Đã thưởng 5 sao', { exact: true }).waitFor();
+          assert.match(await page.locator('.account-points').innerText(), /Sao của bạn: 8/);
+          const headerRight =
+            (await page.locator('.header-account-group').boundingBox()).x +
+            (await page.locator('.header-account-group').boundingBox()).width;
           assert.equal(await page.locator('.class-select option').count(), 1);
           for (const action of ['classroom', 'class_posts', 'class_file', 'class_download']) {
             const result = await page.evaluate(async (action) => {
@@ -139,6 +162,11 @@ try {
             .getByText('Bạn cần đăng nhập và được giáo viên thêm vào lớp.', { exact: true })
             .waitFor();
           assert.equal(await page.locator('.class-post').count(), 0);
+          const afterHeader = await page.locator('.header-account-group').boundingBox();
+          assert.ok(
+            Math.abs(afterHeader.x + afterHeader.width - headerRight) < 1,
+            'account group keeps right edge without class navigation',
+          );
           joined = true;
           await page.reload();
           await page.getByRole('heading', { name: 'Bài riêng của lớp An', exact: true }).waitFor();

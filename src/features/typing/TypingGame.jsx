@@ -83,6 +83,7 @@ export default function Game({
           <ArrowLeft size={17} /> Khu luyện tập
         </button>
         <span className="tag">
+          {settings.ranked ? 'Thi đấu tuần · A–Z · ' : ''}
           {LEVELS[settings.difficulty].icon} {LEVELS[settings.difficulty].name} ·{' '}
           {settings.keys.length} phím
         </span>

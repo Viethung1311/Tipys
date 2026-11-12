@@ -2,7 +2,7 @@ import { ArrowLeft, Heart, Check, Sparkles } from 'lucide-react';
 import TipyButton from '../../components/TipyButton.jsx';
 import Keyboard from '../../components/Keyboard.jsx';
 import { PRESETS, LEVELS } from '../../game/config.js';
-export default function Setup({ settings, setSettings, onStart, onHome }) {
+export default function Setup({ settings, setSettings, onStart, onHome, user }) {
   const activePreset = Object.entries(PRESETS).find(
     ([, keys]) => [...keys].sort().join('') === [...settings.keys].sort().join(''),
   )?.[0];
@@ -89,10 +89,26 @@ export default function Setup({ settings, setSettings, onStart, onHome }) {
             <span>
               <Heart size={17} fill="currentColor" /> 3 mạng <i>·</i> +10 điểm / chữ
             </span>
-            <TipyButton variant="play" onClick={onStart} disabled={!settings.keys.length}>
+            <TipyButton
+              variant="play"
+              onClick={() => onStart(false)}
+              disabled={!settings.keys.length}
+            >
               Bắt đầu chơi
             </TipyButton>
+            <TipyButton
+              variant="play"
+              emphasis="secondary"
+              disabled={!user}
+              onClick={() => onStart(true)}
+            >
+              Thi đấu tuần
+            </TipyButton>
           </div>
+          <p className="muted">
+            Thi đấu tuần: Khó · A–Z · bộ luật hard-v1 cố định. Chỉ lượt kết thúc hợp lệ trong lớp
+            đang tham gia được xếp hạng. {user ? '' : 'Đăng nhập để tham gia.'}
+          </p>
           {!settings.keys.length && (
             <p role="status" className="balance-tip">
               Hãy chọn ít nhất một phím để bắt đầu.

@@ -94,7 +94,7 @@ try {
       if (body) writes.push(action);
       if (action === 'bootstrap')
         json = { configured: true, user, games: emptyGames ? [] : games, classes };
-      if (action === 'points') json = { points: 150 };
+      if (action === 'stars') json = { stars: 150 };
       if (action === 'avatar')
         json = { avatar: { animal: avatar, accessory: 'none', color: 'sun' } };
       if (action === 'avatar_save') {

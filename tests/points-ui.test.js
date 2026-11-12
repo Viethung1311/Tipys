@@ -21,7 +21,7 @@ test('shared account points refresh after a saved lesson, survive navigation and
   const w = dom.window,
     d = w.document;
   let user = { user_id: 'child', full_name: 'Test', role: 'student' },
-    points = 100,
+    points = 0,
     hold = false,
     finishRead;
   const response = (data) => ({ ok: true, json: async () => data });
@@ -35,20 +35,29 @@ test('shared account points refresh after a saved lesson, survive navigation and
         games: [{ game_code: 'keyboard_quest', engine_code: 'keyboard_quest', is_active: true }],
         classes: [],
       });
-    if (action === 'points') {
+    if (action === 'stars') {
       if (hold)
         return new Promise((resolve) => {
-          finishRead = () => resolve(response({ points: 999999 }));
+          finishRead = () => resolve(response({ stars: 999999 }));
         });
-      return response({ points });
+      return response({ stars: points });
     }
     if (action === 'quest_progress') return response({ progress: [] });
     if (action === 'avatar') return response({ avatar: {} });
     if (action === 'start') return response({ data: { play_id: 'test-play' } });
     if (action === 'quest_finish') {
-      points = 130;
+      points = 3;
       return response({
-        data: { progress: { lesson_id: 'keys-as', completed: true, best_stars: 3 } },
+        data: {
+          progress: {
+            lesson_id: 'keys-as',
+            completed: true,
+            best_stars: 3,
+            awarded_stars: 3,
+            award_this_play: 3,
+            reward_status: 'awarded',
+          },
+        },
       });
     }
     if (action === 'logout') {
@@ -64,7 +73,7 @@ test('shared account points refresh after a saved lesson, survive navigation and
   const button = (text) =>
     [...d.querySelectorAll('button')].find((el) => el.textContent.trim() === text);
   try {
-    await until(() => d.querySelector('.account-points')?.textContent.includes('100'));
+    await until(() => d.querySelector('.account-points')?.textContent.includes('0'));
     (await until(() => d.querySelector('[data-world-id="1"]'))).click();
     (await until(() => button('Bắt đầu'))).click();
     (await until(() => button('Vào học'))).click();
@@ -73,10 +82,12 @@ test('shared account points refresh after a saved lesson, survive navigation and
       d.querySelector(`[aria-label="Gõ ${item.target}"]`).click();
       await sleep(15);
     }
-    await until(() => d.querySelector('.account-points').textContent.includes('130'));
+    await until(() => d.querySelector('.account-points').textContent.includes('3'));
+    assert.match(d.body.textContent, /Nhận lần này: 3 sao/);
+    assert.doesNotMatch(d.querySelector('.account-points').textContent, /Điểm chung/);
     d.querySelector('[aria-label="Zunimo trang chủ"]').click();
     await until(() => d.querySelector('.welcome-hero'));
-    assert.match(d.querySelector('.account-points').textContent, /130/);
+    assert.match(d.querySelector('.account-points').textContent, /3/);
     hold = true;
     w.dispatchEvent(new w.Event('tipy-points-changed'));
     await until(() => finishRead);

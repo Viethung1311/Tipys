@@ -8,7 +8,7 @@ import {
 } from '../../src/features/keyboard-quest/curriculum.js';
 import { gradeLesson, matchesTarget } from '../../src/features/keyboard-quest/engine.js';
 const fields =
-  'lesson_id,completed,best_stars,best_accuracy,last_accuracy,attempts,correct_count,wrong_count,total_active_seconds,weak_keys,weak_rules,last_play_id,last_played_at';
+  'lesson_id,completed,best_stars,best_accuracy,last_accuracy,attempts,correct_count,wrong_count,total_active_seconds,weak_keys,weak_rules,last_play_id,last_played_at,awarded_stars,award_play_id,reward_status';
 export async function questRows(db, userId, gameId) {
   const result = await db
     .from('player_lesson_progress')
@@ -92,7 +92,13 @@ export function createKeyboardQuest(db) {
       const game = await gameFor();
       const rows = await questRows(db, profile.user_id, game.game_id);
       const existing = rows.find((row) => row.last_play_id === input.playId);
-      if (existing) return { progress: existing };
+      if (existing)
+        return {
+          progress: {
+            ...existing,
+            award_this_play: existing.award_play_id === input.playId ? existing.awarded_stars : 0,
+          },
+        };
       const result = await db
         .from('active_plays')
         .select('*')

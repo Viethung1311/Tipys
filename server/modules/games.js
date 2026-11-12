@@ -3,27 +3,11 @@ import { questStart } from './keyboard-quest.js';
 import { QUEST_CODE } from '../../src/features/keyboard-quest/curriculum.js';
 import { SUPPORTED_KEYS } from '../../src/game/config.js';
 import { resultRows } from '../../src/game/results.js';
-import { accountPoints } from '../../src/game/points.js';
 import { ApiError, requireAdmin, fail } from '../errors.js';
 import { validateLevels, validateProgress } from './game-validation.js';
 import { uuid } from './classrooms.js';
 export function createGames(db) {
   return {
-    async points(profile) {
-      const [stats, lessons] = await Promise.all([
-        db
-          .from('player_game_stats')
-          .select('best_play,games(game_code)')
-          .eq('user_id', profile.user_id),
-        db
-          .from('player_lesson_progress')
-          .select('lesson_id,best_stars,games(game_code)')
-          .eq('user_id', profile.user_id),
-      ]);
-      fail(stats.error);
-      fail(lessons.error);
-      return { points: accountPoints(stats.data, lessons.data) };
-    },
     async games(admin = false) {
       const query = db.from('games').select('*').order('created_at');
       const { data, error } = await (admin ? query : query.eq('is_active', true));
@@ -129,6 +113,18 @@ export function createGames(db) {
       if (game.engine_code === QUEST_CODE) {
         if (game.game_code !== QUEST_CODE) throw new ApiError(400, 'Mã game chưa hợp lệ.');
         return questStart(db, profile, game, input);
+      }
+      if (input.ranked !== undefined && typeof input.ranked !== 'boolean')
+        throw new ApiError(400, 'Kiểu chơi chưa hợp lệ.');
+      if (input.ranked) {
+        if (game.game_code !== 'falling_letters' || game.engine_code !== 'falling_letters')
+          throw new ApiError(400, 'Game chưa có xếp hạng tuần.');
+        const result = await db.rpc('tipy_begin_ranked', {
+          p_user: profile.user_id,
+          p_game: game.game_id,
+        });
+        fail(result.error, 'Chưa bắt đầu được lượt xếp hạng tuần.');
+        return result.data;
       }
       const difficulty = input.difficulty ?? null;
       if (
