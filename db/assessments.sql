@@ -1,0 +1,172 @@
+-- Assessment snapshots and results never write practice stats, progress or stars.
+begin;
+create table public.assessments (
+ assessment_id uuid primary key,
+ created_by uuid references public.profiles(user_id) on delete set null,
+ definition jsonb not null,
+ status text not null default 'draft' check(status in ('draft','published')),
+ version integer not null default 1,
+ last_request_id uuid, last_request_hash text,
+ created_at timestamptz not null default now(), published_at timestamptz
+);
+create table public.assessment_assignments (
+ assessment_id uuid references public.assessments on delete cascade,
+ user_id uuid references public.profiles(user_id) on delete cascade,
+ direct boolean not null default false, class_ids uuid[] not null default '{}',
+ allowed_attempts integer not null default 1 check(allowed_attempts between 1 and 100),
+ primary key(assessment_id,user_id)
+);
+create index assessment_assignments_user on public.assessment_assignments(user_id,assessment_id);
+create table public.assessment_attempts (
+ attempt_id uuid primary key default gen_random_uuid(),
+ assessment_id uuid not null, user_id uuid not null, attempt_number integer not null,
+ payload jsonb not null default '{}', results jsonb not null default '[]',
+ revision integer not null default 0, active_seconds integer not null default 0 check(active_seconds between 0 and 86400),
+ last_request_id uuid, last_request_hash text,
+ started_at timestamptz not null default clock_timestamp(), updated_at timestamptz not null default now(), submitted_at timestamptz,
+ unique(assessment_id,user_id,attempt_number),
+ foreign key(assessment_id,user_id) references public.assessment_assignments on delete cascade
+);
+create index assessments_created on public.assessments(created_at desc,assessment_id);
+create index assessments_author on public.assessments(created_by);
+create index assessment_attempts_assignment on public.assessment_attempts(assessment_id,user_id,attempt_number desc);
+alter table public.assessments enable row level security;
+alter table public.assessment_assignments enable row level security;
+alter table public.assessment_attempts enable row level security;
+revoke all on public.assessments,public.assessment_assignments,public.assessment_attempts from public,anon,authenticated;
+grant all on public.assessments,public.assessment_assignments,public.assessment_attempts to service_role;
+
+create function public.tipy_assessment_access(p_user uuid,p_exam uuid) returns boolean
+language sql stable security invoker set search_path='' as $$
+ select exists(select 1 from public.assessment_assignments a join public.assessments e using(assessment_id)
+ where a.user_id=p_user and a.assessment_id=p_exam and e.status='published' and
+ (a.direct or exists(select 1 from public.class_members m join public.classes c using(class_id)
+ where m.user_id=p_user and m.is_active and c.archived_at is null and m.class_id=any(a.class_ids))))
+$$;
+
+create function public.tipy_assessment(p_actor uuid,p_action text,p_input jsonb default '{}') returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare admin boolean; e public.assessments; assigned public.assessment_assignments; t public.assessment_attempts;
+ exam uuid=(p_input->>'assessmentId')::uuid; target uuid; def jsonb; items jsonb; amount integer;
+ page integer=greatest(1,coalesce((p_input->>'page')::integer,1)); v_classes uuid[]; v_students uuid[]; fingerprint text;
+begin
+ select role='admin' into admin from public.profiles where user_id=p_actor and is_active;
+ if not found then raise exception 'Access denied'; end if;
+ if p_action in ('save','publish','results','retake') and not admin then raise exception 'Admin required'; end if;
+ if p_action='list' then
+  select count(*) into amount from public.assessments x where admin or public.tipy_assessment_access(p_actor,x.assessment_id);
+  page=least(page,greatest(1,ceil(amount/20.0)::integer));
+  select coalesce(jsonb_agg(r order by r.created_at desc,r.assessment_id),'[]') into items from (
+   select x.assessment_id,x.status,x.version,x.created_at,x.published_at,x.definition->>'title' as title,
+   x.definition->>'description' as description,coalesce(p.full_name,'Thầy cô') as teacher,
+   case when latest.submitted_at is not null then 'submitted' when latest.attempt_id is not null then 'in_progress' else 'not_started' end as attempt_status
+   from public.assessments x left join public.profiles p on p.user_id=x.created_by
+   left join lateral(select attempt_id,submitted_at from public.assessment_attempts z where z.assessment_id=x.assessment_id and z.user_id=p_actor order by z.attempt_number desc limit 1) latest on true
+   where admin or public.tipy_assessment_access(p_actor,x.assessment_id)
+   order by x.created_at desc,x.assessment_id limit 20 offset (page-1)*20
+  )r;
+  return jsonb_build_object('items',items,'page',page,'pages',greatest(1,ceil(amount/20.0)::integer),'total',amount);
+ end if;
+ if p_action='save' then
+  perform pg_advisory_xact_lock(hashtextextended(exam::text,0));
+  select * into e from public.assessments where assessment_id=exam for update;
+  if found and e.status<>'draft' then raise exception 'Published assessment is immutable'; end if;
+  if found and e.last_request_id=(p_input->>'requestId')::uuid then
+   if e.last_request_hash<>md5((p_input->'definition')::text) then raise exception 'Conflict'; end if;
+   return to_jsonb(e);
+  end if;
+  if coalesce(e.version,0)<>coalesce((p_input->>'version')::integer,0) then raise exception 'Conflict'; end if;
+  def=p_input->'definition';
+  if jsonb_typeof(def)<>'object' or coalesce(length(def->>'title'),0) not between 1 and 100
+   or jsonb_typeof(def->'sections')<>'array' or jsonb_array_length(def->'sections')>2 then raise exception 'Invalid assessment'; end if;
+  select coalesce(array_agg(value::uuid),'{}') into v_classes from jsonb_array_elements_text(def->'targets'->'classIds');
+  select coalesce(array_agg(value::uuid),'{}') into v_students from jsonb_array_elements_text(def->'targets'->'userIds');
+  if exists(select 1 from unnest(v_classes) id where not exists(select 1 from public.classes where class_id=id and archived_at is null))
+   or exists(select 1 from unnest(v_students) id where not exists(select 1 from public.profiles where user_id=id and role='student' and is_active)) then raise exception 'Invalid recipients'; end if;
+  def=def||jsonb_build_object('targetNames',coalesce((select jsonb_agg(name) from
+   (select name from public.classes where class_id=any(v_classes) union all select full_name from public.profiles where user_id=any(v_students)) names),'[]'));
+  insert into public.assessments(assessment_id,created_by,definition,last_request_id,last_request_hash) values(exam,p_actor,def,(p_input->>'requestId')::uuid,md5((p_input->'definition')::text))
+  on conflict(assessment_id) do update set definition=excluded.definition,version=assessments.version+1,last_request_id=excluded.last_request_id,last_request_hash=excluded.last_request_hash returning * into e;
+  return to_jsonb(e);
+ end if;
+ select * into e from public.assessments where assessment_id=exam;
+ if not found then raise exception 'Access denied'; end if;
+ if not admin and not public.tipy_assessment_access(p_actor,exam) then raise exception 'Access denied'; end if;
+ if p_action='detail' then
+  if admin then return jsonb_build_object('assessment',to_jsonb(e)); end if;
+  select * into assigned from public.assessment_assignments where assessment_id=exam and user_id=p_actor;
+  select * into t from public.assessment_attempts where assessment_id=exam and user_id=p_actor order by attempt_number desc limit 1;
+  return jsonb_build_object('assessment',jsonb_build_object('assessment_id',exam,'status',e.status,'definition',e.definition-'targets'-'selection'-'targetNames',
+   'teacher',coalesce((select full_name from public.profiles where user_id=e.created_by),'Thầy cô')),'attempt',case when t.attempt_id is null then null else to_jsonb(t) end,'allowedAttempts',assigned.allowed_attempts);
+ end if;
+ if p_action='publish' then
+  select * into e from public.assessments where assessment_id=exam for update;
+  if e.status='published' then return to_jsonb(e); end if;
+  if e.version<>(p_input->>'version')::integer then raise exception 'Conflict'; end if;
+  if jsonb_array_length(e.definition->'sections')=0 then raise exception 'Assessment has no content'; end if;
+  select coalesce(array_agg(value::uuid),'{}') into v_classes from jsonb_array_elements_text(e.definition->'targets'->'classIds');
+  select coalesce(array_agg(value::uuid),'{}') into v_students from jsonb_array_elements_text(e.definition->'targets'->'userIds');
+  perform 1 from public.classes where class_id=any(v_classes) for share;
+  perform 1 from public.class_members where class_id=any(v_classes) for share;
+  if exists(select 1 from unnest(v_classes) id where not exists(select 1 from public.classes where class_id=id and archived_at is null))
+   or exists(select 1 from unnest(v_students) id where not exists(select 1 from public.profiles where user_id=id and is_active and role='student')) then raise exception 'Invalid recipients'; end if;
+  insert into public.assessment_assignments(assessment_id,user_id,direct,class_ids)
+  select exam,p.user_id,p.user_id=any(v_students),array(select m.class_id from public.class_members m where m.user_id=p.user_id and m.is_active and m.class_id=any(v_classes))
+  from public.profiles p where p.role='student' and p.is_active and (p.user_id=any(v_students) or exists(select 1 from public.class_members m where m.user_id=p.user_id and m.is_active and m.class_id=any(v_classes))) on conflict do nothing;
+  if not exists(select 1 from public.assessment_assignments where assessment_id=exam) then raise exception 'No students to receive'; end if;
+  update public.assessments set status='published',published_at=now() where assessment_id=exam returning * into e;
+  return to_jsonb(e);
+ end if;
+ if p_action='results' then
+  select count(*) into amount from public.assessment_assignments where assessment_id=exam;
+  page=least(page,greatest(1,ceil(amount/20.0)::integer));
+  select coalesce(jsonb_agg(r order by r.full_name,r.user_id),'[]') into items from (
+   select p.user_id,p.full_name,p.username,assignment_row.allowed_attempts,coalesce((select jsonb_agg(jsonb_build_object('attempt_id',z.attempt_id,'attempt_number',z.attempt_number,'started_at',z.started_at,'submitted_at',z.submitted_at,'active_seconds',z.active_seconds,'results',z.results) order by z.attempt_number desc) from public.assessment_attempts z where z.assessment_id=exam and z.user_id=p.user_id),'[]') as attempts
+   from public.assessment_assignments assignment_row join public.profiles p using(user_id) where assignment_row.assessment_id=exam
+   order by p.full_name,p.user_id limit 20 offset (page-1)*20
+  )r;
+  return jsonb_build_object('items',items,'page',page,'pages',greatest(1,ceil(amount/20.0)::integer),'total',amount);
+ end if;
+ if p_action='retake' then
+  target=(p_input->>'userId')::uuid;
+  select * into assigned from public.assessment_assignments where assessment_id=exam and user_id=target for update;
+  if not found then raise exception 'Access denied'; end if;
+  select * into t from public.assessment_attempts where assessment_id=exam and user_id=target and attempt_id=(p_input->>'attemptId')::uuid;
+  if not found or t.submitted_at is null then raise exception 'Submit before retake'; end if;
+  update public.assessment_assignments set allowed_attempts=greatest(allowed_attempts,t.attempt_number+1) where assessment_id=exam and user_id=target;
+  return jsonb_build_object('completed',true);
+ end if;
+ if admin then raise exception 'Student assignment required'; end if;
+ select * into assigned from public.assessment_assignments where assessment_id=exam and user_id=p_actor for update;
+ if not found then raise exception 'Access denied'; end if;
+ if p_action='start' then
+  select * into t from public.assessment_attempts where assessment_id=exam and user_id=p_actor order by attempt_number desc limit 1;
+  if t.attempt_id is not null and t.submitted_at is null then return to_jsonb(t); end if;
+  if coalesce(t.attempt_number,0)>=assigned.allowed_attempts then raise exception 'Attempt already submitted'; end if;
+  insert into public.assessment_attempts(assessment_id,user_id,attempt_number) values(exam,p_actor,coalesce(t.attempt_number,0)+1) returning * into t;
+  return to_jsonb(t);
+ end if;
+ if p_action in ('checkpoint','submit') then
+  select * into t from public.assessment_attempts where attempt_id=(p_input->>'attemptId')::uuid and assessment_id=exam and user_id=p_actor for update;
+  if not found then raise exception 'Access denied'; end if;
+  fingerprint=md5((p_input->'payload')::text||(p_input->'results')::text);
+  if t.last_request_id=(p_input->>'requestId')::uuid then
+   if t.last_request_hash<>fingerprint then raise exception 'Conflict'; end if;
+   return to_jsonb(t);
+  end if;
+  if t.submitted_at is not null then
+   if p_action='submit' then return to_jsonb(t); end if;
+   raise exception 'Attempt already submitted';
+  end if;
+  if t.revision<>(p_input->>'revision')::integer then raise exception 'Conflict'; end if;
+  if (p_input->>'seconds')::integer<t.active_seconds or (p_input->>'seconds')::integer>extract(epoch from clock_timestamp()-t.started_at)+3 then raise exception 'Invalid time'; end if;
+  update public.assessment_attempts set payload=p_input->'payload',results=p_input->'results',active_seconds=(p_input->>'seconds')::integer,
+   revision=revision+1,last_request_id=(p_input->>'requestId')::uuid,last_request_hash=fingerprint,updated_at=now(),submitted_at=case when p_action='submit' then now() else null end
+  where attempt_id=t.attempt_id returning * into t;
+  return to_jsonb(t);
+ end if;
+ raise exception 'Unknown assessment action';
+end $$;
+revoke all on function public.tipy_assessment_access(uuid,uuid),public.tipy_assessment(uuid,text,jsonb) from public,anon,authenticated;
+grant execute on function public.tipy_assessment_access(uuid,uuid),public.tipy_assessment(uuid,text,jsonb) to service_role;
+commit;

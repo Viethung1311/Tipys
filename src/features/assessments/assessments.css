@@ -1,0 +1,240 @@
+.assessments-page {
+  width: min(1280px, calc(100% - 32px));
+  margin: 28px auto 48px;
+}
+.assessments {
+  font-family: var(--tipy-font-family);
+  font-size: 19px;
+  color: var(--tipy-text);
+  min-width: 0;
+}
+.assessments :is(h1, h2, h3, h4) {
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.assessments h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+.assessments h2 {
+  font-size: 28px;
+  margin: 16px 0;
+}
+.assessments h3 {
+  font-size: 23px;
+  margin: 16px 0 12px;
+}
+.assessments h4 {
+  font-size: 20px;
+  margin: 16px 0 8px;
+}
+.assessments p {
+  line-height: 1.65;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.assessments .panel {
+  padding: 24px;
+  margin-block: 20px;
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-card-radius);
+  background: var(--tipy-surface-raised);
+  box-shadow: var(--tipy-card-shadow);
+  min-width: 0;
+}
+.assessment-actions,
+.assessment-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 20px 0;
+}
+.assessment-actions .tipy-button {
+  min-width: 0;
+}
+.assessments :is(input, textarea, select) {
+  font: inherit;
+  max-width: 100%;
+  min-width: 0;
+}
+.assessments input:not([type='checkbox']),
+.assessments textarea,
+.assessments select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid var(--tipy-border);
+  border-radius: 12px;
+  background: var(--tipy-surface-raised);
+  color: var(--tipy-text);
+}
+.assessments label {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.assessments fieldset {
+  border: 1px solid var(--tipy-border);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px 0;
+  min-width: 0;
+}
+.assessments legend {
+  padding: 0 8px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.assessments details {
+  margin: 12px 0;
+  padding: 12px;
+  background: var(--tipy-surface);
+  border: 1px solid var(--tipy-border);
+  border-radius: 16px;
+}
+.assessments summary {
+  min-height: 48px;
+  cursor: pointer;
+  padding: 8px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.assessments .assessment-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.assessment-options label,
+.assessments .assessment-check {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  margin: 0;
+  padding: 8px;
+  border-radius: 12px;
+}
+.assessment-options input[type='checkbox'],
+.assessment-check input {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  accent-color: var(--tipy-play);
+}
+.assessment-options label:has(:checked) {
+  background: var(--tipy-play-soft);
+}
+.assessment-options span {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.assessment-picker {
+  margin-top: 20px;
+}
+.assessment-actions > button:not(.tipy-button),
+.assessment-picker > button,
+.assessment-pagination button {
+  min-height: 48px;
+  padding: 10px 16px;
+  font: inherit;
+  color: var(--tipy-play);
+  border: 1px solid var(--tipy-play);
+  border-radius: 12px;
+  background: var(--tipy-surface);
+  cursor: pointer;
+}
+.assessments button:disabled {
+  cursor: not-allowed;
+}
+.assessments :is(button, input, textarea, select, summary):focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 3px;
+}
+.assessment-summary {
+  padding: 24px;
+  background: var(--tipy-surface);
+  border-radius: 24px;
+}
+.assessment-summary ol {
+  padding-left: 28px;
+}
+.assessment-summary li {
+  padding: 8px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.assessment-summary small {
+  color: var(--tipy-text-muted);
+}
+.assessment-section-card {
+  border-top: 1px solid var(--tipy-border);
+  margin-top: 20px;
+}
+.assessment-list-item > .tipy-button {
+  margin-top: 16px;
+}
+.assessment-list-item > strong {
+  display: block;
+  color: var(--tipy-play);
+}
+.assessment-run-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.assessment-run-header h1 {
+  margin: 0;
+}
+.assessment-section-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 20px;
+}
+.assessment-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+}
+.assessment-results > section {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--tipy-border);
+}
+.assessment-runner .game-page {
+  width: 100%;
+  margin: 20px 0;
+}
+.assessment-runner .quest-play-scene {
+  margin: 20px 0;
+}
+.admin-assessments {
+  font-size: 16px;
+  --tipy-button-height: 48px;
+}
+.admin-assessments .tipy-button {
+  min-height: 48px;
+  font-size: 16px;
+  padding: 10px 16px;
+}
+@media (max-width: 680px) {
+  .assessments-page {
+    width: calc(100% - 24px);
+  }
+  .assessments fieldset,
+  .assessments .panel,
+  .assessment-summary {
+    padding: 16px;
+  }
+  .assessment-actions {
+    align-items: stretch;
+  }
+  .assessment-actions .tipy-button {
+    flex: 1 1 160px;
+  }
+}

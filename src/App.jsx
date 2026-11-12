@@ -12,6 +12,7 @@ const KeyboardQuest = lazy(() => import('./features/keyboard-quest/KeyboardQuest
 const TypingSetup = lazy(() => import('./features/typing/TypingSetup.jsx'));
 const TypingGame = lazy(() => import('./features/typing/TypingGame.jsx'));
 const ClassroomPage = lazy(() => import('./features/classroom/ClassroomPage.jsx'));
+const AssessmentsPage = lazy(() => import('./features/assessments/AssessmentsPage.jsx'));
 import Loading from './components/Loading.jsx';
 import Reveal from './shared/Reveal.jsx';
 import useGameAudio from './hooks/useGameAudio.js';
@@ -28,7 +29,9 @@ export default function App() {
           ? 'quest'
           : location.hash === '#classroom'
             ? 'classroom'
-            : 'home',
+            : location.hash === '#tests'
+              ? 'tests'
+              : 'home',
   );
   const [settings, setSettings] = useState(readSettings),
     [runSettings, setRunSettings] = useState(settings);
@@ -114,7 +117,7 @@ export default function App() {
     );
   };
   const { preferences, setPreferences, play } = useGameAudio(
-    ['game', 'quest'].includes(screen) && gamePlaying && !audioOpen && !accountOpen,
+    ['game', 'quest', 'tests'].includes(screen) && gamePlaying && !audioOpen && !accountOpen,
   );
   useEffect(() => save('tipy-settings', settings), [settings]);
   const start = (ranked = false) => {
@@ -182,6 +185,12 @@ export default function App() {
             Lớp học
           </button>
         )}
+        <button
+          aria-current={screen === 'tests' ? 'page' : undefined}
+          onClick={() => navigate('tests')}
+        >
+          Bài kiểm tra
+        </button>
         <div className="header-account-group">
           <Account
             onUser={setUser}
@@ -245,6 +254,15 @@ export default function App() {
             onPlayingChange={setGamePlaying}
             avatarOverride={myAvatar && myAvatar.userId === user?.user_id ? myAvatar.value : null}
             onBack={() => navigate('library')}
+          />
+        ) : screen === 'tests' ? (
+          <AssessmentsPage
+            key={user?.user_id || 'guest'}
+            user={user}
+            classes={classes}
+            sound={play}
+            blocked={audioOpen || accountOpen}
+            onPlayingChange={setGamePlaying}
           />
         ) : screen === 'setup' ? (
           <Reveal key="setup">

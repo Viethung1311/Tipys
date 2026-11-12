@@ -27,11 +27,16 @@ export default function Game({
   audioOpen,
   onPlayingChange,
   user,
+  assessment = null,
 }) {
   const recorder = useRef(null),
     latest = useRef(null);
   const [saveMessage, setSaveMessage] = useState('');
   const finished = (state) => {
+    if (assessment) {
+      assessment.onChange(state, true);
+      return false;
+    }
     recorder.current?.update(state, 'game_over');
     return onFinish(state);
   };
@@ -41,19 +46,27 @@ export default function Game({
     pause,
     resume,
     restart,
-  } = useFallingGame(settings, finished, sound, (state) => {
-    latest.current = { ...state };
-    recorder.current?.update(state);
-  });
+  } = useFallingGame(
+    settings,
+    finished,
+    sound,
+    (state) => {
+      latest.current = { ...state };
+      assessment?.onChange(state);
+      recorder.current?.update(state);
+    },
+    assessment?.initial,
+  );
   latest.current = s;
   useEffect(() => {
-    if (user) recorder.current = playRecorder(user, settings, setSaveMessage);
+    if (user && !assessment) recorder.current = playRecorder(user, settings, setSaveMessage);
     const leaving = () => {
       if (latest.current) recorder.current?.abandon(latest.current);
     };
     window.addEventListener('pagehide', leaving);
     return () => {
       window.removeEventListener('pagehide', leaving);
+      if (assessment && latest.current) assessment.onChange(latest.current, false, true);
       if (latest.current) recorder.current?.update(latest.current, 'quit');
     };
   }, []);
@@ -70,7 +83,20 @@ export default function Game({
   useEffect(() => {
     if (audioOpen) pause();
   }, [audioOpen, pause]);
-  const best = load(recordKey(settings), 0);
+  const best = assessment ? 0 : load(recordKey(settings), 0);
+  if (assessment && s.status === 'result')
+    return (
+      <section className="panel assessment-section-result">
+        <h2>Đã kết thúc phần Chữ rơi</h2>
+        <p>
+          {s.score} điểm · {s.correct} đúng · {s.wrong} sai · {accuracy(s)}% chính xác
+        </p>
+        <p>Phần này không cộng sao hoặc điểm xếp hạng luyện tập.</p>
+        <TipyButton icon={ArrowLeft} onClick={assessment.onBack}>
+          Các phần
+        </TipyButton>
+      </section>
+    );
   return (
     <main className="game-page">
       {saveMessage && (
@@ -80,7 +106,7 @@ export default function Game({
       )}
       <div className="game-heading">
         <button className="text-button" onClick={pause}>
-          <ArrowLeft size={17} /> Khu luyện tập
+          <ArrowLeft size={17} /> {assessment ? 'Phần Chữ rơi' : 'Khu luyện tập'}
         </button>
         <span className="tag">
           {settings.ranked ? 'Thi đấu tuần · A–Z · ' : ''}
@@ -180,17 +206,22 @@ export default function Game({
           <TipyButton variant="play" icon={Play} className="full" onClick={resume}>
             Tiếp tục
           </TipyButton>
-          <TipyButton
-            variant="play"
-            emphasis="secondary"
-            icon={RotateCcw}
-            className="full"
-            onClick={playAgain}
+          {!assessment && (
+            <TipyButton
+              variant="play"
+              emphasis="secondary"
+              icon={RotateCcw}
+              className="full"
+              onClick={playAgain}
+            >
+              Chơi lại
+            </TipyButton>
+          )}
+          <button
+            className="text-button centered"
+            onClick={assessment ? assessment.onBack : onHome}
           >
-            Chơi lại
-          </TipyButton>
-          <button className="text-button centered" onClick={onHome}>
-            <Home size={17} /> Về trang chủ
+            <Home size={17} /> {assessment ? 'Các phần' : 'Về trang chủ'}
           </button>
         </Modal>
       )}

@@ -168,6 +168,15 @@ Modal chọn nhân vật dùng header cố định trong khung với nút X 48 �
 
 ## Áp dụng toàn website
 
+### Bài kiểm tra
+
+- Mục Bài kiểm tra ở sau Lớp học nếu có, nếu không thì sau Gõ chữ. Nhóm tài khoản/avatar/sao luôn ở cột cuối bên phải; dưới 1000 px xuống hàng riêng, dưới 680 px các mục điều hướng chia hai cột, giữ vị trí ổn định dù ẩn Lớp học.
+- Học sinh dùng danh sách → giới thiệu → Bắt đầu/Tiếp tục → các phần → Nộp bài. Hiện Chưa làm/Đang làm/Đã nộp; bài chưa hoàn thành có modal xác nhận nộp. Không có bảng điểm chung khác đơn vị hoặc sao luyện tập trong kết quả kiểm tra.
+- Công cụ giáo viên dùng cùng TipyButton, Modal, token và form hiện có, nút gọn 48 px. Kho nội dung đọc 327 mục từ 39 bài/chủ đề thực, sắp theo Màn → Bài → Nội dung; không sửa Từ vựng. Chọn bằng Set mã mục, giữ qua tìm kiếm/thu gọn/trang chọn người nhận; nút chọn tất cả ghi rõ phạm vi (cả kết quả lọc đang thu gọn hoặc toàn màn).
+- Xem trước lưu nháp và mở bản tổng hợp; Chỉnh sửa giữ lựa chọn; Gửi bài riêng chỉ khi có phần và người nhận. Đề đã gửi có Tạo bản mới, không chỉnh trực tiếp. Nơi nhận là các thành viên tại thời điểm gửi và các học sinh chọn riêng; học sinh nhận qua lớp cần còn là thành viên lớp đang hoạt động. Quyền quản lý hiện tại là role admin dùng chung với giáo viên.
+- Mỗi lượt có checkpoint riêng; hiện Đang lưu/Đã lưu/lỗi rõ, lỗi không được báo thành danh sách trống. Lỗi ghi tạm dừng engine, cho thử lại hoặc mở dữ liệu mới. Tái sử dụng LessonPlayer và TypingGame bằng adapter; không gọi start/progress/quest_finish luyện tập trong chế độ này. Bàn phím, IME, pause và cấu hình được giữ; sao/điểm tuần không thay đổi.
+- Kiểm tra trọn luồng qua `scripts/check-assessments.mjs` bằng API thật và SQL trên PGlite riêng, ở 320/768/1440. Không tạo đề hoặc gửi đề thử vào Supabase thật. Giọng đọc/thiết bị thật và tải lớp đông cần kiểm chứng riêng.
+
 ### Xóa vĩnh viễn lớp
 
 Chỉ lớp đã lưu trữ có nút Xóa vĩnh viễn cạnh Khôi phục lớp. Dùng TipyButton với lớp chung `tipy-button--danger`, modal xác nhận tên lớp chính xác, nêu dữ liệu mất và không thể khôi phục. Khóa gửi trùng/đóng khi đang xóa. Nếu database đã xóa nhưng Storage chưa dọn hết, hiển thị đúng trạng thái và nút Dọn tệp còn lại, giữ sau reload.

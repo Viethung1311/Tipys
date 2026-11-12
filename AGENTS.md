@@ -67,4 +67,6 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 
 ## Phạm vi chuẩn hóa toàn website
 
+Bài kiểm tra dùng module `src/features/assessments`, SQL `db/assessments.sql` và tài khoản/lớp hiện có. Chỉ backend chấm và ghi kết quả riêng; adapter của hai engine không được gọi endpoint luyện tập, cộng sao hoặc bảng tuần. Đề đã gửi là snapshot không sửa; quyền lớp được kiểm tra lại ở mỗi lần đọc/ghi. Dùng database/tài khoản thử, không gửi đề thử cho lớp thật.
+
 Đợt chuẩn hóa tiếp theo đã mở rộng ra toàn bộ website theo yêu cầu chủ dự án. Dùng `src/styles/tipy-ui.css` cùng token chung, giữ bố cục gameplay ở feature riêng. TipyButton dùng cả cho quản trị và các thao tác lớp/file; quản trị kế thừa bộ token nút gọn 48 px, học sinh giữ nút chính 64 px. Chi tiết và kiểm tra được ghi trong MASTER.md. Lịch sử chơi được đặt riêng trong quản trị; không thêm lại tab này vào Tài khoản/Nhân vật.

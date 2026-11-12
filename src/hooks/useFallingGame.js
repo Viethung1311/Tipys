@@ -2,9 +2,24 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { createGame, advance, press, speed } from '../game/engine.js';
 import { physicalKey } from '../game/config.js';
 import { companionSay } from '../characters/companion-speech.js';
-export default function useFallingGame(settings, onFinish, onSound, onProgress) {
+export default function useFallingGame(
+  settings,
+  onFinish,
+  onSound,
+  onProgress,
+  initialState = null,
+) {
   const model = useRef(null);
-  if (!model.current) model.current = createGame(settings);
+  if (!model.current)
+    model.current = initialState
+      ? {
+          ...createGame(settings),
+          ...initialState,
+          settings,
+          previous: initialState.status === 'paused' ? initialState.previous : initialState.status,
+          status: initialState.status === 'result' ? 'result' : 'paused',
+        }
+      : createGame(settings);
   const [view, setView] = useState(() => ({ ...model.current }));
   const finish = useRef(onFinish),
     sound = useRef(onSound),

@@ -27,13 +27,29 @@
   outline-offset: 4px;
 }
 .header-account-group {
-  grid-column: 4;
+  grid-column: 5;
   justify-self: end;
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 12px;
   min-width: 0;
+}
+.main-nav {
+  grid-template-columns: auto auto auto auto minmax(0, 1fr);
+}
+@media (max-width: 1000px) {
+  .main-nav:has(.header-account-group) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .main-nav .header-account-group {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 680px) {
+  .main-nav:has(.header-account-group) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 680px) {
   .header-account-group {

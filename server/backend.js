@@ -7,6 +7,7 @@ import { createGames } from './modules/games.js';
 import { createClassrooms } from './modules/classrooms.js';
 import { createStudents } from './modules/students.js';
 import { createStars } from './modules/stars.js';
+import { createAssessments } from './modules/assessments.js';
 export { ApiError, requireAdmin } from './errors.js';
 export { username, credential, emailFor } from './modules/identity.js';
 export { validateLevels, validateProgress } from './modules/game-validation.js';
@@ -27,5 +28,6 @@ export function createBackend(env, clientFactory = createClient) {
     ...createClassrooms(db),
     ...createKeyboardQuest(db),
     ...createStars(db),
+    ...createAssessments(db),
   };
 }

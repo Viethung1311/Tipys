@@ -24,6 +24,7 @@ import { companionSay } from '../../characters/companion-speech.js';
 export default function LessonPlayer({
   lesson,
   world = null,
+  assessment = null,
   user,
   sound,
   blocked,
@@ -38,20 +39,24 @@ export default function LessonPlayer({
 }) {
   const formId = useId();
   const [phase, setPhase] = useState(user ? 'starting' : 'playing'),
-    [index, setIndex] = useState(0),
+    [index, setIndex] = useState(() =>
+      Math.max(0, assessment?.answers?.findIndex((row) => !row.answer) ?? 0),
+    ),
     [value, setValue] = useState(''),
     [feedback, setFeedback] = useState(''),
     [hint, setHint] = useState(true),
-    [seconds, setSeconds] = useState(0),
+    [seconds, setSeconds] = useState(assessment?.seconds || 0),
     [saving, setSaving] = useState(false),
     [saveError, setSaveError] = useState(''),
     [saved, setSaved] = useState(false),
     [reward, setReward] = useState(null),
     [lastKey, setLastKey] = useState(''),
     [ime, setIme] = useState(false);
-  const answers = useRef(createAnswers(lesson)),
+  const answers = useRef(
+      assessment?.answers ? structuredClone(assessment.answers) : createAnswers(lesson),
+    ),
     session = useRef(null),
-    elapsed = useRef(0),
+    elapsed = useRef((assessment?.seconds || 0) * 1000),
     tick = useRef(null),
     composing = useRef(false),
     input = useRef(null),
@@ -81,7 +86,7 @@ export default function LessonPlayer({
     // StrictMode replays effects; do not start an abandoned lesson on the server.
     Promise.resolve().then(() => {
       if (!user || cancelled) return;
-      recording = createLessonSession(lesson);
+      recording = assessment?.session || createLessonSession(lesson);
       session.current = recording;
       recording.ready
         .then(() => {
@@ -157,11 +162,21 @@ export default function LessonPlayer({
         }
       } else {
         row.errors++;
-        row[errorKind({ ...lesson, kind }, answer, target.target)]++;
+        row[
+          errorKind(
+            { ...lesson, kind, telex: assessment ? Boolean(target.telex) : lesson.telex },
+            answer,
+            target.target,
+          )
+        ]++;
         setFeedback('Thử lại nhé! Nhìn mẫu một lần nữa.');
         sound('wrong');
         companionSay('wrong');
       }
+      assessment?.onChange(
+        answers.current.map((item) => ({ ...item })),
+        Math.floor(elapsed.current / 1000),
+      );
     },
     [phase, blocked, index, target, lesson, sound, kind],
   );
@@ -274,6 +289,32 @@ export default function LessonPlayer({
         </TipyButton>
       </section>
     );
+  if (phase === 'result')
+    if (assessment)
+      return (
+        <section className="panel assessment-section-result">
+          <h2>Đã hoàn thành phần gõ</h2>
+          <p>
+            {grade.correct} lượt đúng · {grade.wrong} lượt sai · {grade.accuracy}% chính xác
+          </p>
+          <p role="status">
+            {saving
+              ? 'Đang lưu phần làm bài…'
+              : saved
+                ? 'Đã lưu phần làm bài. Bạn vẫn cần bấm Nộp bài.'
+                : ''}
+          </p>
+          {saveError && <p role="alert">{saveError}</p>}
+          {saveError && (
+            <TipyButton icon={Save} onClick={persist} loading={saving}>
+              Thử lưu lại
+            </TipyButton>
+          )}
+          <TipyButton icon={ArrowLeft} disabled={!saved || saving} onClick={() => onBack()}>
+            Các phần
+          </TipyButton>
+        </section>
+      );
   if (phase === 'result')
     return (
       <section className="panel quest-result">

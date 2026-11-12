@@ -1,5 +1,19 @@
 # TIPY backend · Supabase + Vercel
 
+## Bài kiểm tra
+
+Migration `db/assessments.sql` bổ sung ba bảng vào database hiện tại: `assessments` (nháp/snapshot đã gửi), `assessment_assignments` (mỗi người nhận một hàng, gộp nguồn lớp và chỉ định riêng), `assessment_attempts` (checkpoint và kết quả từng lượt). FK dùng profiles/classes hiện có; số lớp nguồn lưu làm snapshot UUID, khi mở luôn đối chiếu class_members/classes đang hoạt động. Xóa/lưu trữ/rời lớp mất quyền nhận qua lớp; bản ghi kết quả vẫn được giữ cho giáo viên, không xóa đề dùng chung. Xóa học sinh cascade assignment/lượt riêng. Không có bảng tài khoản hoặc engine mới.
+
+RLS bật, anon/authenticated không có quyền bảng/RPC. Hàm service-only `tipy_assessment` kiểm tra profile active/role từ DB, kiểm tra quyền người nhận mỗi lần đọc/ghi; actor API lấy từ session, bỏ qua role/userId giả. Admin là quyền giáo viên hiện có và quản lý toàn bộ lớp theo cơ chế hiện tại. Bản nháp không có assignment và không thể đọc bằng đổi ID. Phản hồi học sinh không chứa danh sách người nhận. Danh sách/kết quả phân trang 20 hàng; bộ chọn người nhận dùng students_page sẵn có (7 hàng).
+
+GET `assessments`, `assessment`, `assessment_results`; POST `assessment_save`, `assessment_publish`, `assessment_start`, `assessment_checkpoint`, `assessment_submit`, `assessment_retake`. Save/publish/results/retake chỉ admin. Backend tạo snapshot từ ID của 327 nội dung thật (30 bài chính + 9 chủ đề từ vựng), không tin target/kind/điểm từ browser; Chữ rơi chỉ nhận bộ phím và độ khó hỗ trợ, chụp cấu hình server lúc lưu. Đã gửi bất biến; thay đổi kho gốc không thay snapshot, muốn thay phải tạo bản mới.
+
+Publish khóa nháp và chụp các thành viên hiện có của các lớp được chọn, gộp với học sinh chọn riêng, bỏ trùng. Không tự giao đề cũ cho thành viên thêm sau này; gửi đề/bản mới nếu cần. SQL xác minh lớp active và hồ sơ student. Gửi lại không thêm assignment; save dùng phiên bản và mã yêu cầu; xung đột không ghi đè. Một lượt chính thức mặc định; start lặp trả lượt đang làm, retake theo UUID lượt đã nộp chỉ mở thêm một quyền làm (tối đa 100 lượt có kiểm soát), gửi lặp không tăng quyền nhiều lần. Giữ kết quả các lượt trước.
+
+Checkpoint và submit khóa assignment/lượt, kiểm tra revision và mã yêu cầu/hash chống gửi trùng/hai tab. Backend chấm theo snapshot, kiểm tra đúng Unicode, số lỗi hợp lệ/không lùi, thời gian không vượt đồng hồ server; Chữ rơi dùng validateProgress và kiểm tra snapshot engine có thể phục hồi. Thời gian chờ sinh chữ đã âm được chuẩn hóa về 0 trước lưu, không nới giới hạn xác thực. Kết quả từng phần giữ điểm/counters/độ chính xác/thời gian riêng; không cộng các thang điểm. Cơ chế kiểm tra tính nhất quán như engine hiện tại, không chứng thực bàn phím hay chống bot.
+
+Adapter LessonPlayer/TypingGame không gọi RPC luyện tập; tổng sao, player_game_stats, player_lesson_progress và bảng tuần không ghi. Queue checkpoint có một yêu cầu đang chạy, gộp trạng thái mới, giữ đúng token khi mạng lỗi; lưu theo câu/nhóm thao tác và nhịp 10 giây, không lưu từng lần nhập ký tự từ/câu. Hiện trạng thái lưu, resume từ database; đoạn đang gõ chưa bấm Kiểm tra chưa là câu đã làm. Hai tab xung đột phải mở lại, không ghi đè. Ba action mang nội dung lớn có body tối đa 256 KB; các action cũ giữ 16 KB. Không gửi bài thử hoặc nộp bài cho lớp thật để kiểm tra.
+
 ## Sao thưởng và xếp hạng tuần
 
 `db/stars.sql` bổ sung sổ `star_rewards` unique user/source/key (không đổi điểm cũ), cột awarded_stars/award_play_id/reward_status riêng với best_stars. Bài cũ đã hoàn thành chỉ có receipt legacy 0 sao vì snapshot best/latest không chứng minh lần đầu; không cấp bù suy đoán. Wrapper RPC kết thúc bài khóa cùng hàng stats như begin/save, ghi tiến độ và nguồn thưởng trong cùng transaction; tổng từ SUM receipt nên ghi thưởng và tổng hiển thị nguyên tử. Reset kỹ thuật không xóa receipt. RPC/table chỉ service_role, không có HTTP cộng sao/chốt thưởng cho học sinh.

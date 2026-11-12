@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { api } from '../game/backend.js';
 import { LEVELS } from '../game/config.js';
 import { practiceTime } from '../game/results.js';
@@ -11,6 +11,7 @@ import { LogIn, LogOut, Save } from 'lucide-react';
 import AccountPoints from '../components/AccountPoints.jsx';
 import Companion from '../components/Companion.jsx';
 import useCompanion from '../hooks/useCompanion.js';
+const AdminAssessments = lazy(() => import('../features/assessments/AdminAssessments.jsx'));
 const fields = [
   ['fall', 'Thời gian rơi ban đầu (giây)', 1, 30, 0.1],
   ['minFall', 'Thời gian rơi nhanh nhất (giây)', 1, 30, 0.1],
@@ -248,6 +249,7 @@ export default function AdminPage() {
                 ['students', 'Học sinh & thời gian'],
                 ['results', 'Lịch sử chơi'],
                 ['games', 'Tốc độ & độ khó'],
+                ['tests', 'Bài kiểm tra'],
               ].map(([value, label]) => (
                 <button
                   key={value}
@@ -306,6 +308,11 @@ export default function AdminPage() {
                 studentId={historyStudentId}
                 onStudentChange={setHistoryStudentId}
               />
+            )}
+            {tab === 'tests' && (
+              <Suspense fallback={<Loading label="Đang mở bài kiểm tra…" />}>
+                <AdminAssessments classes={classes} />
+              </Suspense>
             )}
             {tab === 'games' && (
               <section className="panel">

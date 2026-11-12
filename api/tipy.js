@@ -37,14 +37,19 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
       }
       let body = req.body || {};
       if (typeof body === 'string') {
-        if (Buffer.byteLength(body) > 16384) throw new ApiError(413, 'Yêu cầu quá lớn.');
+        if (Buffer.byteLength(body) > 262144) throw new ApiError(413, 'Yêu cầu quá lớn.');
         try {
           body = JSON.parse(body);
         } catch {
           throw new ApiError(400, 'JSON chưa hợp lệ.');
         }
       }
-      if (Buffer.byteLength(JSON.stringify(body)) > 16384)
+      const largeAssessment = [
+        'assessment_save',
+        'assessment_checkpoint',
+        'assessment_submit',
+      ].includes(body.action);
+      if (Buffer.byteLength(JSON.stringify(body)) > (largeAssessment ? 262144 : 16384))
         throw new ApiError(413, 'Yêu cầu quá lớn.');
       const action = req.method === 'GET' ? req.query?.action || 'bootstrap' : body.action;
       if (action === 'bootstrap' && !ready(env))
@@ -156,7 +161,20 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         setSession(res, null, production);
         return res.status(200).json({ ok: true });
       }
+      const assessmentReads = {
+        assessments: 'assessments',
+        assessment: 'assessment',
+        assessment_results: 'assessmentResults',
+      };
+      if (req.method === 'GET' && assessmentReads[action])
+        return res.status(200).json(await backend[assessmentReads[action]](profile, req.query));
       const actions = {
+        assessment_save: 'assessmentSave',
+        assessment_publish: 'assessmentPublish',
+        assessment_start: 'assessmentStart',
+        assessment_checkpoint: 'assessmentWrite',
+        assessment_submit: 'assessmentSubmit',
+        assessment_retake: 'assessmentRetake',
         student_reset: 'studentReset',
         star_gift: 'starGift',
         class_save: 'classSave',
