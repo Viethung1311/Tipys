@@ -107,7 +107,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 ### Mở rộng hành trình
 
 - Các góc Bản đồ, Tiến bộ, Từ vựng chỉ mount góc đang xem. Nút dùng TipyButton; bảng Telex dùng disclosure native, summary cao tối thiểu 48 px.
-- Huy hiệu học tập luôn có chữ “Đã nhận” hoặc điều kiện; không chỉ đổi màu. Kho báu, sticker và chế độ săn kho báu đã bỏ; chưa triển khai store. Sao chỉ theo dõi tiến độ, không hiển thị thêm một loại tiền riêng.
+- Huy hiệu học tập luôn có chữ “Đã nhận” hoặc điều kiện; không chỉ đổi màu. Kho báu, bộ sưu tập sticker và chế độ săn kho báu đã bỏ; chưa triển khai store. Sao chỉ theo dõi tiến độ, không hiển thị thêm một loại tiền riêng. Sticker chữ trong thử thách là tài nguyên hiển thị bài học.
 - Xe chỉ di chuyển khi hoàn thành một lượt đúng, không chạy hiệu ứng liên tục. Không gây áp lực thời gian. Hồ sơ hiển thị 5 bài gần đây và chứng nhận khi đủ 30 màn.
 - Báo cáo giáo viên là bảng riêng, có vùng cuộn bàn phím trên máy hẹp, loading/lỗi/thử lại rõ. Báo cáo không xuất hiện với học sinh; quyền còn được kiểm tra ở backend.
 
@@ -133,6 +133,14 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 - Chi tiết màn dùng Modal chung có X 48 px, Esc và focus về nút mở. Không có bảng gỗ/menu. Giữ nút về bản đồ và danh sách bài; không rời bài khi đang bắt đầu hoặc lưu kết quả, chuyển màn chờ hàng đợi ghi lượt hiện có.
 - Chỉ nền của màn đang xem được mount. Nhân vật bản đồ tải khi đi vào vùng cuộn; PNG được nén lossless, giữ kích thước, alpha và dữ liệu điểm ảnh. `prepare-quest-art.mjs` kiểm tra điểm ảnh không đổi; không đưa ảnh ngoài bộ dùng vào public.
 - Kiểm tra riêng bằng `node scripts/check-adventure.mjs`: vùng bấm, khóa/mở, chi tiết/X/Esc, làm bài, tiến độ sau reload và cả năm nền tại 320/768/1440 px. Kịch bản dùng API giả lập, không ghi Supabase thật.
+
+### Phần làm bài năm màn
+
+- Chỉ các bài có `world` 1–5 dùng LessonPlayfield và `playfield.css`. AdventureScene nhận `playing` để dùng nền cả khu vực, không có khung trắng ngoài hoặc nhân vật bên phải. Hàng trên là thời gian/tên bài/Tạm dừng; tiến độ nhỏ gọn, thử thách ở trên, nhân vật màn bên trái phía dưới, bàn phím hoặc ô nhập thật ở giữa, Nghe mẫu/gợi ý/Kiểm tra bên phải. Phím cách nằm dưới bàn phím. Chỉ một nút Bản đồ ngoài góc trái về đảo; kết quả có Danh sách bài để quay lại màn.
+- Điều khiển/đồng hồ/chấm bài/IME/lưu và sao vẫn thuộc LessonPlayer. Không đổi lesson ID, dữ liệu bài, engine hoặc quy tắc thưởng. Giữ mô tả bài (kể cả hướng dẫn không nhập thông tin cá nhân thật). Tạm dừng khóa nhập và dừng đồng hồ.
+- 32 PNG nguyên bản 256 × 256 trong `src/assets/alphabet`, URL đóng gói bởi Vite; chỉ ảnh ký tự đang hiển thị được tải. Ánh xạ dùng chung trong `letter-stickers.js` gồm A–Z, Ă/Â/Ê/Ô/Ơ/Ư; tra đúng hoa/thường và NFC chỉ cho hiển thị. Không tự ghép dấu, không đổi chữ nhập. Thiếu ảnh/lỗi tải dùng chữ Nunito đầy đủ dấu; danh sách thiếu ở README cạnh ảnh. Từ/câu không ghép thành dãy sticker.
+- CSS chỉ scope `.quest-play-scene`/`.quest-playfield`. Điện thoại giữ phím 48 px, bàn phím cuộn riêng, không tràn trang; ô nhập thật đủ lớn, điều khiển xuống hàng. Trong bố cục này tạm ẩn lớp nhân vật đồng hành nổi để tránh che bài; không đổi tùy chọn đã lưu, avatar hoặc nhân vật hướng dẫn màn.
+- Toàn bộ Từ vựng (`world: 0`), danh sách 9 chủ đề và phần làm bài của nó giữ nhánh giao diện cũ. Không áp dụng class mới hoặc sticker mới. Kiểm tra 30 bài/5 màn và 9 chủ đề ở 320/768/1440 bằng `scripts/check-lesson-playfield.mjs`; API giả lập, không trao sao thật. Giọng đọc thật phụ thuộc thiết bị có giọng tiếng Việt.
 
 ### Thao tác giáo viên và hướng dẫn lớp
 

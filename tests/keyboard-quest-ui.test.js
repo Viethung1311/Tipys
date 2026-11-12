@@ -135,6 +135,7 @@ test('guest quest completes with physical/touch keys, pauses, unlocks next lesso
     [...d.querySelectorAll('button')].find((el) => el.textContent.trim() === 'Bắt đầu').click();
     await sleep(20);
     assert.equal(d.querySelectorAll('.quest-lesson').length, 5);
+    assert.equal(d.querySelector('.quest-playfield'), null);
     assert.equal(
       [...d.querySelectorAll('.quest-lesson button')].filter((el) => el.disabled).length,
       4,
@@ -173,6 +174,11 @@ test('signed-in quest reads own progress and saves through existing authenticate
     await sleep(20);
     await click('Vào học');
     await until(() => d.querySelector('.quest-target'));
+    const sticker = d.querySelector('.quest-letter-sticker');
+    assert.ok(sticker);
+    sticker.dispatchEvent(new w.Event('error'));
+    await until(() => !d.querySelector('.quest-letter-sticker'));
+    assert.equal(d.querySelector('.quest-target').textContent, 'A');
     for (const item of LESSONS[0].items) {
       d.querySelector(`[aria-label="Gõ ${item.target}"]`).click();
       await sleep(12);
@@ -212,7 +218,7 @@ test('external navigation waits for final save and signed-in reload reads the sa
     release();
     await until(() => d.body.textContent.includes('Đã lưu vào tài khoản Zunimo'));
     await until(() => !d.querySelector('.adventure-breadcrumbs button').disabled);
-    await click('Bản đồ đảo');
+    await click('Bản đồ');
     assert.match(d.querySelector('[data-world-id="1"]').getAttribute('aria-label'), /1\/5/);
   } finally {
     release();
@@ -292,7 +298,7 @@ test('map details close without navigation; locked worlds stay locked without th
     assert.equal(d.querySelector('.adventure-world-lessons h2'), null);
     await click('Vào học');
     await until(() => d.querySelector('.quest-target'));
-    await click('Bản đồ đảo');
+    await click('Bản đồ');
     await until(() => d.querySelector('.adventure-map'));
     assert.equal(d.querySelector('.quest-target'), null);
     assert.ok(!calls.some((call) => call.action === 'avatar_save'));

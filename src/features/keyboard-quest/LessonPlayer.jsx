@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, useId } from 'react';
 import {
   ArrowLeft,
   Check,
@@ -11,6 +11,8 @@ import {
   Volume2,
 } from 'lucide-react';
 import Keyboard from '../../components/Keyboard.jsx';
+import LessonPlayfield from './LessonPlayfield.jsx';
+import LetterTarget from './LetterTarget.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
 import Modal from '../../components/Modal.jsx';
 import { physicalKey, SUPPORTED_KEYS } from '../../game/config.js';
@@ -21,6 +23,7 @@ import { companionSay } from '../../characters/companion-speech.js';
 
 export default function LessonPlayer({
   lesson,
+  world = null,
   user,
   sound,
   blocked,
@@ -33,6 +36,7 @@ export default function LessonPlayer({
   navigationRef,
   onNavigationLockChange,
 }) {
+  const formId = useId();
   const [phase, setPhase] = useState(user ? 'starting' : 'playing'),
     [index, setIndex] = useState(0),
     [value, setValue] = useState(''),
@@ -379,10 +383,221 @@ export default function LessonPlayer({
             disabled={saving}
             onClick={() => onBack()}
           >
-            Bản đồ
+            {world ? 'Danh sách bài' : 'Bản đồ'}
           </TipyButton>
         </div>
       </section>
+    );
+  const race = mode === 'race' && (
+    <div
+      className="quest-race"
+      aria-label={`Xe của bạn đã đi ${index} trên ${lesson.items.length} chặng`}
+    >
+      <span style={{ left: `${(index / lesson.items.length) * 85}%` }} aria-hidden="true">
+        🏎️
+      </span>
+      <b aria-hidden="true">🏁</b>
+      <p>Mỗi lượt đúng, xe tiến thêm một chặng. Không đếm ngược.</p>
+    </div>
+  );
+  const challenge = (
+    <div className="quest-challenge">
+      {(!world || (kind !== 'key' && (target.prompt || [...target.target].length > 1))) && (
+        <span className="quest-mascot" aria-hidden="true">
+          {target.image}
+        </span>
+      )}
+      <p>
+        {kind === 'key'
+          ? 'Tìm và bấm phím'
+          : target.prompt
+            ? 'Gõ chữ còn thiếu'
+            : 'Gõ đúng theo mẫu'}
+      </p>
+      <h2 className="quest-target">
+        {world ? (
+          <LetterTarget value={target.prompt || target.target} />
+        ) : (
+          target.prompt || (target.target === 'Space' ? 'Phím cách' : target.target)
+        )}
+      </h2>
+      {hint && (
+        <p className="quest-hint">
+          {kind === 'key'
+            ? FINGER_HINTS[target.target]
+            : target.example
+              ? `Telex: ${target.example}`
+              : 'Chú ý chữ hoa, khoảng trắng và dấu câu.'}
+        </p>
+      )}
+    </div>
+  );
+  const inputForm = kind === 'text' && (
+    <form
+      id={world ? formId : undefined}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!composing.current) submit(value);
+      }}
+    >
+      <label className="quest-input-label">
+        Gõ ở đây
+        <textarea
+          ref={input}
+          value={value}
+          rows={2}
+          maxLength={160}
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          disabled={phase !== 'playing' || blocked}
+          onCompositionStart={() => {
+            composing.current = true;
+            setIme(true);
+          }}
+          onCompositionUpdate={() => {
+            composing.current = true;
+            setIme(true);
+          }}
+          onCompositionEnd={() => {
+            composing.current = false;
+            setIme(false);
+          }}
+          onChange={(event) => setValue(event.target.value)}
+          onKeyDown={(event) => {
+            setLastKey(event.key === ' ' ? 'Cách' : event.key);
+            if (
+              event.key === 'Enter' &&
+              !event.shiftKey &&
+              !event.isComposing &&
+              !event.nativeEvent.isComposing &&
+              !composing.current &&
+              event.keyCode !== 229
+            ) {
+              event.preventDefault();
+              submit(value);
+            }
+          }}
+        />
+      </label>
+      {!world && (
+        <TipyButton type="submit" icon={Check} disabled={ime || phase !== 'playing' || blocked}>
+          Kiểm tra
+        </TipyButton>
+      )}
+    </form>
+  );
+  const feedbackContent = (
+    <>
+      <p className="quest-feedback" role="status" aria-live="polite">
+        {ime ? 'Đang ghép dấu…' : feedback || 'Mình cùng thử nhé!'}
+      </p>
+      {lastKey && <p className="quest-hint">Vừa bấm: {lastKey}</p>}
+    </>
+  );
+  const inputArea =
+    kind === 'key' ? (
+      <>
+        <Keyboard
+          keys={[...SUPPORTED_KEYS]}
+          lastKey={lastKey}
+          targetKey={world && !hint ? undefined : target.target}
+          disabled={phase !== 'playing' || blocked}
+          onKey={(key) => {
+            setLastKey(key);
+            submit(key);
+          }}
+        />
+        <TipyButton
+          variant="play"
+          emphasis="secondary"
+          className={
+            world
+              ? 'quest-space-key' + (hint && target.target === 'Space' ? ' quest-target-key' : '')
+              : undefined
+          }
+          disabled={world ? phase !== 'playing' || blocked : undefined}
+          onClick={() => {
+            if (world) setLastKey('Space');
+            submit('Space');
+          }}
+        >
+          Phím cách
+        </TipyButton>
+      </>
+    ) : (
+      <p className="quest-hint">
+        {lesson.telex
+          ? 'Bật Telex trên máy (UniKey/EVKey hoặc bộ gõ của thiết bị), rồi gõ vào ô. Bàn phím cảm ứng của máy cũng dùng được.'
+          : 'Dùng bàn phím của máy hoặc chạm vào ô để mở bàn phím cảm ứng.'}
+      </p>
+    );
+  const tools = (
+    <div className="quest-actions">
+      <TipyButton
+        emphasis="secondary"
+        icon={Volume2}
+        onClick={listen}
+        disabled={phase !== 'playing' || blocked}
+      >
+        Nghe mẫu
+      </TipyButton>
+      <TipyButton emphasis="secondary" icon={Lightbulb} onClick={() => setHint(!hint)}>
+        {hint ? 'Ẩn gợi ý' : world ? 'Hiện gợi ý' : 'Xem gợi ý'}
+      </TipyButton>
+      {world && kind === 'text' && (
+        <TipyButton
+          type="submit"
+          form={formId}
+          icon={Check}
+          disabled={ime || phase !== 'playing' || blocked}
+        >
+          Kiểm tra
+        </TipyButton>
+      )}
+      {!world && (
+        <TipyButton emphasis="secondary" icon={ArrowLeft} onClick={leave}>
+          Bản đồ
+        </TipyButton>
+      )}
+    </div>
+  );
+  const pauseDialog = phase === 'paused' && !blocked && (
+    <Modal title="Nghỉ một chút nhé" description="Thời gian luyện đã dừng. Không vội đâu!">
+      <TipyButton variant="play" icon={Play} className="full" onClick={() => setPhase('playing')}>
+        Tiếp tục
+      </TipyButton>
+      <TipyButton emphasis="secondary" icon={ArrowLeft} className="full" onClick={leave}>
+        Bản đồ
+      </TipyButton>
+    </Modal>
+  );
+  if (world)
+    return (
+      <LessonPlayfield
+        lesson={lesson}
+        world={world}
+        seconds={seconds}
+        index={index}
+        paused={phase !== 'playing' || blocked}
+        onPause={pause}
+        race={race}
+        challenge={challenge}
+        inputArea={
+          kind === 'key' ? (
+            inputArea
+          ) : (
+            <>
+              {inputForm}
+              {inputArea}
+            </>
+          )
+        }
+        controls={tools}
+        feedback={feedbackContent}
+        pauseDialog={pauseDialog}
+      />
     );
   return (
     <section className="panel quest-player">
@@ -399,153 +614,13 @@ export default function LessonPlayer({
         Lượt {index + 1}/{lesson.items.length} · Thời gian {seconds}s
       </p>
       {lesson.description && <p>{lesson.description}</p>}
-      {mode === 'race' && (
-        <div
-          className="quest-race"
-          aria-label={`Xe của bạn đã đi ${index} trên ${lesson.items.length} chặng`}
-        >
-          <span style={{ left: `${(index / lesson.items.length) * 85}%` }} aria-hidden="true">
-            🏎️
-          </span>
-          <b aria-hidden="true">🏁</b>
-          <p>Mỗi lượt đúng, xe tiến thêm một chặng. Không đếm ngược.</p>
-        </div>
-      )}
-      <div className="quest-challenge">
-        <span className="quest-mascot" aria-hidden="true">
-          {target.image}
-        </span>
-        <p>
-          {kind === 'key'
-            ? 'Tìm và bấm phím'
-            : target.prompt
-              ? 'Gõ chữ còn thiếu'
-              : 'Gõ đúng theo mẫu'}
-        </p>
-        <h2 className="quest-target">
-          {target.prompt || (target.target === 'Space' ? 'Phím cách' : target.target)}
-        </h2>
-        {hint && (
-          <p className="quest-hint">
-            {kind === 'key'
-              ? FINGER_HINTS[target.target]
-              : target.example
-                ? `Telex: ${target.example}`
-                : 'Chú ý chữ hoa, khoảng trắng và dấu câu.'}
-          </p>
-        )}
-      </div>
-      {kind === 'text' && (
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!composing.current) submit(value);
-          }}
-        >
-          <label className="quest-input-label">
-            Gõ ở đây
-            <textarea
-              ref={input}
-              value={value}
-              rows={2}
-              maxLength={160}
-              autoCapitalize="off"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              disabled={phase !== 'playing' || blocked}
-              onCompositionStart={() => {
-                composing.current = true;
-                setIme(true);
-              }}
-              onCompositionUpdate={() => {
-                composing.current = true;
-                setIme(true);
-              }}
-              onCompositionEnd={() => {
-                composing.current = false;
-                setIme(false);
-              }}
-              onChange={(event) => setValue(event.target.value)}
-              onKeyDown={(event) => {
-                setLastKey(event.key === ' ' ? 'Cách' : event.key);
-                if (
-                  event.key === 'Enter' &&
-                  !event.shiftKey &&
-                  !event.isComposing &&
-                  !event.nativeEvent.isComposing &&
-                  !composing.current &&
-                  event.keyCode !== 229
-                ) {
-                  event.preventDefault();
-                  submit(value);
-                }
-              }}
-            />
-          </label>
-          <TipyButton type="submit" icon={Check} disabled={ime || phase !== 'playing' || blocked}>
-            Kiểm tra
-          </TipyButton>
-        </form>
-      )}
-      <p className="quest-feedback" role="status" aria-live="polite">
-        {ime ? 'Đang ghép dấu…' : feedback || 'Mình cùng thử nhé!'}
-      </p>
-      {lastKey && <p className="quest-hint">Vừa bấm: {lastKey}</p>}
-      {kind === 'key' ? (
-        <>
-          <Keyboard
-            keys={[...SUPPORTED_KEYS]}
-            lastKey={lastKey}
-            targetKey={target.target}
-            disabled={phase !== 'playing' || blocked}
-            onKey={(key) => {
-              setLastKey(key);
-              submit(key);
-            }}
-          />
-          <TipyButton variant="play" emphasis="secondary" onClick={() => submit('Space')}>
-            Phím cách
-          </TipyButton>
-        </>
-      ) : (
-        <p className="quest-hint">
-          {lesson.telex
-            ? 'Bật Telex trên máy (UniKey/EVKey hoặc bộ gõ của thiết bị), rồi gõ vào ô. Bàn phím cảm ứng của máy cũng dùng được.'
-            : 'Dùng bàn phím của máy hoặc chạm vào ô để mở bàn phím cảm ứng.'}
-        </p>
-      )}
-      <div className="quest-actions">
-        <TipyButton
-          emphasis="secondary"
-          icon={Volume2}
-          onClick={listen}
-          disabled={phase !== 'playing' || blocked}
-        >
-          Nghe mẫu
-        </TipyButton>
-        <TipyButton emphasis="secondary" icon={Lightbulb} onClick={() => setHint(!hint)}>
-          {hint ? 'Ẩn gợi ý' : 'Xem gợi ý'}
-        </TipyButton>
-        <TipyButton emphasis="secondary" icon={ArrowLeft} onClick={leave}>
-          Bản đồ
-        </TipyButton>
-      </div>
-      {phase === 'paused' && !blocked && (
-        <Modal title="Nghỉ một chút nhé" description="Thời gian luyện đã dừng. Không vội đâu!">
-          <TipyButton
-            variant="play"
-            icon={Play}
-            className="full"
-            onClick={() => setPhase('playing')}
-          >
-            Tiếp tục
-          </TipyButton>
-          <TipyButton emphasis="secondary" icon={ArrowLeft} className="full" onClick={leave}>
-            Bản đồ
-          </TipyButton>
-        </Modal>
-      )}
+      {race}
+      {challenge}
+      {inputForm}
+      {feedbackContent}
+      {inputArea}
+      {tools}
+      {pauseDialog}
     </section>
   );
 }

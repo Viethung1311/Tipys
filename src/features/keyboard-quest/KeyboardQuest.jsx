@@ -162,11 +162,31 @@ export default function KeyboardQuest({
   if (run)
     return (
       <main className="quest-page adventure-page">
-        {header}
-        <AdventureScene world={adventureWorld(run.lesson.world || worldId || 1)}>
+        {run.lesson.world ? (
+          <nav
+            className="quest-play-navigation adventure-breadcrumbs"
+            aria-label="Đường đi hành trình"
+          >
+            <TipyButton
+              emphasis="secondary"
+              icon={Map}
+              disabled={navigating || navigationLocked || loading || !available}
+              onClick={() => navigate(map)}
+            >
+              Bản đồ
+            </TipyButton>
+          </nav>
+        ) : (
+          header
+        )}
+        <AdventureScene
+          world={adventureWorld(run.lesson.world || worldId || 1)}
+          playing={Boolean(run.lesson.world)}
+        >
           <LessonPlayer
             key={run.key}
             lesson={run.lesson}
+            world={run.lesson.world ? adventureWorld(run.lesson.world) : null}
             user={user}
             sound={sound}
             blocked={blocked || navigating}
