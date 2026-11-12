@@ -4,7 +4,8 @@ import { api } from '../../game/backend.js';
 import TipyButton from '../../components/TipyButton.jsx';
 import Modal from '../../components/Modal.jsx';
 import Loading from '../../components/Loading.jsx';
-import AssessmentSummary, { SectionResults } from './AssessmentSummary.jsx';
+import AssessmentSummary from './AssessmentSummary.jsx';
+import { AttemptHistory, ResultBanner, availability } from './ResultViews.jsx';
 import { assessmentSession } from './session.js';
 import { createAnswers } from '../keyboard-quest/engine.js';
 import { adventureWorld } from '../keyboard-quest/adventure.js';
@@ -39,20 +40,29 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
     [error, setError] = useState(''),
     [revision, setRevision] = useState(0),
     [checking, setChecking] = useState(false);
+  const [history, setHistory] = useState(false),
+    [celebrate, setCelebrate] = useState(false);
+  const celebrated = useRef(new Set());
   const sending = useRef(false),
     current = useRef({ detail, running });
   current.current = { detail, running };
-  const load = useCallback(async () => {
-    if (!user || user.role === 'admin') return;
-    const data = await api('assessments', undefined, { page });
-    setList(data);
-  }, [user?.user_id, page]);
+  const finished = (row) => {
+    if (row.results?.some((r) => r.outcome === 'good') && !celebrated.current.has(row.attempt_id)) {
+      celebrated.current.add(row.attempt_id);
+      setCelebrate(true);
+      sound?.('record');
+    }
+    setDetail((old) => (old ? { ...old, attempt: row } : old));
+    setRunning(false);
+  };
   useEffect(() => {
     let live = true;
     setList(null);
     setDetail(null);
     setRunning(false);
     setError('');
+    setHistory(false);
+    setCelebrate(false);
     if (user?.role === 'student')
       api('assessments', undefined, { page })
         .then((data) => {
@@ -68,35 +78,56 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
   useEffect(() => {
     if (user?.role !== 'student') return;
     let live = true;
-    const verify = async () => {
-      if (document.hidden) return;
-      setChecking(true);
+    let pending = false;
+    const verify = async (background = false) => {
+      if (document.hidden || pending) return;
+      pending = true;
+      if (background !== true) setChecking(true);
       try {
         if (current.current.detail) {
-          await api('assessment', undefined, {
-            assessmentId: current.current.detail.assessment.assessment_id,
+          const assessmentId = current.current.detail.assessment.assessment_id;
+          const updated = await api('assessment', undefined, {
+            assessmentId,
           });
-        } else await load();
+          if (!live || current.current.detail?.assessment.assessment_id !== assessmentId) return;
+          if (
+            updated.attempt &&
+            current.current.detail?.attempt &&
+            updated.attempt.revision < current.current.detail.attempt.revision
+          )
+            return;
+          if (!current.current.running) setDetail(updated);
+          else if (updated.attempt?.submitted_at) {
+            setDetail(updated);
+            setRunning(false);
+          }
+        } else {
+          const updated = await api('assessments', undefined, { page });
+          if (live && !current.current.detail) setList(updated);
+        }
       } catch (e) {
-        if (live) {
+        if (live && /không có quyền|đăng nhập/i.test(e.message)) {
           setDetail(null);
           setRunning(false);
           setError(e.message);
-        }
+        } else if (live && !current.current.running) setError(e.message);
       } finally {
+        pending = false;
         if (live) setChecking(false);
       }
     };
     window.addEventListener('focus', verify);
     window.addEventListener('tipy-class-access-changed', verify);
     document.addEventListener('visibilitychange', verify);
+    const timer = setInterval(() => verify(true), 15000);
     return () => {
       live = false;
       window.removeEventListener('focus', verify);
       window.removeEventListener('tipy-class-access-changed', verify);
       document.removeEventListener('visibilitychange', verify);
+      clearInterval(timer);
     };
-  }, [load, user?.role]);
+  }, [user?.user_id, user?.role, page]);
   const run = async (task) => {
     if (sending.current) return;
     sending.current = true;
@@ -125,10 +156,16 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
       </main>
     );
   const back = () => {
+    setHistory(false);
+    setCelebrate(false);
     setDetail(null);
     setRunning(false);
     setRevision((n) => n + 1);
   };
+  const remainingAttempts =
+    detail?.allowedAttempts === null
+      ? null
+      : Math.max(0, (detail?.allowedAttempts || 0) - (detail?.attempt?.attempt_number || 0));
   return (
     <main className="assessments-page assessments">
       {!running && <h1>Bài kiểm tra</h1>}
@@ -157,10 +194,7 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
           sound={sound}
           blocked={blocked || checking}
           onPlayingChange={onPlayingChange}
-          onDone={(row) => {
-            setDetail((old) => ({ ...old, attempt: row }));
-            setRunning(false);
-          }}
+          onDone={finished}
           onDenied={(message) => {
             setError(message);
             setDetail(null);
@@ -174,29 +208,57 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
           </TipyButton>
           <AssessmentSummary definition={detail.assessment.definition} student />
           <p>Người giao: {detail.assessment.teacher}</p>
+          <p>
+            <b>{availability(detail.assessment.definition.schedule, detail.serverNow)}</b>
+            {detail.assessment.status === 'deleted' ? ' · Bài đã ẩn, không mở lượt mới' : ''}
+          </p>
+          <p>
+            {remainingAttempts === null
+              ? 'Số lượt còn lại: Không giới hạn'
+              : `Số lượt còn lại: ${remainingAttempts}`}
+          </p>
+          <TipyButton emphasis="secondary" onClick={() => setHistory(true)}>
+            Kết quả của em
+          </TipyButton>
           {detail.attempt?.submitted_at ? (
-            <>
-              <h3>Đã nộp bài</h3>
-              <p>Thời gian làm: {detail.attempt.active_seconds} giây</p>
-              <SectionResults results={detail.attempt.results} />
-            </>
+            <ResultBanner attempt={detail.attempt} celebrate={celebrate} />
           ) : null}
           {(!detail.attempt?.submitted_at ||
+            detail.allowedAttempts === null ||
             detail.allowedAttempts > detail.attempt.attempt_number) && (
             <TipyButton
               icon={Play}
               loading={busy}
+              disabled={
+                availability(detail.assessment.definition.schedule, detail.serverNow) !==
+                  'Đang mở' ||
+                (detail.assessment.status === 'deleted' &&
+                  (!detail.attempt || detail.attempt.submitted_at))
+              }
               onClick={() =>
                 run(async () => {
                   const response = await api('assessment_start', {
                     assessmentId: detail.assessment.assessment_id,
                   });
-                  setDetail((old) => ({ ...old, attempt: response.data }));
+                  setDetail((old) => ({
+                    ...old,
+                    attempt: response.data,
+                    serverNow: response.data.server_now || old.serverNow,
+                  }));
+                  if (response.data.submitted_at) {
+                    setRunning(false);
+                    return;
+                  }
+                  setCelebrate(false);
                   setRunning(true);
                 })
               }
             >
-              {detail.attempt && !detail.attempt.submitted_at ? 'Tiếp tục' : 'Bắt đầu'}
+              {detail.attempt && !detail.attempt.submitted_at
+                ? 'Tiếp tục'
+                : detail.attempt
+                  ? 'Làm lại'
+                  : 'Bắt đầu'}
             </TipyButton>
           )}
         </>
@@ -211,6 +273,7 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
               <p>{exam.description}</p>
               <p>Người giao: {exam.teacher}</p>
               <strong>{statusLabel[exam.attempt_status]}</strong>
+              <p>{availability(exam.schedule, exam.server_now)}</p>
               <TipyButton
                 icon={Play}
                 disabled={busy}
@@ -230,6 +293,12 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
           <Pages data={list} onPage={setPage} />
         </>
       )}
+      {history && detail && (
+        <AttemptHistory
+          assessmentId={detail.assessment.assessment_id}
+          onClose={() => setHistory(false)}
+        />
+      )}
     </main>
   );
 }
@@ -247,13 +316,21 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
     live = useRef(true);
   const session = useMemo(
     () =>
-      assessmentSession(exam.assessment_id, attempt, (text, error = false) => {
-        if (live.current) {
-          setMessage(text);
-          setFailure(error);
-          if (error && /không có quyền|Đăng nhập/.test(text)) onDenied(text);
-        }
-      }),
+      assessmentSession(
+        exam.assessment_id,
+        attempt,
+        (text, error = false) => {
+          if (live.current) {
+            setMessage(text);
+            setFailure(error);
+            if (error && /không có quyền|Đăng nhập/.test(text)) onDenied(text);
+          }
+        },
+        api,
+        (row) => {
+          if (live.current) onDone(row);
+        },
+      ),
     [attempt.attempt_id],
   );
   useEffect(() => {
@@ -263,6 +340,25 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
       session.stop();
       session.flush().catch(() => {});
     };
+  }, [session]);
+  // Monotonic elapsed time drives the UI; the database independently enforces the deadline.
+  useEffect(() => {
+    if (!attempt.deadline) return;
+    const remaining = Date.parse(attempt.deadline) - Date.parse(detail.serverNow);
+    const started = performance.now();
+    const timer = setInterval(() => {
+      if (performance.now() - started >= remaining) {
+        setBusy(true);
+        session
+          .flush(true)
+          .catch((e) => {
+            setMessage(e.message);
+            setFailure(true);
+          })
+          .finally(() => setBusy(false));
+      }
+    }, 1000);
+    return () => clearInterval(timer);
   }, [session]);
   const part = exam.definition.sections.find((section) => section.id === partId);
   const payload = session.payload();
@@ -285,8 +381,7 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
     writing.current = true;
     setBusy(true);
     try {
-      const row = await session.flush(true);
-      onDone(row);
+      await session.flush(true);
     } catch (e) {
       setMessage(e.message);
       setFailure(true);

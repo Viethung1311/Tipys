@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus, Eye, Send, ArrowLeft, Copy, ChartColumn, Save } from 'lucide-react';
+import { Plus, Eye, Send, ArrowLeft, Copy, ChartColumn, Save, Trash2 } from 'lucide-react';
 import { api } from '../../game/backend.js';
 import TipyButton from '../../components/TipyButton.jsx';
 import Loading from '../../components/Loading.jsx';
 import ContentPicker from './ContentPicker.jsx';
-import AssessmentSummary, { SectionResults } from './AssessmentSummary.jsx';
+import AssessmentSummary from './AssessmentSummary.jsx';
+import TeacherResults from './ResultViews.jsx';
+import Modal from '../../components/Modal.jsx';
 import useStudentsPage from '../admin/useStudentsPage.js';
 import Pagination from '../admin/Pagination.jsx';
 import { LEVELS, PRESETS, SUPPORTED_KEYS } from '../../game/config.js';
@@ -18,10 +20,14 @@ const empty = () => ({
   instructions: '',
   targets: { classIds: [], userIds: [] },
   selection: { questIds: [], falling: null },
+  schedule: { mode: 'always' },
+  repeats: { mode: 'none' },
 });
 const editOf = (exam) => ({
   assessmentId: exam.assessment_id,
   version: exam.version,
+  schedule: { mode: 'always' },
+  repeats: { mode: 'none' },
   ...exam.definition,
 });
 function Recipients({ draft, setDraft, classes, busy }) {
@@ -108,8 +114,7 @@ export default function AdminAssessments({ classes = [] }) {
     [draft, setDraft] = useState(null),
     [preview, setPreview] = useState(null),
     [resultExam, setResultExam] = useState(null),
-    [results, setResults] = useState(null),
-    [resultPage, setResultPage] = useState(1),
+    [deleting, setDeleting] = useState(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
@@ -129,24 +134,6 @@ export default function AdminAssessments({ classes = [] }) {
       live = false;
     };
   }, [page, revision]);
-  useEffect(() => {
-    if (!resultExam) return;
-    let live = true;
-    setResults(null);
-    api('assessment_results', undefined, {
-      assessmentId: resultExam.assessment_id,
-      page: resultPage,
-    })
-      .then((data) => {
-        if (live) setResults(data);
-      })
-      .catch((e) => {
-        if (live) setError(e.message);
-      });
-    return () => {
-      live = false;
-    };
-  }, [resultExam, resultPage, revision]);
   const run = async (task) => {
     if (sending.current) return;
     sending.current = true;
@@ -167,7 +154,7 @@ export default function AdminAssessments({ classes = [] }) {
     setDraft(null);
     setPreview(null);
     setResultExam(null);
-    setResults(null);
+
     setError('');
     setRevision((n) => n + 1);
   };
@@ -222,66 +209,7 @@ export default function AdminAssessments({ classes = [] }) {
       )}
       {notice && <p role="status">{notice}</p>}
       {resultExam ? (
-        <>
-          <TipyButton icon={ArrowLeft} emphasis="secondary" onClick={back}>
-            Danh sách
-          </TipyButton>
-          <h3>Kết quả: {resultExam.title || resultExam.definition?.title}</h3>
-          {!results ? (
-            !error && <Loading label="Đang tải kết quả…" />
-          ) : (
-            <>
-              {!results.items.length && <p>Chưa có học sinh.</p>}
-              {results.items.map((student) => (
-                <article className="panel" key={student.user_id}>
-                  <h3>
-                    {student.full_name} · {student.username}
-                  </h3>
-                  {!student.attempts.length ? (
-                    <p>Chưa làm</p>
-                  ) : (
-                    student.attempts.map((attempt) => (
-                      <details key={attempt.attempt_id} open={attempt === student.attempts[0]}>
-                        <summary>
-                          Lượt {attempt.attempt_number} ·{' '}
-                          {attempt.submitted_at ? 'Đã nộp' : 'Đang làm'} · {attempt.active_seconds}{' '}
-                          giây
-                        </summary>
-                        {attempt.submitted_at && (
-                          <p>Nộp lúc {new Date(attempt.submitted_at).toLocaleString('vi-VN')}</p>
-                        )}
-                        <SectionResults results={attempt.results} />
-                      </details>
-                    ))
-                  )}
-                  {student.attempts[0]?.submitted_at &&
-                    (student.allowed_attempts > student.attempts[0].attempt_number ? (
-                      <p>Đã cho làm lại</p>
-                    ) : (
-                      <TipyButton
-                        emphasis="secondary"
-                        disabled={busy}
-                        onClick={() =>
-                          run(async () => {
-                            await api('assessment_retake', {
-                              assessmentId: resultExam.assessment_id,
-                              userId: student.user_id,
-                              attemptId: student.attempts[0].attempt_id,
-                            });
-                            setNotice(`Đã cho ${student.full_name} làm lại.`);
-                            setRevision((n) => n + 1);
-                          })
-                        }
-                      >
-                        Cho làm lại
-                      </TipyButton>
-                    ))}
-                </article>
-              ))}
-              <TestPagination data={results} onPage={setResultPage} disabled={busy} />
-            </>
-          )}
-        </>
+        <TeacherResults exam={resultExam} classes={classes} onBack={back} />
       ) : preview ? (
         <>
           <AssessmentSummary definition={preview.definition} />
@@ -377,6 +305,87 @@ export default function AdminAssessments({ classes = [] }) {
               />
             </label>
           </fieldset>
+          <fieldset disabled={busy}>
+            <legend>Thời gian và lượt làm</legend>
+            <label>
+              Thời gian mở bài
+              <select
+                value={draft.schedule.mode}
+                onChange={(e) => field('schedule', { ...draft.schedule, mode: e.target.value })}
+              >
+                <option value="always">Luôn mở để luyện tập</option>
+                <option value="scheduled">Theo lịch</option>
+              </select>
+            </label>
+            <p>Ngày giờ Việt Nam. Luôn mở vẫn giới hạn người nhận và số lượt đã chọn.</p>
+            {draft.schedule.mode === 'scheduled' && (
+              <div className="assessment-filters">
+                <label>
+                  Giờ mở
+                  <input
+                    type="datetime-local"
+                    required
+                    value={localVN(draft.schedule.opensAt)}
+                    onChange={(e) =>
+                      field('schedule', {
+                        ...draft.schedule,
+                        opensAt: e.target.value
+                          ? new Date(e.target.value + '+07:00').toISOString()
+                          : '',
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Giờ kết thúc
+                  <input
+                    type="datetime-local"
+                    required
+                    value={localVN(draft.schedule.closesAt)}
+                    onChange={(e) =>
+                      field('schedule', {
+                        ...draft.schedule,
+                        closesAt: e.target.value
+                          ? new Date(e.target.value + '+07:00').toISOString()
+                          : '',
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            )}
+            <label>
+              Làm lại
+              <select
+                value={draft.repeats.mode}
+                onChange={(e) =>
+                  field('repeats', { mode: e.target.value, extra: draft.repeats.extra || 1 })
+                }
+              >
+                <option value="none">Không cho làm lại</option>
+                <option value="limited">Giới hạn số lần</option>
+                <option value="unlimited">Không giới hạn</option>
+              </select>
+            </label>
+            {draft.repeats.mode === 'limited' && (
+              <label>
+                Được làm thêm N lần sau lần đầu
+                <input
+                  required
+                  type="number"
+                  min="1"
+                  max="999"
+                  step="1"
+                  value={draft.repeats.extra}
+                  onChange={(e) =>
+                    field('repeats', { ...draft.repeats, extra: Number(e.target.value) })
+                  }
+                />
+                <span>Tổng lượt: {Number(draft.repeats.extra) + 1}</span>
+              </label>
+            )}
+            <p>Bài đã gửi giữ nguyên lịch và luật. Muốn thay đổi, hãy tạo bản mới.</p>
+          </fieldset>
           <Recipients draft={draft} setDraft={setDraft} classes={classes} busy={busy} />
           <fieldset disabled={busy}>
             <legend>Các phần chơi</legend>
@@ -388,7 +397,7 @@ export default function AdminAssessments({ classes = [] }) {
                   field('selection', {
                     ...draft.selection,
                     falling: e.target.checked
-                      ? { difficulty: 'easy', keys: ['A', 'S', 'D', 'F'] }
+                      ? { difficulty: 'easy', keys: ['A', 'S', 'D', 'F'], targetScore: 100 }
                       : null,
                   })
                 }
@@ -414,6 +423,26 @@ export default function AdminAssessments({ classes = [] }) {
                       </option>
                     ))}
                   </select>
+                </label>
+                <label>
+                  Điểm hoàn thành tốt
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000000"
+                    step="1"
+                    required
+                    value={draft.selection.falling.targetScore ?? ''}
+                    onChange={(e) =>
+                      field('selection', {
+                        ...draft.selection,
+                        falling: {
+                          ...draft.selection.falling,
+                          targetScore: e.target.value === '' ? null : Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
                 </label>
                 <p>Chữ rơi dùng phím đơn: A–Z, số và dấu câu; không dùng từ/câu dài.</p>
                 <div className="assessment-actions">
@@ -480,7 +509,12 @@ export default function AdminAssessments({ classes = [] }) {
             <article className="panel assessment-list-item" key={exam.assessment_id}>
               <h3>{exam.title}</h3>
               <p>
-                {exam.status === 'draft' ? 'Nháp' : 'Đã gửi'} · {exam.teacher}
+                {exam.status === 'draft'
+                  ? 'Nháp'
+                  : exam.status === 'deleted'
+                    ? 'Đã xóa / Ẩn'
+                    : 'Đã gửi'}{' '}
+                · {exam.teacher}
               </p>
               <p>{exam.description}</p>
               <div className="assessment-actions">
@@ -492,16 +526,26 @@ export default function AdminAssessments({ classes = [] }) {
                 >
                   {exam.status === 'draft' ? 'Sửa / Xem trước' : 'Xem bài'}
                 </TipyButton>
-                {exam.status === 'published' && (
+                {exam.status !== 'draft' && (
                   <TipyButton
                     icon={ChartColumn}
                     disabled={busy}
                     onClick={() => {
-                      setResultPage(1);
                       setResultExam(exam);
                     }}
                   >
                     Xem kết quả
+                  </TipyButton>
+                )}
+                {exam.status !== 'deleted' && (
+                  <TipyButton
+                    icon={Trash2}
+                    variant="danger"
+                    emphasis="secondary"
+                    disabled={busy}
+                    onClick={() => setDeleting(exam)}
+                  >
+                    Xóa bài
                   </TipyButton>
                 )}
               </div>
@@ -510,9 +554,44 @@ export default function AdminAssessments({ classes = [] }) {
           <TestPagination data={list} onPage={setPage} disabled={busy} />
         </>
       )}
+      {deleting && (
+        <Modal
+          title="Xóa bài kiểm tra?"
+          description={`Bài: ${deleting.title}. Nháp chưa có lượt sẽ bị xóa hẳn. Bài đã gửi sẽ ẩn, giữ kết quả; lượt đang làm vẫn tiếp tục theo lịch ban đầu.`}
+          onClose={() => {
+            if (!busy) setDeleting(null);
+          }}
+        >
+          <div className="assessment-actions">
+            <TipyButton emphasis="secondary" disabled={busy} onClick={() => setDeleting(null)}>
+              Quay lại
+            </TipyButton>
+            <TipyButton
+              icon={Trash2}
+              variant="danger"
+              loading={busy}
+              onClick={() =>
+                run(async () => {
+                  await api('assessment_delete', {
+                    assessmentId: deleting.assessment_id,
+                    title: deleting.title,
+                  });
+                  setDeleting(null);
+                  setNotice('Đã xóa bài. Kết quả đã có được giữ lại.');
+                  setRevision((n) => n + 1);
+                })
+              }
+            >
+              Xóa bài
+            </TipyButton>
+          </div>
+        </Modal>
+      )}
     </section>
   );
 }
+const localVN = (value) =>
+  value ? new Date(Date.parse(value) + 7 * 3600000).toISOString().slice(0, 16) : '';
 export function TestPagination({ data, onPage, disabled }) {
   return (
     <nav className="assessment-pagination" aria-label="Phân trang bài kiểm tra">

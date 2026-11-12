@@ -1,4 +1,5 @@
 import { LEVELS } from '../../game/config.js';
+import { dateVN, duration } from './format.js';
 export default function AssessmentSummary({ definition, student = false }) {
   const total = definition.sections.reduce(
     (n, section) =>
@@ -11,6 +12,18 @@ export default function AssessmentSummary({ definition, student = false }) {
       <p>{definition.description || 'Cùng thử sức nhé!'}</p>
       <h3>Cách chơi</h3>
       <p>{definition.instructions || 'Làm từng phần, sau đó bấm Nộp bài.'}</p>
+      <p>
+        {definition.schedule?.mode === 'scheduled'
+          ? `Mở ${dateVN(definition.schedule.opensAt)} – kết thúc ${dateVN(definition.schedule.closesAt)} (giờ Việt Nam)`
+          : 'Luôn mở để luyện tập'}
+      </p>
+      <p>
+        {definition.repeats?.mode === 'unlimited'
+          ? 'Số lượt không giới hạn'
+          : definition.repeats?.mode === 'limited'
+            ? `Được làm thêm ${definition.repeats.extra} lần sau lần đầu · Tổng ${definition.repeats.extra + 1} lượt`
+            : 'Một lượt chính thức; thầy cô có thể cấp thêm lượt.'}
+      </p>
       {!student && (
         <>
           <h3>Nơi nhận</h3>
@@ -29,6 +42,7 @@ export default function AssessmentSummary({ definition, student = false }) {
                 Mức {LEVELS[section.settings.difficulty].name} · {section.settings.keys.length} phím
               </p>
               <p>Bộ phím: {section.settings.keys.join(' · ')}</p>
+              {section.targetScore != null && <p>Điểm hoàn thành tốt: {section.targetScore}</p>}
               <p>Gõ đúng +10 điểm. Mất 3 mạng hoặc sai lần thứ 6 sẽ kết thúc phần này.</p>
             </>
           ) : (
@@ -53,6 +67,8 @@ export default function AssessmentSummary({ definition, student = false }) {
       {!definition.sections.length && <p>Chưa chọn nội dung. Chỉnh sửa trước khi gửi nhé.</p>}
       <p className="muted">
         Kết quả kiểm tra lưu riêng, không cộng sao hoặc điểm xếp hạng luyện tập.
+        {definition.schedule?.mode === 'scheduled' &&
+          ' Khi hết giờ, phần đã lưu được chốt tự động; nội dung chưa gửi khi mất mạng không được tính thêm.'}
       </p>
     </div>
   );
@@ -65,7 +81,8 @@ export function SectionResults({ results = [] }) {
         <section key={result.id}>
           <h4>{result.title}</h4>
           <p>
-            {result.completed ? 'Hoàn thành phần' : 'Chưa hoàn thành phần'} · {result.seconds} giây
+            {result.completed ? 'Hoàn thành phần' : 'Chưa hoàn thành phần'} ·{' '}
+            {duration(result.seconds)}
           </p>
           <p>
             {result.correct} đúng · {result.wrong} sai · {result.accuracy}% chính xác

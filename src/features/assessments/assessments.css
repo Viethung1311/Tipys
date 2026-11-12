@@ -222,6 +222,77 @@
   font-size: 16px;
   padding: 10px 16px;
 }
+.assessment-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 16px;
+}
+.assessment-table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.assessment-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+.assessment-table :is(td, th) {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px;
+  border-bottom: 1px solid var(--tipy-border);
+  min-width: 100px;
+}
+.assessment-table th {
+  background: var(--tipy-surface);
+}
+.assessment-table td small {
+  display: block;
+}
+.assessment-table td:last-child {
+  display: grid;
+  gap: 12px;
+}
+.assessment-pagination [aria-current='page'] {
+  background: var(--tipy-play);
+  color: var(--tipy-on-action);
+}
+.assessment-outcome {
+  margin-block: 24px;
+  padding: 24px;
+  border: 2px solid var(--tipy-border);
+  border-radius: var(--tipy-card-radius);
+  background: var(--tipy-surface);
+}
+.assessment-outcome > h2 {
+  text-align: center;
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 900;
+}
+.assessment-outcome--good {
+  border-color: var(--tipy-play);
+}
+.assessment-outcome--good > h2 {
+  color: var(--tipy-play);
+}
+.assessment-congratulations > h2 {
+  animation: assessment-congratulations 600ms ease-out both;
+}
+@keyframes assessment-congratulations {
+  from {
+    transform: scale(0.94);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assessment-congratulations > h2 {
+    animation: none;
+  }
+}
 @media (max-width: 680px) {
   .assessments-page {
     width: calc(100% - 24px);

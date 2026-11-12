@@ -1,5 +1,12 @@
 # Zunimo — chuẩn giao diện dùng chung
 
+### Bài kiểm tra: lịch, lượt và kết quả
+
+- Form giáo viên dùng giờ Việt Nam; chọn rõ Theo lịch/Luôn mở và số lần làm thêm sau lượt đầu. Chỉ nháp được sửa; bài đã gửi tạo bản mới để đổi luật/lịch.
+- Mục tiêu chỉ thuộc phần Chữ rơi. Kết quả đạt mục tiêu có tiêu đề “Hoàn thành tốt” lớn, đậm, căn giữa; hiệu ứng một lần, tắt khi giảm chuyển động. Âm chúc mừng dùng hệ thống âm thanh chung, không phát lại khi mở lịch sử hoặc reload. Chưa đạt dùng “Cần luyện thêm”, không hiệu ứng thắng.
+- Kết quả giáo viên: bảng 7 học sinh/trang, lọc/sắp xếp phía backend; hiển thị lượt đã nộp gần nhất, trạng thái lượt hiện tại, chi tiết từng lượt và tốt nhất riêng từng phần. Không cộng điểm khác đơn vị. Điện thoại cuộn ngang riêng bảng, không làm tràn trang.
+- “Kết quả của em” chỉ tải lượt của tài khoản trong phiên. Modal dùng X/Esc và component chung. Bài đã ẩn vẫn cho lượt đang dở nộp theo lịch cũ, không mở lượt mới.
+
 Thương hiệu hiển thị duy nhất: **Zunimo**, gồm header, footer, metadata và thông báo mặc định. Giữ định danh kỹ thuật cũ (TipyButton, font `TIPY Nunito`, token, API, cookie, bucket, đường dẫn); không thay chuỗi hàng loạt vào dữ liệu người dùng. Logo là chữ/SVG dựng bằng code, không có bitmap thương hiệu cũ trong bộ ảnh đang sử dụng. Bỏ khối địa chỉ và khoảng trống của nó.
 
 Điều hướng Lớp học chỉ hiện với admin hoặc học sinh có lớp đang hoạt động do backend xác nhận. Người chưa có lớp dùng CTA **Luyện bàn phím** → Gõ chữ; thành viên dùng **Vào học** → các lớp được tham gia. Mỗi lần vào/quay lại lớp hoặc lấy tệp phải kiểm tra lại quyền; không hiển thị cache trước xác minh. Khi tab trở lại/focus hoặc API báo mất quyền, xóa nội dung và nạp lại danh sách lớp. Tệp dùng endpoint cùng origin kiểm tra phiên/quyền mỗi lần tải, không phát link Storage đã ký ra trình duyệt.

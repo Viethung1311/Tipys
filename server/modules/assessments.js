@@ -13,6 +13,26 @@ const distinct = (values, max) => {
   return values;
 };
 export function assessmentSnapshot(input, levels = LEVELS) {
+  const schedule = input.schedule || { mode: 'always' };
+  const repeats = input.repeats || { mode: 'none' };
+  if (
+    !['always', 'scheduled'].includes(schedule.mode) ||
+    !['none', 'limited', 'unlimited'].includes(repeats.mode)
+  )
+    invalid();
+  if (
+    schedule.mode === 'scheduled' &&
+    (![schedule.opensAt, schedule.closesAt].every(
+      (v) => typeof v === 'string' && /(?:Z|\+07:00)$/.test(v) && Number.isFinite(Date.parse(v)),
+    ) ||
+      Date.parse(schedule.closesAt) <= Date.parse(schedule.opensAt))
+  )
+    invalid();
+  if (
+    repeats.mode === 'limited' &&
+    (!Number.isInteger(repeats.extra) || repeats.extra < 1 || repeats.extra > 999)
+  )
+    invalid();
   if (
     typeof input.title !== 'string' ||
     ['description', 'instructions'].some(
@@ -27,6 +47,12 @@ export function assessmentSnapshot(input, levels = LEVELS) {
     userIds = distinct(input.targets?.userIds || [], 1000).map(uuid);
   if (selection.falling) {
     const { difficulty, keys } = selection.falling;
+    const targetScore = selection.falling.targetScore ?? null;
+    if (
+      targetScore !== null &&
+      (!Number.isInteger(targetScore) || targetScore < 1 || targetScore > 1000000)
+    )
+      invalid();
     if (
       !['easy', 'normal', 'hard'].includes(difficulty) ||
       !distinct(keys, SUPPORTED_KEYS.size).length ||
@@ -38,6 +64,7 @@ export function assessmentSnapshot(input, levels = LEVELS) {
       id: 'falling',
       type: 'falling',
       title: 'Chữ rơi',
+      targetScore,
       settings: { difficulty, keys: [...keys], levels },
     });
   }
@@ -53,6 +80,18 @@ export function assessmentSnapshot(input, levels = LEVELS) {
     targets: { classIds, userIds },
     selection: { questIds, falling: selection.falling || null },
     sections,
+    schedule:
+      schedule.mode === 'always'
+        ? { mode: 'always' }
+        : {
+            mode: 'scheduled',
+            opensAt: new Date(schedule.opensAt).toISOString(),
+            closesAt: new Date(schedule.closesAt).toISOString(),
+          },
+    repeats:
+      repeats.mode === 'limited'
+        ? { mode: 'limited', extra: repeats.extra }
+        : { mode: repeats.mode },
   };
 }
 /** Grade selected snapshots; ignore browser-supplied totals, accuracy and stars. */
@@ -261,6 +300,13 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
     seconds > Math.max(0, (now - Date.parse(attempt.started_at)) / 1000) + 3
   )
     invalid();
+  for (const result of results) {
+    const section = definition.sections.find((s) => s.id === result.id);
+    if (result.type === 'falling' && section.targetScore != null) {
+      result.targetScore = section.targetScore;
+      result.outcome = result.score >= section.targetScore ? 'good' : 'practice';
+    }
+  }
   return { payload: output, results, seconds };
 }
 
@@ -281,6 +327,8 @@ export function createAssessments(db) {
         throw new ApiError(409, 'Bài đã gửi không thể sửa. Hãy tạo bản mới.');
       if (/already submitted/.test(message))
         throw new ApiError(409, 'Bài đã nộp. Chờ thầy cô cho làm lại nhé.');
+      if (/Not open|Closed|Deleted/.test(message))
+        throw new ApiError(409, 'Bài chưa đến giờ mở, đã kết thúc hoặc đã được ẩn.');
       throw new ApiError(
         400,
         /recipients|No students/.test(message)
@@ -336,7 +384,49 @@ export function createAssessments(db) {
       scope(input);
       const page = Number(input.page || 1);
       if (!Number.isInteger(page) || page < 1 || page > 100000) invalid();
-      return rpc(profile, 'results', { ...input, page });
+      const search = text(input.search, 100, 'Tìm học sinh', false);
+      const classId = input.classId || 'all';
+      if (classId !== 'all') uuid(classId);
+      const status = input.status || 'all',
+        sort = input.sort || 'name';
+      if (
+        !['all', 'not_started', 'in_progress', 'submitted'].includes(status) ||
+        ![
+          'name',
+          'score_desc',
+          'score_asc',
+          'time_asc',
+          'time_desc',
+          'submitted_desc',
+          'submitted_asc',
+        ].includes(sort)
+      )
+        invalid();
+      return rpc(profile, 'results_v2', {
+        assessmentId: input.assessmentId,
+        page,
+        search,
+        classId,
+        status,
+        sort,
+      });
+    },
+    async assessmentAttempts(profile, input) {
+      scope(input);
+      if (profile.role !== 'admin' && input.userId && input.userId !== profile.user_id)
+        throw new ApiError(403, 'Bạn chỉ được xem kết quả của mình.');
+      const userId = profile.role === 'admin' ? uuid(input.userId) : profile.user_id;
+      const page = Number(input.page || 1);
+      if (!Number.isInteger(page) || page < 1 || page > 100000) invalid();
+      return rpc(profile, 'attempts', { assessmentId: input.assessmentId, userId, page });
+    },
+    async assessmentDelete(profile, input) {
+      requireAdmin(profile);
+      scope(input);
+      return rpc(profile, 'delete', {
+        assessmentId: input.assessmentId,
+        title: text(input.title, 100, 'Tên bài'),
+      });
     },
     async assessmentRetake(profile, input) {
       requireAdmin(profile);
@@ -359,7 +449,12 @@ export function createAssessments(db) {
       const detail = await rpc(profile, 'detail', { assessmentId: input.assessmentId });
       if (!detail.attempt || detail.attempt.attempt_id !== input.attemptId)
         throw new ApiError(403, 'Lượt kiểm tra không thuộc về bạn.');
-      const grade = assessmentResult(detail.assessment.definition, input.payload, detail.attempt);
+      if (detail.attempt.submitted_at) return detail.attempt;
+      const grade = assessmentResult(
+        detail.attempt.definition || detail.assessment.definition,
+        input.payload,
+        detail.attempt,
+      );
       return rpc(profile, submit ? 'submit' : 'checkpoint', {
         assessmentId: input.assessmentId,
         attemptId: input.attemptId,

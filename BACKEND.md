@@ -2,6 +2,18 @@
 
 ## Bài kiểm tra
 
+Mở rộng bằng `db/assessment_policies.sql` sau `assessments.sql`, và `db/assessment_schedule.sql` trên Supabase đã có pg_cron. Không thêm bảng/tài khoản: mỗi attempt thêm definition snapshot, deadline, closed_reason; backfill đúng definition cũ, không đổi điểm cũ. Snapshot gửi cho học sinh loại bỏ nơi nhận và selection. Bài đã gửi bất biến, muốn đổi lịch/mục tiêu phải tạo bản mới. Mặc định cũ: luôn mở, một lượt, không tự áp mục tiêu.
+
+Chữ rơi targetScore do backend xác thực số nguyên dương; điểm vẫn từ correct × 10 và validator hiện có. Outcome good/practice được tính ở backend và SQL từ cấu hình từng lượt; các phần khác không tự có ngưỡng. Không cộng các thang điểm thành tổng.
+
+Schedule chụp UTC từ giờ Việt Nam; mọi start/checkpoint/submit dùng đồng hồ DB. Start khóa assignment và dùng lượt đang dở, không trừ lại khi reload/hai tab. Repeat none/limited/unlimited độc lập schedule; limited N lần thêm là N+1 tổng lượt, quyền cấp thêm hiện có dùng max để gửi lặp không tăng nhiều lần. Theo dõi số lượt khi start, không khi submit.
+
+`tipy_expire_assessments` chốt lượt đến hạn từ checkpoint đã được server xác thực, submitted_at bằng deadline; không chấp nhận thêm payload trễ. Chạy mỗi phút bằng job `zunimo-assessment-deadlines`, đồng thời kiểm tra trong mọi RPC đọc/ghi để đóng ngay ở lần truy cập sau. Chạy lại an toàn. Khi offline chỉ dữ liệu đã tới server được tính; văn bản chưa xác nhận/checkpoint chưa gửi không thể phục hồi từ máy đã đóng. Queue client nhận cả checkpoint đã được tự nộp và dừng ghi. UI dùng serverNow + performance.now để phản ánh deadline, không quyết định quyền bằng giờ thiết bị.
+
+GET assessment_results gọi action SQL results_v2: tìm tên/username, lớp active, trạng thái, sort số/giờ thật, tie tên/UUID trước LIMIT 7. Mỗi hàng gồm latest, latest_submitted và best_sections, không tải toàn bộ lịch sử xuống bảng. SQL action results cũ được giữ trong giai đoạn rollout để backend cũ vẫn hoạt động. GET assessment_attempts phân trang 20 lượt, chỉ self hoặc admin, best_sections tính trên toàn bộ lượt đã nộp. Luôn phân tách điểm Chữ rơi và độ chính xác gõ chữ. Teacher hiện tại là role admin quản lý toàn bộ lớp; không thêm role hoặc nới phạm vi.
+
+POST assessment_delete chỉ admin, xác nhận đúng title, khóa cùng exam với start/write: nháp không attempt xóa thật; còn lại status deleted, giữ assignments/attempts. Student có attempt cũ và vẫn đủ quyền lớp/direct được xem kết quả/tiếp tục lượt, không start mới. Draft delete retry thiếu row trả success; soft delete retry không ghi dữ liệu khác. Helpers chỉ service_role, RLS và grant cũ giữ nguyên. Chỉ kiểm thử thao tác xóa trên fixture riêng.
+
 Migration `db/assessments.sql` bổ sung ba bảng vào database hiện tại: `assessments` (nháp/snapshot đã gửi), `assessment_assignments` (mỗi người nhận một hàng, gộp nguồn lớp và chỉ định riêng), `assessment_attempts` (checkpoint và kết quả từng lượt). FK dùng profiles/classes hiện có; số lớp nguồn lưu làm snapshot UUID, khi mở luôn đối chiếu class_members/classes đang hoạt động. Xóa/lưu trữ/rời lớp mất quyền nhận qua lớp; bản ghi kết quả vẫn được giữ cho giáo viên, không xóa đề dùng chung. Xóa học sinh cascade assignment/lượt riêng. Không có bảng tài khoản hoặc engine mới.
 
 RLS bật, anon/authenticated không có quyền bảng/RPC. Hàm service-only `tipy_assessment` kiểm tra profile active/role từ DB, kiểm tra quyền người nhận mỗi lần đọc/ghi; actor API lấy từ session, bỏ qua role/userId giả. Admin là quyền giáo viên hiện có và quản lý toàn bộ lớp theo cơ chế hiện tại. Bản nháp không có assignment và không thể đọc bằng đổi ID. Phản hồi học sinh không chứa danh sách người nhận. Danh sách/kết quả phân trang 20 hàng; bộ chọn người nhận dùng students_page sẵn có (7 hàng).

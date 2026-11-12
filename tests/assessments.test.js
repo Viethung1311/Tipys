@@ -90,6 +90,7 @@ test('database assessment lifecycle isolates practice, freezes publication, chec
       'student_actions',
       'lesson_star_upgrades',
       'assessments',
+      'assessment_policies',
     ])
       await db.exec(readFileSync(`db/${file}.sql`, 'utf8'));
     for (const n of [1, 2, 3, 5])
@@ -233,7 +234,7 @@ test('database assessment lifecycle isolates practice, freezes publication, chec
     );
     const results = await service.assessmentResults(admin, { assessmentId: id(100) });
     assert.equal(results.total, 2);
-    assert.equal(results.items[0].attempts[0].results.length, 2);
+    assert.equal(results.items[0].latest_submitted.results.length, 2);
     await assert.rejects(
       service.assessmentResults(student, { assessmentId: id(100) }),
       (e) => e.status === 403,

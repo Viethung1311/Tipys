@@ -165,6 +165,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         assessments: 'assessments',
         assessment: 'assessment',
         assessment_results: 'assessmentResults',
+        assessment_attempts: 'assessmentAttempts',
       };
       if (req.method === 'GET' && assessmentReads[action])
         return res.status(200).json(await backend[assessmentReads[action]](profile, req.query));
@@ -175,6 +176,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         assessment_checkpoint: 'assessmentWrite',
         assessment_submit: 'assessmentSubmit',
         assessment_retake: 'assessmentRetake',
+        assessment_delete: 'assessmentDelete',
         student_reset: 'studentReset',
         star_gift: 'starGift',
         class_save: 'classSave',

@@ -1,6 +1,12 @@
 import { api } from '../../game/backend.js';
 /** One ordered checkpoint stream per attempt; a failed request retains its exact retry token. */
-export function assessmentSession(assessmentId, attempt, notify, request = api) {
+export function assessmentSession(
+  assessmentId,
+  attempt,
+  notify,
+  request = api,
+  onFinal = () => {},
+) {
   let payload = structuredClone(attempt.payload || {}),
     revision = attempt.revision,
     sequence = 0,
@@ -33,12 +39,13 @@ export function assessmentSession(assessmentId, attempt, notify, request = api) 
       revision = row.revision;
       saved = pending.sequence;
       if (sequence === saved) payload = structuredClone(row.payload);
-      const submitted = pending.action === 'assessment_submit';
+      const submitted = Boolean(row.submitted_at) || pending.action === 'assessment_submit';
       pending = null;
       notify(submitted ? 'Đã nộp bài' : 'Đã lưu');
       if (submitted) {
         closed = true;
         finalRow = row;
+        onFinal(row);
         return row;
       }
     }
