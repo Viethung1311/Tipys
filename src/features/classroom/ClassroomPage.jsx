@@ -300,6 +300,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
         <StudentActionDialog
           {...starTarget}
           classId={classId}
+          classLabel={detail?.classroom.name}
           onClose={() => setStarTarget(null)}
           onDone={(data) => {
             setNotice(
@@ -320,8 +321,8 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
             <p>
               Hoàn thành mỗi bài để nhận từ 1 đến 3 sao. Đạt mức cao hơn sẽ nhận thêm phần sao còn
               thiếu. Mỗi bài nhận tối đa 3 sao; đủ sao vẫn được luyện lại. Nếu thầy cô cho làm lại
-              từ đầu, bạn có thể nhận sao bài học lại. Bảng sao xếp theo tổng sao hiện tại, gồm sao
-              bài học, sao thầy cô tặng và thưởng tuần đã nhận.
+              từ đầu, bạn có thể nhận sao bài học lại. Tổng sao tài khoản gồm sao bài học, sao thầy
+              cô tặng và thưởng tuần đã nhận.
             </p>
           </section>
           <section>
@@ -337,12 +338,13 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
             </p>
           </section>
           <section>
-            <h3>Sao của bạn</h3>
+            <h3>Sao trong lớp tuần này</h3>
             <p>
-              Gồm sao bài học, thưởng tuần và sao thầy cô tặng. Reset sao đưa tổng sao và sao xếp
-              hạng về 0 nhưng giữ tiến độ và mức sao đã thưởng: bài đủ 3 sao không nhận lại, từ 2
-              lên 3 sao chỉ thêm 1 sao. Sao mới vẫn cộng bình thường. Điểm thi đấu Chữ rơi · Khó
-              không đổi.
+              Chỉ tính sao thầy cô tặng trong lớp đang xem, từ 00:00 thứ Hai đến trước 00:00 thứ Hai
+              tuần sau theo giờ Việt Nam. Trừ sao trong cùng lớp và tuần làm giảm số sao này, thấp
+              nhất là 0. Sang tuần mới bảng bắt đầu từ 0, tổng sao tài khoản vẫn giữ. Reset sao đưa
+              số sao hiện tại về 0 nhưng giữ tiến độ và mức sao đã thưởng từng bài. Sao bài học và
+              thưởng Chữ rơi chỉ cộng vào tài khoản, không cộng vào bảng sao lớp.
             </p>
           </section>
         </Modal>

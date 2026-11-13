@@ -13,6 +13,8 @@ import { ApiError } from '../server/errors.js';
 const f = await notificationsFixture(),
   bus = new EventEmitter(),
   calls = [];
+await f.db.exec(readFileSync('db/star_deductions.sql', 'utf8'));
+await f.db.exec(readFileSync('db/class_week_stars.sql', 'utf8'));
 let subscriptions = 0,
   maxSubscriptions = 0;
 const backend = {

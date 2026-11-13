@@ -54,10 +54,11 @@ export default function ActionMenu({ label = 'Tùy chọn', description, disable
   }, [disabled]);
   return (
     <>
-      <span ref={anchor}>
+      <span ref={anchor} className={children ? 'tipy-avatar-menu' : undefined}>
         <TipyButton
           emphasis="secondary"
           icon={Ellipsis}
+          className={children ? 'tipy-avatar-trigger' : ''}
           disabled={disabled}
           aria-label={description ? `${label}: ${description}` : label}
           aria-haspopup="menu"

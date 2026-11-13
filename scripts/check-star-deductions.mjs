@@ -21,6 +21,7 @@ try {
   for (const width of [320, 1440]) {
     const f = await starFixture();
     await f.db.exec(readFileSync('db/star_deductions.sql', 'utf8'));
+    await f.db.exec(readFileSync('db/class_week_stars.sql', 'utf8'));
     for (const file of [
       'assessments',
       'assessment_policies',
@@ -77,7 +78,9 @@ try {
       calls = [],
       errors = [];
     let user = { user_id: id(99), role: 'admin', full_name: 'Giáo viên thử' },
-      failAfterCommit = false;
+      failAfterCommit = false,
+      simulateRollover = false,
+      rolloverReads = 0;
     const classroom = { class_id: id(50), name: 'Lớp thử', archived_at: null };
     const rpc = async (name, args) => {
       try {
@@ -126,6 +129,13 @@ try {
               stars: (await f.total()).stars,
               avatar: { animal: 'icon_01' },
             },
+            {
+              user_id: id(2),
+              name: 'Nguyễn Thị Học Sinh Có Tên Dài',
+              username: user.role === 'admin' ? 'fixture2' : undefined,
+              stars: 0,
+              avatar: { animal: 'icon_02' },
+            },
           ],
         };
       if (json) return route.fulfill({ json });
@@ -149,6 +159,23 @@ try {
           },
         },
       );
+      if (action === 'class_stars' && simulateRollover) {
+        const oldWeek = response.currentWeek;
+        const boundary = Date.parse(response.nextWeekAt);
+        const week =
+          rolloverReads++ === 0
+            ? oldWeek
+            : new Date(boundary + 7 * 3600000).toISOString().slice(0, 10);
+        response.lessons = (await f.q('select tipy_class_week_stars($1,$2) r', [id(50), week])).r;
+        response.weekStart = week;
+        response.currentWeek = week;
+        response.serverNow = new Date(
+          week === oldWeek ? boundary - 600 : boundary + 10,
+        ).toISOString();
+        response.nextWeekAt = new Date(
+          week === oldWeek ? boundary : boundary + 7 * 86400000,
+        ).toISOString();
+      }
       if (body) await new Promise((r) => setTimeout(r, 100));
       if (action === 'star_deduct' && failAfterCommit) {
         failAfterCommit = false;
@@ -201,17 +228,72 @@ try {
         '5',
       );
       await choose(options, 'Tặng sao');
+      assert.equal(await dialog.getByLabel('Lớp nhận sao').inputValue(), id(50));
       await dialog.getByLabel('Số sao', { exact: true }).fill('5');
       await dialog.getByRole('button', { name: 'Tặng sao', exact: true }).click();
       await dialog.waitFor({ state: 'hidden' });
       assert.equal((await f.total()).stars, 10);
+      await f.db.query("insert into classes(class_id,name,created_by) values($1,'Lớp B',$2)", [
+        id(51),
+        id(99),
+      ]);
+      await f.db.query('insert into class_members(class_id,user_id) values($1,$2)', [
+        id(51),
+        id(1),
+      ]);
+      await page.reload();
+      await options.waitFor();
+      await choose(options, 'Tặng sao');
+      const beforeClassSelection = writes().length;
+      assert.equal(
+        await dialog.getByRole('button', { name: 'Tặng sao', exact: true }).isDisabled(),
+        true,
+      );
+      await dialog.getByLabel('Số sao', { exact: true }).press('Enter');
+      assert.equal(writes().length, beforeClassSelection);
+      await dialog.getByLabel('Lớp nhận sao').selectOption(id(51));
+      await dialog.getByLabel('Số sao', { exact: true }).fill('4');
+      await dialog.getByRole('button', { name: 'Tặng sao', exact: true }).click();
+      await dialog.waitFor({ state: 'hidden' });
+      assert.equal(
+        (await f.q('select tipy_class_week_stars($1,tipy_week_start(now())) r', [id(51)])).r.find(
+          (r) => r.user_id === id(1),
+        ).stars,
+        4,
+      );
       await page.goto('http://127.0.0.1:4213/#classroom');
       const avatar = page.getByRole('button', {
         name: 'Thao tác sao: Học sinh thử 1',
         exact: true,
       });
       await avatar.waitFor();
-      await page.locator('.class-top-list li strong').waitFor();
+      await page.locator('.class-top-list li strong').first().waitFor();
+      const frame = await avatar.evaluate((button) => {
+        const b = button.getBoundingClientRect(),
+          image = button.querySelector('img').getBoundingClientRect(),
+          label = button.querySelector('.tipy-button__label').getBoundingClientRect();
+        return {
+          width: b.width,
+          height: b.height,
+          imageWidth: image.width,
+          imageHeight: image.height,
+          labelHeight: label.height,
+        };
+      });
+      assert.equal(frame.width, 64);
+      assert.equal(frame.height, 64);
+      assert.equal(frame.imageWidth, frame.imageHeight);
+      assert.ok(frame.labelHeight <= frame.height);
+      const otherFrame = await page
+        .getByRole('button', { name: 'Thao tác sao: Nguyễn Thị Học Sinh Có Tên Dài', exact: true })
+        .boundingBox();
+      const firstFrame = await avatar.boundingBox();
+      assert.equal(otherFrame.width, frame.width);
+      assert.equal(otherFrame.height, frame.height);
+      assert.equal(otherFrame.y, firstFrame.y);
+      await page
+        .locator('.classroom-board')
+        .screenshot({ path: `test-results/star-deductions/avatars-${width}.png` });
       const menuStart = calls.length;
       await avatar.press('Enter');
       await page.getByRole('menu').waitFor();
@@ -228,7 +310,7 @@ try {
       await dialog.waitFor({ state: 'hidden' });
       assert.equal(writes().length, beforeGift + 1);
       await page.waitForFunction(
-        () => document.querySelector('.class-top-list li strong')?.textContent === '15sao',
+        () => document.querySelector('.class-top-list li strong')?.textContent === '10sao',
       );
       await choose(avatar, 'Trừ sao');
       await dialog.getByLabel('Số sao', { exact: true }).fill('3');
@@ -237,7 +319,7 @@ try {
       await dialog.waitFor({ state: 'hidden' });
       assert.equal(writes().length, beforeDeduct + 1);
       await page.waitForFunction(
-        () => document.querySelector('.class-top-list li strong')?.textContent === '12sao',
+        () => document.querySelector('.class-top-list li strong')?.textContent === '7sao',
       );
       failAfterCommit = true;
       await choose(avatar, 'Trừ sao');
@@ -246,7 +328,7 @@ try {
       await dialog.getByRole('alert').waitFor();
       await dialog.getByRole('button', { name: 'Trừ sao', exact: true }).click();
       await dialog.waitFor({ state: 'hidden' });
-      assert.equal((await f.total()).stars, 10);
+      assert.equal((await f.total()).stars, 14);
       assert.equal(writes().at(-1).body.requestId, writes().at(-2).body.requestId);
       await choose(avatar, 'Trừ sao');
       await dialog.screenshot({ path: `test-results/star-deductions/dialog-${width}.png` });
@@ -257,7 +339,7 @@ try {
       );
       user = { user_id: id(1), role: 'student', full_name: 'Học sinh thử 1' };
       await page.reload();
-      await page.getByText('Sao của bạn: 10', { exact: true }).waitFor();
+      await page.getByText('Sao của bạn: 14', { exact: true }).waitFor();
       assert.equal(await avatar.count(), 0);
       const forbidden = await page.evaluate(
         async ({ userId, requestId, classId }) => {
@@ -302,6 +384,55 @@ try {
         .first()
         .waitFor();
       assert.match(await dialog.innerText(), /Lượt 2 · 2 phút 0 giây/);
+      await page.keyboard.press('Escape');
+      await f.db.query('update class_members set is_active=false where user_id=$1', [id(3)]);
+      user = { user_id: id(99), role: 'admin', full_name: 'Giáo viên thử' };
+      await page.goto('http://127.0.0.1:4213/admin');
+      const noClass = page.getByRole('button', {
+        name: 'Tùy chọn: Học sinh thử 3 · fixture3',
+        exact: true,
+      });
+      await choose(noClass, 'Tặng sao');
+      await dialog.getByText('Chưa gắn lớp.', { exact: false }).waitFor();
+      await dialog.getByRole('button', { name: 'Tặng sao', exact: true }).click();
+      await dialog.waitFor({ state: 'hidden' });
+      assert.equal((await f.total(id(3))).stars, 1);
+      assert.equal(
+        (
+          await f.q("select class_id from star_rewards where user_id=$1 and source='teacher'", [
+            id(3),
+          ])
+        ).class_id,
+        null,
+      );
+      user = { user_id: id(1), role: 'student', full_name: 'Học sinh thử 1' };
+      await page.goto('http://127.0.0.1:4213/#tests');
+      simulateRollover = true;
+      await page
+        .getByRole('navigation', { name: 'Điều hướng chính' })
+        .getByRole('button', { name: 'Lớp học', exact: true })
+        .click();
+      await page.waitForFunction(
+        () => document.querySelector('.class-top-list li strong')?.textContent === '0sao',
+      );
+      assert.equal(rolloverReads, 2, 'one initial read plus one rollover read');
+      assert.equal((await f.total()).stars, 14, 'week rollover never changes account balance');
+      const idle = calls.length;
+      await page.waitForTimeout(200);
+      assert.equal(calls.length, idle, 'no idle polling');
+      simulateRollover = false;
+      await page.reload();
+      await page.locator('.class-top-list li strong').first().waitFor();
+      const cachedReads = calls.filter((c) => c.action === 'class_stars').length;
+      await page.getByRole('button', { name: 'Tuần trước', exact: true }).click();
+      await page.locator('.class-top-list li strong').first().waitFor();
+      await page.getByRole('button', { name: 'Tuần sau', exact: true }).click();
+      await page.waitForTimeout(150);
+      assert.equal(
+        calls.filter((c) => c.action === 'class_stars').length,
+        cachedReads + 1,
+        'returning to loaded current week uses cache',
+      );
       assert.deepEqual(errors, []);
       const measurement = {
         width,
@@ -312,6 +443,9 @@ try {
         doubleClickRecords: 1,
         retryDeductsOnce: true,
         bestTeacherAndStudent: 80,
+        avatarFrame: frame,
+        multiClassSelection: true,
+        rolloverExtraReads: 1,
         studentStatus: forbidden,
         errors,
       };

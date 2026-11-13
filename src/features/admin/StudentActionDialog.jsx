@@ -10,6 +10,7 @@ export default function StudentActionDialog({
   kind,
   student,
   classId,
+  classLabel,
   games = [],
   initialGameId,
   onClose,
@@ -18,6 +19,10 @@ export default function StudentActionDialog({
   const gift = kind === 'gift';
   const deduct = kind === 'deduct';
   const adjustment = gift || deduct;
+  const eligibleClasses = (student.classes || []).filter((c) => !c.archived_at);
+  const [selectedClass, setSelectedClass] = useState(
+    classId || (eligibleClasses.length === 1 ? eligibleClasses[0].class_id : ''),
+  );
   const starsOnly = kind === 'stars';
   const actionLabel = gift
     ? 'Tặng sao'
@@ -38,7 +43,10 @@ export default function StudentActionDialog({
   const valid = adjustment
     ? Number.isInteger(Number(amount)) &&
       Number(amount) > 0 &&
-      Number(amount) <= (deduct ? Number(student.stars || 0) : 2147483647)
+      Number(amount) <= (deduct ? Number(student.stars || 0) : 2147483647) &&
+      (Boolean(classId) ||
+        eligibleClasses.length === 0 ||
+        eligibleClasses.some((c) => c.class_id === selectedClass))
     : confirmation === 'accept' && (starsOnly || games.some((game) => game.game_id === gameId));
   const submit = async (event) => {
     event.preventDefault();
@@ -53,7 +61,7 @@ export default function StudentActionDialog({
         {
           userId: student.user_id,
           requestId,
-          ...(classId && { classId }),
+          ...(adjustment && selectedClass && { classId: selectedClass }),
           ...(adjustment
             ? { amount: Number(amount), message }
             : { ...(!starsOnly && { gameId }), confirm: confirmation }),
@@ -61,12 +69,18 @@ export default function StudentActionDialog({
       );
       if (!result.data?.completed)
         throw Error('Chưa xác nhận được kết quả. Hãy thử lại cùng yêu cầu.');
+      const affectedClasses =
+        adjustment && Object.hasOwn(result.data, 'classId')
+          ? result.data.classId
+            ? [result.data.classId]
+            : []
+          : student.classes?.map((c) => c.class_id);
       window.dispatchEvent(
         new CustomEvent('tipy-points-changed', {
           detail: {
             userId: student.user_id,
             stars: result.data.stars,
-            classIds: student.classes?.map((c) => c.class_id),
+            classIds: affectedClasses,
           },
         }),
       );
@@ -76,7 +90,7 @@ export default function StudentActionDialog({
           JSON.stringify({
             userId: student.user_id,
             stars: result.data.stars,
-            classIds: student.classes?.map((c) => c.class_id),
+            classIds: affectedClasses,
             requestId,
           }),
         );
@@ -108,6 +122,35 @@ export default function StudentActionDialog({
             <strong>{Number(student.stars || 0).toLocaleString('vi-VN')} sao</strong>.
           </p>
         )}
+        {adjustment &&
+          (classId ? (
+            <p>
+              Lớp:{' '}
+              {classLabel ||
+                eligibleClasses.find((c) => c.class_id === classId)?.name ||
+                'Lớp đang xem'}
+            </p>
+          ) : eligibleClasses.length ? (
+            <label>
+              {gift ? 'Lớp nhận sao' : 'Lớp trừ sao'}
+              <select
+                aria-label={gift ? 'Lớp nhận sao' : 'Lớp trừ sao'}
+                required
+                value={selectedClass}
+                disabled={busy || attempted}
+                onChange={(event) => setSelectedClass(event.target.value)}
+              >
+                <option value="">Chọn lớp</option>
+                {eligibleClasses.map((c) => (
+                  <option key={c.class_id} value={c.class_id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p>Chưa gắn lớp. Thao tác chỉ thay đổi tổng sao tài khoản.</p>
+          ))}
         {adjustment ? (
           <>
             <label>
@@ -136,7 +179,7 @@ export default function StudentActionDialog({
             <p>
               {deduct
                 ? `Còn lại sau khi trừ: ${valid ? Number(student.stars || 0) - Number(amount) : '—'} sao. Giữ tiến độ và mức sao tốt nhất từng bài.`
-                : 'Sao tặng cộng vào tổng sao và bảng xếp hạng sao của lớp. Điểm Chữ rơi · Khó không đổi.'}
+                : 'Sao tặng cộng vào tổng tài khoản và Sao trong lớp tuần này của lớp đã chọn. Điểm Chữ rơi · Khó không đổi.'}
             </p>
           </>
         ) : (

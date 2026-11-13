@@ -1,6 +1,6 @@
 /** Isolated real SQL + API handler behind browser Network interception; no hosted writes. */
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
 import { starFixture, id } from '../tests/star-balance-fixture.js';
@@ -19,6 +19,18 @@ try {
   await new Promise((r) => setTimeout(r, 1200));
   for (const width of [320, 768, 1440]) {
     const f = await starFixture();
+    await f.db.exec(readFileSync('db/star_deductions.sql', 'utf8'));
+    await f.db.exec(readFileSync('db/class_week_stars.sql', 'utf8'));
+    f.gift = async (request, amount, user = id(1)) =>
+      (
+        await f.q("select tipy_class_star_gift($1,$2,$3,$4,'Quà thử',$5) r", [
+          id(99),
+          user,
+          request,
+          amount,
+          id(50),
+        ])
+      ).r;
     const context = await browser.newContext({
       viewport: { width, height: 900 },
       reducedMotion: 'reduce',
@@ -159,7 +171,7 @@ try {
       assert.equal(writes.length, 1);
       assert.equal(reads.length, beforeGiftReads);
       assert.equal((await f.total()).stars, 12);
-      assert.equal((await f.board()).lessons[0].stars, 12);
+      assert.equal((await f.board()).lessons[0].stars, 5);
       assert.equal(
         await page.locator('tr').filter({ hasText: 'fixture1' }).locator('td').nth(5).innerText(),
         '12',
@@ -222,7 +234,8 @@ try {
         .locator('.class-achievements')
         .screenshot({ path: `test-results/star-balance/board-${width}.png` });
       await page.getByRole('button', { name: 'Hướng dẫn', exact: true }).click();
-      assert.match(await dialog.innerText(), /tổng sao hiện tại/);
+      assert.match(await dialog.innerText(), /Sao trong lớp tuần này/);
+      assert.match(await dialog.innerText(), /tổng sao tài khoản vẫn giữ/);
       await page.keyboard.press('Escape');
       await page.goto('http://127.0.0.1:4207/admin');
       await options.waitFor();

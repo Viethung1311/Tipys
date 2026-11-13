@@ -133,7 +133,7 @@ try {
         await page.getByRole('button', { name: 'Vào học', exact: true }).first().click();
         await page.getByRole('heading', { name: 'Bài riêng của lớp An', exact: true }).waitFor();
         if (role === 'member') {
-          await page.getByRole('tab', { name: '1. Sao của bạn', exact: true }).waitFor();
+          await page.getByRole('tab', { name: 'Sao trong lớp tuần này', exact: true }).waitFor();
           await page.getByRole('tab', { name: '2. Chữ rơi · Khó', exact: true }).click();
           await page.getByText('09/11–15/11', { exact: true }).waitFor();
           assert.doesNotMatch(

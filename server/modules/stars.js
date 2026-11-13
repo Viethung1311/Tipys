@@ -12,17 +12,14 @@ export function createStars(db) {
       throw new ApiError(400, 'Lời nhắn chưa hợp lệ.');
     const message = (input.message || '').trim();
     if (message.length > 240) throw new ApiError(400, 'Lời nhắn tối đa 240 ký tự.');
-    const result = await db.rpc(
-      deduct ? 'tipy_deduct_stars' : input.classId ? 'tipy_class_star_gift' : 'tipy_teacher_gift',
-      {
-        p_actor: profile.user_id,
-        p_user: input.userId,
-        p_request: input.requestId,
-        p_amount: input.amount,
-        p_message: message,
-        ...((deduct || input.classId) && { p_class: input.classId ?? null }),
-      },
-    );
+    const result = await db.rpc(deduct ? 'tipy_deduct_stars' : 'tipy_class_star_gift', {
+      p_actor: profile.user_id,
+      p_user: input.userId,
+      p_request: input.requestId,
+      p_amount: input.amount,
+      p_message: message,
+      p_class: input.classId ?? null,
+    });
     if (result.error?.message === 'Class access denied')
       throw new ApiError(403, 'Bạn không có quyền thao tác học sinh trong lớp này.');
     fail(result.error, 'Chưa xác nhận được thay đổi sao. Thử lại cùng yêu cầu để tránh ghi trùng.');

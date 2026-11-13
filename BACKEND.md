@@ -1,5 +1,14 @@
 # TIPY backend · Supabase + Vercel
 
+## Sao trong lớp tuần này
+
+Migration `20261113174557_class_week_stars.sql` (nguồn `db/class_week_stars.sql`) chạy sau `star_deductions`, đã áp dụng lên Supabase tipy-stem. Thêm `star_rewards.class_id` và `class_awarded_at` cho quà mới, giữ amount/reset_amount và tổng tài khoản. Backfill chỉ khi biên nhận gift đã lưu classId có thật; không suy từ tên hoặc lớp đang học. Dữ liệu cũ thiếu nguồn vẫn nằm trong tài khoản, không vào bảng lớp.
+
+- API tặng luôn đi qua `tipy_class_star_gift`: quản lý chọn lớp từ dữ liệu đã tải (một lớp chọn sẵn, nhiều lớp bắt buộc chọn, không lớp ghi rõ chưa gắn lớp). SQL kiểm tra admin và thành viên/lớp active; tự chọn một lớp nếu caller cũ không truyền, từ chối khi nhiều lớp chưa chọn. Nguồn lớp và thời điểm clock_timestamp được ghi trong cùng transaction sau khóa số dư. Retry không đổi nguồn lớp hoặc cộng lại; retry quà cũ không tự gắn lớp. Trừ sao áp dụng cùng chọn lớp, ghi classId/deductedAt trong biên nhận hiện có.
+- Bảng lớp tổng hợp quà giáo viên có nguồn lớp trùng với lớp đang xem trong khoảng [thứ Hai 00:00, thứ Hai kế tiếp 00:00) ở Asia/Ho_Chi_Minh. Trừ đúng lớp/tuần làm giảm theo thứ tự sự kiện, chặn ở 0 từng bước: trừ khi 0 không tạo khoản nợ cho quà đến sau. Reset sao tạo mốc xóa điểm tuần hiện tại; quà sau reset tính bình thường, quà trước reset không xuất hiện lại. Xem tuần đã kết thúc lấy trạng thái trước cuối tuần, không để một reset ở tuần sau xóa lịch sử tuần trước. Không ghi đè số dư hay thêm cron tuần.
+- `tipy_class_week_stars` tổng hợp theo lô, RPC `class_stars` giữ quyền và dữ liệu Chữ rơi · Khó, trả thêm serverNow/nextWeekAt. Sao bài học/thưởng game vẫn cộng tài khoản, không cộng bảng sao lớp. Client cache 30 giây theo lớp/tuần, xóa đúng lớp khi tặng/trừ, giữ tổng tài khoản qua response. Một timer theo khoảng thời gian server và performance.now cập nhật một lần khi chuyển tuần; dọn khi rời trang. Không polling hoặc GET theo từng học sinh.
+- Kiểm tra SQL `tests/class-week-stars.test.js`: nguồn lớp, quà cũ, trừ/reset, không âm, lịch sử và ranh giới UTC 17:00 Chủ nhật = 00:00 thứ Hai Việt Nam. Chrome `scripts/check-star-deductions.mjs` đo menu, chọn lớp, cache, avatar cùng hàng và chuyển tuần bằng đồng hồ server giả lập; phép ghi dùng API thật + PGlite riêng, không thay dữ liệu học sinh thật.
+
 ## Trừ sao và kết quả tốt nhất
 
 Hai migration đã áp dụng lên Supabase `tipy-stem` (`pjzsszjcymcfyamycidx`): `20261113170953_star_deductions.sql` và `20261113170956_assessment_best_results.sql`; áp dụng sau migration sao/thông báo và kết quả hiện có, trước frontend/backend mới. Bản nguồn ở `db/star_deductions.sql`, `db/assessment_best_results.sql`. Không backfill hay sửa điểm/lượt cũ.
