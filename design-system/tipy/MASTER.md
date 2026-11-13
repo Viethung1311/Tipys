@@ -13,7 +13,7 @@
 
 - Form giáo viên dùng giờ Việt Nam; chọn rõ Theo lịch/Luôn mở và số lần làm thêm sau lượt đầu. Chỉ nháp được sửa; bài đã gửi tạo bản mới để đổi luật/lịch.
 - Mục tiêu chỉ thuộc phần Chữ rơi. Kết quả đạt mục tiêu có tiêu đề “Hoàn thành tốt” lớn, đậm, căn giữa; hiệu ứng một lần, tắt khi giảm chuyển động. Âm chúc mừng dùng hệ thống âm thanh chung, không phát lại khi mở lịch sử hoặc reload. Chưa đạt dùng “Cần luyện thêm”, không hiệu ứng thắng.
-- Kết quả giáo viên: bảng 7 học sinh/trang, lọc/sắp xếp phía backend; hiển thị lượt đã nộp gần nhất, trạng thái lượt hiện tại, chi tiết từng lượt và tốt nhất riêng từng phần. Không cộng điểm khác đơn vị. Điện thoại cuộn ngang riêng bảng, không làm tràn trang.
+- Kết quả giáo viên: bảng 7 học sinh/trang, lọc/sắp xếp phía backend; phần chính ghi “Kết quả tốt nhất”, chọn riêng từng phần trong các lượt đã nộp, bằng điểm giữ lượt đạt trước. Điểm, thời lượng, ngày nộp và hoàn thành của mỗi phần thuộc cùng lượt; giữ riêng trạng thái lượt hiện tại và lịch sử trong Chi tiết. Không cộng điểm khác đơn vị. “Kết quả của em” dùng cùng quy tắc. Điện thoại cuộn ngang riêng bảng, không làm tràn trang.
 - “Kết quả của em” chỉ tải lượt của tài khoản trong phiên. Modal dùng X/Esc và component chung. Xóa bài dùng nhãn “Xóa vĩnh viễn”, modal ghi rõ mất nội dung/người nhận/lượt làm/kết quả và yêu cầu đúng accept. Tab cũ phải ngừng khi backend báo bài đã được xóa.
 
 Thương hiệu hiển thị duy nhất: **Zunimo**, gồm header, footer, metadata và thông báo mặc định. Giữ định danh kỹ thuật cũ (TipyButton, font `TIPY Nunito`, token, API, cookie, bucket, đường dẫn); không thay chuỗi hàng loạt vào dữ liệu người dùng. Logo là chữ/SVG dựng bằng code, không có bitmap thương hiệu cũ trong bộ ảnh đang sử dụng. Bỏ khối địa chỉ và khoảng trống của nó.
@@ -21,6 +21,8 @@ Thương hiệu hiển thị duy nhất: **Zunimo**, gồm header, footer, metad
 Điều hướng Lớp học chỉ hiện với admin hoặc học sinh có lớp đang hoạt động do backend xác nhận. Người chưa có lớp dùng CTA **Luyện bàn phím** → Gõ chữ; thành viên dùng **Vào học** → các lớp được tham gia. Mỗi lần vào/quay lại lớp hoặc lấy tệp phải kiểm tra lại quyền; không hiển thị cache trước xác minh. Khi tab trở lại/focus hoặc API báo mất quyền, xóa nội dung và nạp lại danh sách lớp. Tệp dùng endpoint cùng origin kiểm tra phiên/quyền mỗi lần tải, không phát link Storage đã ký ra trình duyệt.
 
 Nguồn yêu cầu: Custom instructions của Project “Web game Tipy”, do chủ dự án cung cấp trong chat. Đọc cùng `AGENTS.md` trước mọi thay đổi UI. Giữ nguyên các hướng dẫn kỹ thuật ở `ARCHITECTURE.md` và `BACKEND.md`; đây là chuẩn thiết kế, không thay đổi quyền hoặc dữ liệu.
+
+Thao tác sao: Tùy chọn của học sinh có Tặng sao/Trừ sao, dùng chung hộp thoại với ảnh đại diện thành viên lớp. Chỉ admin theo quyền quản lý hiện có được mở menu ảnh; vùng bấm tối thiểu 64 px, dùng ActionMenu chung (Tab/Enter/Space, Esc, bấm ra ngoài). Hộp thoại ghi rõ học sinh, ảnh nếu có, tổng sao, số sao còn lại và lý do; không dùng màu đỏ cho thao tác trừ sao thông thường. Dữ liệu sai không gửi API. Trừ sao không xóa tiến độ hoặc mức sao đã thưởng từng bài.
 
 ## 1. Định hướng
 

@@ -1,7 +1,35 @@
 import { ApiError, fail, requireAdmin } from '../errors.js';
 import { uuid } from './classrooms.js';
 export function createStars(db) {
+  const adjust = async (profile, input, deduct = false) => {
+    requireAdmin(profile);
+    uuid(input.userId);
+    uuid(input.requestId);
+    if (input.classId !== undefined) uuid(input.classId);
+    if (!Number.isInteger(input.amount) || input.amount < 1 || input.amount > 2147483647)
+      throw new ApiError(400, 'Nhập số sao nguyên dương hợp lệ.');
+    if (input.message !== undefined && typeof input.message !== 'string')
+      throw new ApiError(400, 'Lời nhắn chưa hợp lệ.');
+    const message = (input.message || '').trim();
+    if (message.length > 240) throw new ApiError(400, 'Lời nhắn tối đa 240 ký tự.');
+    const result = await db.rpc(
+      deduct ? 'tipy_deduct_stars' : input.classId ? 'tipy_class_star_gift' : 'tipy_teacher_gift',
+      {
+        p_actor: profile.user_id,
+        p_user: input.userId,
+        p_request: input.requestId,
+        p_amount: input.amount,
+        p_message: message,
+        ...((deduct || input.classId) && { p_class: input.classId ?? null }),
+      },
+    );
+    if (result.error?.message === 'Class access denied')
+      throw new ApiError(403, 'Bạn không có quyền thao tác học sinh trong lớp này.');
+    fail(result.error, 'Chưa xác nhận được thay đổi sao. Thử lại cùng yêu cầu để tránh ghi trùng.');
+    return result.data;
+  };
   return {
+    starDeduct: (profile, input) => adjust(profile, input, true),
     async starReset(profile, input) {
       requireAdmin(profile);
       uuid(input.userId);
@@ -33,24 +61,7 @@ export function createStars(db) {
       return result.data;
     },
     async starGift(profile, input) {
-      requireAdmin(profile);
-      uuid(input.userId);
-      uuid(input.requestId);
-      if (!Number.isInteger(input.amount) || input.amount < 1 || input.amount > 2147483647)
-        throw new ApiError(400, 'Nhập số sao nguyên dương hợp lệ.');
-      if (input.message !== undefined && typeof input.message !== 'string')
-        throw new ApiError(400, 'Lời nhắn chưa hợp lệ.');
-      const message = (input.message || '').trim();
-      if (message.length > 240) throw new ApiError(400, 'Lời nhắn tối đa 240 ký tự.');
-      const result = await db.rpc('tipy_teacher_gift', {
-        p_actor: profile.user_id,
-        p_user: input.userId,
-        p_request: input.requestId,
-        p_amount: input.amount,
-        p_message: message,
-      });
-      fail(result.error, 'Chưa xác nhận được tặng sao. Thử lại cùng yêu cầu để tránh cộng trùng.');
-      return result.data;
+      return adjust(profile, input);
     },
     async stars(profile) {
       const result = await db.rpc('tipy_star_total', { p_user: profile.user_id });

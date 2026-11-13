@@ -42,6 +42,7 @@ try {
       await db.exec(
         readFileSync('supabase/migrations/20261113042630_assessment_result_summary.sql', 'utf8'),
       );
+      await db.exec(readFileSync('db/assessment_best_results.sql', 'utf8'));
       for (const n of [...Array.from({ length: 15 }, (_, i) => i + 1), 99])
         await db.query('insert into auth.users values($1,$2,$3)', [
           id(n),
@@ -427,7 +428,7 @@ try {
       await direct.getByRole('heading', { name: 'Hoàn thành tốt', exact: true }).waitFor();
       assert.equal(await direct.evaluate(() => window.__recordNotes), 1);
       await direct.getByRole('button', { name: 'Kết quả của em', exact: true }).click();
-      await direct.getByRole('dialog').getByText('Tốt nhất từng phần', { exact: true }).waitFor();
+      await direct.getByRole('dialog').getByText('Kết quả tốt nhất', { exact: true }).waitFor();
       await direct.keyboard.press('Escape');
       await direct.reload();
       await direct
@@ -473,7 +474,7 @@ try {
         .waitFor();
       assert.equal(await teacher.locator('.assessment-table tbody tr').count(), 1);
       await teacher.getByRole('button', { name: 'Chi tiết', exact: true }).click();
-      await teacher.getByRole('dialog').getByText('Tốt nhất từng phần', { exact: true }).waitFor();
+      await teacher.getByRole('dialog').getByText('Kết quả tốt nhất', { exact: true }).waitFor();
       await teacher.keyboard.press('Escape');
       await teacher.getByLabel('Trạng thái', { exact: true }).selectOption('not_started');
       await teacher.getByText('Chưa có học sinh phù hợp.', { exact: true }).waitFor();

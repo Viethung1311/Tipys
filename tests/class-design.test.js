@@ -23,6 +23,10 @@ test('classroom gathers achievements only after class authorization and queries 
   const student = { user_id: '11111111-1111-4111-8111-111111111111', role: 'student' },
     classId = '22222222-2222-4222-8222-222222222222';
   const db = {
+    async rpc(name) {
+      calls.push([name]);
+      return { data: [] };
+    },
     from(table) {
       const query = {
         select() {
@@ -59,6 +63,8 @@ test('classroom gathers achievements only after class authorization and queries 
   );
   const admin = await createClassrooms(db).classroom({ role: 'admin' }, { classId });
   assert.equal(admin.members.length, 1);
+  assert.equal(admin.canManage, true);
+  assert.equal(calls.filter((c) => c[0] === 'tipy_class_member_balances').length, 1);
   assert.equal(admin.achievements, undefined);
   assert.ok(calls.some((c) => c[0] === 'class_members' && c[1] === 'class_id' && c[2] === classId));
 });

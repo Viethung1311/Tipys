@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { notificationsFixture, id } from './notifications-fixture.js';
 import { createNotifications } from '../server/modules/notifications.js';
 import { createHandler } from '../api/tipy.js';
@@ -7,6 +8,7 @@ import { createHandler } from '../api/tipy.js';
 test('notification transactions: publish, late class members, gifts, resets, exact-once state and scoped paged history', async () => {
   const f = await notificationsFixture();
   try {
+    await f.db.exec(readFileSync('db/star_deductions.sql', 'utf8'));
     const list = (n = 1, page = 1) => f.notifications.notifications(f.person(n), { page });
     assert.equal((await list()).total, 0, 'old gifts are not backfilled');
     const input = await f.draft(80);
@@ -47,6 +49,15 @@ test('notification transactions: publish, late class members, gifts, resets, exa
     assert.equal(data.total, 3);
     assert.equal(data.items.find((n) => n.kind === 'star_gift').payload.amount, 5);
     assert.equal(data.items.find((n) => n.kind === 'star_gift').payload.message, 'Quà thử');
+    await f.rpc('tipy_deduct_stars', {
+      p_actor: id(99),
+      p_user: id(1),
+      p_request: id(909),
+      p_amount: 3,
+      p_message: 'Lý do thử',
+      p_class: id(50),
+    });
+    assert.equal((await list()).total, 3, 'deduction creates no gift notification');
     await f.reset(id(101));
     assert.equal((await list()).total, 3, 'balance reset creates no notification');
     const ids = data.items.map((n) => n.notification_id);

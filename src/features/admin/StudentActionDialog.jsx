@@ -1,6 +1,7 @@
 import ValidatedForm from '../../components/ValidatedForm.jsx';
 import { useRef, useState } from 'react';
-import { Star, RotateCcw } from 'lucide-react';
+import { Star, RotateCcw, StarOff } from 'lucide-react';
+import Avatar from '../classroom/Avatar.jsx';
 import Modal from '../../components/Modal.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
 import { api } from '../../game/backend.js';
@@ -8,14 +9,23 @@ import { api } from '../../game/backend.js';
 export default function StudentActionDialog({
   kind,
   student,
+  classId,
   games = [],
   initialGameId,
   onClose,
   onDone,
 }) {
   const gift = kind === 'gift';
+  const deduct = kind === 'deduct';
+  const adjustment = gift || deduct;
   const starsOnly = kind === 'stars';
-  const actionLabel = gift ? 'Tặng sao' : starsOnly ? 'Reset sao' : 'Làm lại từ đầu';
+  const actionLabel = gift
+    ? 'Tặng sao'
+    : deduct
+      ? 'Trừ sao'
+      : starsOnly
+        ? 'Reset sao'
+        : 'Làm lại từ đầu';
   const [requestId] = useState(() => crypto.randomUUID());
   const [gameId, setGameId] = useState(initialGameId || games[0]?.game_id || ''),
     [confirmation, setConfirmation] = useState(''),
@@ -25,8 +35,10 @@ export default function StudentActionDialog({
     [attempted, setAttempted] = useState(false),
     [error, setError] = useState('');
   const inFlight = useRef(false);
-  const valid = gift
-    ? Number.isInteger(Number(amount)) && Number(amount) > 0 && Number(amount) <= 2147483647
+  const valid = adjustment
+    ? Number.isInteger(Number(amount)) &&
+      Number(amount) > 0 &&
+      Number(amount) <= (deduct ? Number(student.stars || 0) : 2147483647)
     : confirmation === 'accept' && (starsOnly || games.some((game) => game.game_id === gameId));
   const submit = async (event) => {
     event.preventDefault();
@@ -36,13 +48,17 @@ export default function StudentActionDialog({
     setBusy(true);
     setError('');
     try {
-      const result = await api(gift ? 'star_gift' : starsOnly ? 'star_reset' : 'student_reset', {
-        userId: student.user_id,
-        requestId,
-        ...(gift
-          ? { amount: Number(amount), message }
-          : { ...(!starsOnly && { gameId }), confirm: confirmation }),
-      });
+      const result = await api(
+        gift ? 'star_gift' : deduct ? 'star_deduct' : starsOnly ? 'star_reset' : 'student_reset',
+        {
+          userId: student.user_id,
+          requestId,
+          ...(classId && { classId }),
+          ...(adjustment
+            ? { amount: Number(amount), message }
+            : { ...(!starsOnly && { gameId }), confirm: confirmation }),
+        },
+      );
       if (!result.data?.completed)
         throw Error('Chưa xác nhận được kết quả. Hãy thử lại cùng yêu cầu.');
       window.dispatchEvent(
@@ -59,6 +75,7 @@ export default function StudentActionDialog({
           'tipy-stars-changed',
           JSON.stringify({
             userId: student.user_id,
+            stars: result.data.stars,
             classIds: student.classes?.map((c) => c.class_id),
             requestId,
           }),
@@ -84,14 +101,21 @@ export default function StudentActionDialog({
       }}
     >
       <ValidatedForm className="account-form" onSubmit={submit}>
-        {gift ? (
+        {student.avatar && <Avatar value={student.avatar} name={student.full_name} />}
+        {adjustment && (
+          <p>
+            Số sao hiện tại:{' '}
+            <strong>{Number(student.stars || 0).toLocaleString('vi-VN')} sao</strong>.
+          </p>
+        )}
+        {adjustment ? (
           <>
             <label>
               Số sao
               <input
                 type="number"
                 min="1"
-                max="2147483647"
+                max={deduct ? Number(student.stars || 0) : 2147483647}
                 step="1"
                 required
                 value={amount}
@@ -100,7 +124,7 @@ export default function StudentActionDialog({
               />
             </label>
             <label>
-              Lời nhắn (không bắt buộc)
+              {deduct ? 'Lý do (không bắt buộc)' : 'Lời nhắn (không bắt buộc)'}
               <textarea
                 maxLength={240}
                 rows={3}
@@ -110,7 +134,9 @@ export default function StudentActionDialog({
               />
             </label>
             <p>
-              Sao tặng cộng vào tổng sao và bảng xếp hạng sao của lớp. Điểm Chữ rơi · Khó không đổi.
+              {deduct
+                ? `Còn lại sau khi trừ: ${valid ? Number(student.stars || 0) - Number(amount) : '—'} sao. Giữ tiến độ và mức sao tốt nhất từng bài.`
+                : 'Sao tặng cộng vào tổng sao và bảng xếp hạng sao của lớp. Điểm Chữ rơi · Khó không đổi.'}
             </p>
           </>
         ) : (
@@ -191,8 +217,8 @@ export default function StudentActionDialog({
           </TipyButton>
           <TipyButton
             type="submit"
-            icon={gift ? Star : RotateCcw}
-            className={gift ? '' : 'tipy-button--danger'}
+            icon={gift ? Star : deduct ? StarOff : RotateCcw}
+            className={adjustment ? '' : 'tipy-button--danger'}
             disabled={!valid}
             loading={busy}
             loadingLabel="Đang xử lý…"

@@ -185,6 +185,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         assessment_delete: 'assessmentDelete',
         student_reset: 'studentReset',
         star_gift: 'starGift',
+        star_deduct: 'starDeduct',
         star_reset: 'starReset',
         notifications_present: 'notificationsPresent',
         class_save: 'classSave',

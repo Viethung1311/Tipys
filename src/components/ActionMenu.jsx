@@ -4,7 +4,7 @@ import { Ellipsis } from 'lucide-react';
 import TipyButton from './TipyButton.jsx';
 import '../styles/action-menu.css';
 
-export default function ActionMenu({ label = 'Tùy chọn', description, disabled, items }) {
+export default function ActionMenu({ label = 'Tùy chọn', description, disabled, items, children }) {
   const [open, setOpen] = useState(false),
     [position, setPosition] = useState(null);
   const anchor = useRef(null),
@@ -74,7 +74,7 @@ export default function ActionMenu({ label = 'Tùy chọn', description, disable
             }
           }}
         >
-          {label}
+          {children || label}
         </TipyButton>
       </span>
       {open &&

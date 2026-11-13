@@ -39,6 +39,35 @@ export function Outcome({ results = [] }) {
       </div>
     ));
 }
+export function BestResults({ results = [], field = 'summary' }) {
+  if (!results.length) return '—';
+  return results.map((r) => (
+    <div key={r.id}>
+      {results.length > 1 && <strong>{r.title}: </strong>}
+      {field === 'time' ? (
+        duration(results.length > 1 ? (r.seconds ?? r.active_seconds) : r.active_seconds)
+      ) : field === 'date' ? (
+        dateVN(r.submitted_at)
+      ) : field === 'outcome' ? (
+        <>
+          <span>{r.completed ? 'Hoàn thành phần' : 'Chưa hoàn thành phần'}</span>
+          <Outcome results={[r]} />
+        </>
+      ) : (
+        <>
+          <Scores results={[r]} />
+          <p>
+            Lượt {r.attempt_number} ·{' '}
+            {duration(results.length > 1 ? (r.seconds ?? r.active_seconds) : r.active_seconds)} ·{' '}
+            {dateVN(r.submitted_at)}
+          </p>
+          <SectionResults results={[r]} />
+          <Outcome results={[r]} />
+        </>
+      )}
+    </div>
+  ));
+}
 export function ResultBanner({ attempt, celebrate = false }) {
   if (!attempt?.submitted_at) return null;
   const good = attempt.results?.some((r) => r.outcome === 'good');
@@ -91,7 +120,7 @@ export function AttemptHistory({ assessmentId, student, onClose }) {
     <Modal
       className="assessments"
       title={student ? `Kết quả · ${student.full_name}` : 'Kết quả của em'}
-      description="Các lượt được xếp từ mới đến cũ. Thành tích tốt nhất được xét riêng từng phần."
+      description="Kết quả tốt nhất được xét riêng từng phần, không cộng các thang điểm. Lịch sử từng lượt nằm trong Chi tiết bên dưới."
       onClose={onClose}
     >
       {error ? (
@@ -104,16 +133,12 @@ export function AttemptHistory({ assessmentId, student, onClose }) {
         <>
           {data.best_sections?.length > 0 && (
             <section>
-              <h3>Tốt nhất từng phần</h3>
-              {data.best_sections.map((r) => (
-                <p key={r.id}>
-                  {r.title}: {r.type === 'falling' ? `${r.score} điểm` : `${r.accuracy}%`} · lượt{' '}
-                  {r.attempt_number}
-                </p>
-              ))}
+              <h3>Kết quả tốt nhất</h3>
+              <BestResults results={data.best_sections} />
             </section>
           )}
           {!data.items.length && <p>Chưa làm</p>}
+          <h3>Chi tiết từng lượt</h3>
           {data.items.map((a, i) => (
             <details key={a.attempt_id} open={i === 0}>
               <summary>
@@ -219,8 +244,10 @@ export default function TeacherResults({ exam, classes, onBack }) {
       </TipyButton>
       <h3>Kết quả: {exam.title || exam.definition?.title}</h3>
       <p>
-        Mỗi học sinh một hàng. Điểm và thời gian từ lượt đã nộp gần nhất; trạng thái từ lượt hiện
-        tại. Điểm từng phần được giữ riêng.
+        Mỗi học sinh một hàng. Kết quả tốt nhất xét riêng từng phần đã nộp; bằng điểm giữ lượt đạt
+        trước. Điểm, thời gian, ngày nộp và kết quả hoàn thành của mỗi phần thuộc cùng lượt. Không
+        cộng các thang điểm. Cột Lượt hiện tại vẫn cho biết lượt đang làm. Sắp xếp điểm theo Chữ rơi
+        nếu có, nếu không theo phần đầu; sắp xếp thời gian và ngày nộp theo phần đầu.
       </p>
       <div className="assessment-filters">
         <label>
@@ -310,8 +337,8 @@ export default function TeacherResults({ exam, classes, onBack }) {
                       'STT',
                       'Học sinh',
                       'Lớp',
-                      'Trạng thái',
-                      'Điểm từng phần',
+                      'Lượt hiện tại',
+                      'Kết quả tốt nhất',
                       'Thời gian',
                       'Thời điểm nộp',
                       'Số lượt',
@@ -341,23 +368,17 @@ export default function TeacherResults({ exam, classes, onBack }) {
                         }
                       </td>
                       <td>
-                        {row.latest_submitted ? (
-                          <Scores results={row.latest_submitted.results} />
-                        ) : (
-                          '—'
-                        )}
+                        <Scores results={row.best_sections} />
                       </td>
                       <td>
-                        {row.latest_submitted ? duration(row.latest_submitted.active_seconds) : '—'}
+                        <BestResults results={row.best_sections} field="time" />
                       </td>
-                      <td>{dateVN(row.latest_submitted?.submitted_at)}</td>
+                      <td>
+                        <BestResults results={row.best_sections} field="date" />
+                      </td>
                       <td>{row.attempt_count}</td>
                       <td>
-                        {row.latest_submitted ? (
-                          <Outcome results={row.latest_submitted.results} />
-                        ) : (
-                          '—'
-                        )}
+                        <BestResults results={row.best_sections} field="outcome" />
                       </td>
                       <td>
                         <TipyButton icon={Eye} emphasis="secondary" onClick={() => setStudent(row)}>

@@ -8,12 +8,16 @@ import Attachment from './Attachment.jsx';
 import PostComposer from './PostComposer.jsx';
 import ClassAchievements from './ClassAchievements.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
-import { CircleHelp, BookOpen } from 'lucide-react';
+import { CircleHelp, BookOpen, Star, StarOff } from 'lucide-react';
+import ActionMenu from '../../components/ActionMenu.jsx';
+import StudentActionDialog from '../admin/StudentActionDialog.jsx';
 import Modal from '../../components/Modal.jsx';
 const ClassQuestReport = lazy(() => import('./ClassQuestReport.jsx'));
 export default function ClassroomPage({ user, classes: availableClasses, cache, avatarOverride }) {
   const classes = availableClasses.filter((c) => !c.archived_at);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [starTarget, setStarTarget] = useState(null),
+    [notice, setNotice] = useState('');
   const [classId, setClassId] = useState(() => classes[0]?.class_id || ''),
     [detail, setDetail] = useState(null),
     [busy, setBusy] = useState(true),
@@ -22,6 +26,27 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
     [hasMore, setHasMore] = useState(false);
   const latestClassId = useRef(classId);
   latestClassId.current = classId;
+  useEffect(() => {
+    const changed = ({ detail: update }) => {
+      if (!Number.isFinite(update?.stars)) return;
+      cache.delete(user.user_id + ':' + classId);
+      setDetail(
+        (previous) =>
+          previous && {
+            ...previous,
+            members: previous.members.map((member) =>
+              member.user_id === update.userId ? { ...member, stars: update.stars } : member,
+            ),
+          },
+      );
+    };
+    window.addEventListener('tipy-points-changed', changed);
+    return () => window.removeEventListener('tipy-points-changed', changed);
+  }, [classId, user.user_id, cache]);
+  useEffect(() => {
+    setStarTarget(null);
+    setNotice('');
+  }, [classId]);
   useEffect(() => {
     if (!classId) {
       setDetail(null);
@@ -92,6 +117,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
           {error}
         </p>
       )}
+      {notice && <p role="status">{notice}</p>}
       {busy ? (
         <Loading label="Đang mở lớp học…" />
       ) : !classes.length ? (
@@ -134,14 +160,43 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
                           title={member.name}
                         >
                           <span className="seat-number">{String(index + 1).padStart(2, '0')}</span>
-                          <Avatar
-                            value={
-                              member.user_id === user.user_id
-                                ? avatarOverride || member.avatar
-                                : member.avatar
-                            }
-                            name={member.name}
-                          />
+                          {user.role === 'admin' && detail.canManage && member.username ? (
+                            <ActionMenu
+                              label="Thao tác sao"
+                              description={member.name}
+                              items={[
+                                {
+                                  label: 'Tặng sao',
+                                  icon: Star,
+                                  onClick: () =>
+                                    setStarTarget({
+                                      kind: 'gift',
+                                      student: { ...member, full_name: member.name },
+                                    }),
+                                },
+                                {
+                                  label: 'Trừ sao',
+                                  icon: StarOff,
+                                  onClick: () =>
+                                    setStarTarget({
+                                      kind: 'deduct',
+                                      student: { ...member, full_name: member.name },
+                                    }),
+                                },
+                              ]}
+                            >
+                              <Avatar value={member.avatar} name={member.name} />
+                            </ActionMenu>
+                          ) : (
+                            <Avatar
+                              value={
+                                member.user_id === user.user_id
+                                  ? avatarOverride || member.avatar
+                                  : member.avatar
+                              }
+                              name={member.name}
+                            />
+                          )}
                           <b>{member.name}</b>
                           {member.user_id === user.user_id && (
                             <span className="own-seat-label">Bạn</span>
@@ -241,6 +296,19 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
         </>
       )}
       {saving && <Loading label="Đang lưu thay đổi…" />}
+      {starTarget && (
+        <StudentActionDialog
+          {...starTarget}
+          classId={classId}
+          onClose={() => setStarTarget(null)}
+          onDone={(data) => {
+            setNotice(
+              `${starTarget.kind === 'gift' ? 'Đã tặng' : 'Đã trừ'} ${data.amount} sao · ${starTarget.student.full_name}. Tổng sao: ${data.stars}.`,
+            );
+            setStarTarget(null);
+          }}
+        />
+      )}
       {guideOpen && (
         <Modal
           title="Hướng dẫn lớp học"

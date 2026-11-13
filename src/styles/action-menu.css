@@ -12,6 +12,14 @@
   background: var(--tipy-surface-raised);
   box-shadow: var(--tipy-card-shadow);
 }
+.tipy-button:has(> .tipy-button__label > .student-avatar) {
+  padding: 0;
+  min-width: 64px;
+  min-height: 64px;
+}
+.tipy-button:has(> .tipy-button__label > .student-avatar) > .tipy-button__icon {
+  display: none;
+}
 .tipy-action-menu .tipy-button {
   justify-content: flex-start;
   min-width: 0;

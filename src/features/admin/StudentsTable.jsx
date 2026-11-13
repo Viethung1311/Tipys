@@ -1,6 +1,6 @@
 import ValidatedForm from '../../components/ValidatedForm.jsx';
 import { useEffect, useRef, useState } from 'react';
-import { History, LockKeyhole, Trash2, Star, RotateCcw } from 'lucide-react';
+import { History, LockKeyhole, Trash2, Star, StarOff, RotateCcw } from 'lucide-react';
 import ActionMenu from '../../components/ActionMenu.jsx';
 import StudentActionDialog from './StudentActionDialog.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
@@ -20,6 +20,7 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
     [busy, setBusy] = useState(false),
     [target, setTarget] = useState(null),
     [giftTarget, setGiftTarget] = useState(null),
+    [deductTarget, setDeductTarget] = useState(null),
     [resetTarget, setResetTarget] = useState(null),
     [confirmation, setConfirmation] = useState(''),
     [failure, setFailure] = useState(''),
@@ -136,6 +137,7 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
                     items={[
                       { label: 'Xem kết quả', icon: History, onClick: () => onResults(s) },
                       { label: 'Tặng sao', icon: Star, onClick: () => setGiftTarget(s) },
+                      { label: 'Trừ sao', icon: StarOff, onClick: () => setDeductTarget(s) },
                       { label: 'Reset sao', icon: RotateCcw, onClick: () => setResetTarget(s) },
                       {
                         label: s.is_active ? 'Khóa tài khoản' : 'Mở tài khoản',
@@ -234,6 +236,19 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
           onDone={(data) => {
             setNotice(`Đã tặng ${data.amount} sao cho ${giftTarget.full_name}.`);
             setGiftTarget(null);
+          }}
+        />
+      )}
+      {deductTarget && (
+        <StudentActionDialog
+          kind="deduct"
+          student={deductTarget}
+          onClose={() => setDeductTarget(null)}
+          onDone={(data) => {
+            setNotice(
+              `Đã trừ ${data.amount} sao của ${deductTarget.full_name}. Còn ${data.stars} sao.`,
+            );
+            setDeductTarget(null);
           }}
         />
       )}

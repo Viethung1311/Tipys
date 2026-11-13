@@ -355,7 +355,7 @@ export function createClassrooms(db) {
     },
     async classroom(profile, input) {
       const classroom = await access(profile, input.classId);
-      const [members, posts] = await Promise.all([
+      const [members, posts, balances] = await Promise.all([
         db
           .from('class_members')
           .select(
@@ -367,13 +367,25 @@ export function createClassrooms(db) {
           .order('joined_at')
           .limit(300),
         postsQuery(input),
+        profile.role === 'admin'
+          ? db.rpc('tipy_class_member_balances', {
+              p_actor: profile.user_id,
+              p_class: input.classId,
+            })
+          : Promise.resolve({ data: [] }),
       ]);
       fail(members.error);
       fail(posts.error);
+      fail(balances.error);
       const visibleMembers = classMembersView(members.data);
+      const balanceByUser = new Map((balances.data || []).map((row) => [row.user_id, row]));
       return {
         classroom,
-        members: visibleMembers,
+        canManage: profile.role === 'admin',
+        members: visibleMembers.map((member) => ({
+          ...member,
+          ...(balanceByUser.get(member.user_id) || {}),
+        })),
         posts: posts.data,
       };
     },
