@@ -5,7 +5,7 @@ import { api } from '../../game/backend.js';
 import { imagePreview } from './image.js';
 import { FILE_TYPES, MAX_FILE_BYTES } from './constants.js';
 import TipyButton from '../../components/TipyButton.jsx';
-import { Send } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 
 const EMPTY = { title: '', body: '', link: '' };
 function previewLink(value) {
@@ -24,8 +24,10 @@ export default function PostComposer({ classId, onPosted }) {
     [files, setFiles] = useState([]),
     [previews, setPreviews] = useState([]),
     [busy, setBusy] = useState(false),
+    [pendingPost, setPendingPost] = useState(null),
     [error, setError] = useState('');
   const inFlight = useRef(false);
+  const uploaded = useRef(new WeakMap());
   useEffect(() => {
     const images = files
       .filter((file) => file.type.startsWith('image/'))
@@ -39,6 +41,24 @@ export default function PostComposer({ classId, onPosted }) {
     };
   }, [files]);
   const change = (e) => setFields((previous) => ({ ...previous, [e.target.name]: e.target.value }));
+  const selectFiles = (event) => {
+    const selected = [...event.target.files];
+    event.target.value = '';
+    // Cancel must not replace a previous selection; clearing also permits the same file again.
+    if (!selected.length) return;
+    if (selected.length > 3) return setError('Mỗi bài tối đa 3 file.');
+    if (
+      selected.some(
+        (file) =>
+          !FILE_TYPES[file.name.split('.').pop().toLowerCase()] ||
+          file.size < 1 ||
+          file.size > MAX_FILE_BYTES,
+      )
+    )
+      return setError('Chọn file hợp lệ tối đa 5 MB/file.');
+    setError('');
+    setFiles(selected);
+  };
   const submit = async (e) => {
     e.preventDefault();
     if (inFlight.current) return;
@@ -57,6 +77,7 @@ export default function PostComposer({ classId, onPosted }) {
       }
       const results = await Promise.allSettled(
         uploads.map(async (file) => {
+          if (uploaded.current.has(file)) return uploaded.current.get(file);
           const mime = FILE_TYPES[file.name.split('.').pop().toLowerCase()];
           const preview = await imagePreview(file);
           const signed = (
@@ -77,17 +98,29 @@ export default function PostComposer({ classId, onPosted }) {
           };
           await put(signed.signedUrl, file, mime);
           if (preview) await put(signed.previewSignedUrl, preview, 'image/webp');
+          uploaded.current.set(file, signed.attachmentId);
           return signed.attachmentId;
         }),
       );
       const failed = results.find((result) => result.status === 'rejected');
       if (failed) throw failed.reason;
       const ids = results.map((result) => result.value);
-      await api('class_post', { classId, ...snapshot, files: ids });
+      const post = pendingPost || {
+        classId,
+        ...snapshot,
+        files: ids,
+        requestId: crypto.randomUUID(),
+      };
+      setPendingPost(post);
+      await api('class_post', post);
       form.reset();
       setFields(EMPTY);
       setFiles([]);
-      await onPosted();
+      uploaded.current = new WeakMap();
+      setPendingPost(null);
+      await onPosted().catch(() =>
+        setError('Bài đã đăng thành công. Chưa tải lại được bảng tin; bạn mở lại lớp để xem nhé.'),
+      );
     } catch (e) {
       setError(e.message);
     } finally {
@@ -116,6 +149,7 @@ export default function PostComposer({ classId, onPosted }) {
                 required
                 maxLength={160}
                 value={fields.title}
+                readOnly={Boolean(pendingPost)}
                 onChange={change}
               />
             </label>
@@ -126,6 +160,7 @@ export default function PostComposer({ classId, onPosted }) {
                 rows={5}
                 maxLength={10000}
                 value={fields.body}
+                readOnly={Boolean(pendingPost)}
                 onChange={change}
               />
             </label>
@@ -137,25 +172,45 @@ export default function PostComposer({ classId, onPosted }) {
                 placeholder="https://…"
                 maxLength={2000}
                 value={fields.link}
+                readOnly={Boolean(pendingPost)}
                 onChange={change}
               />
             </label>
             <label>
               Ảnh hoặc tài liệu
               <input
-                data-extensions={Object.keys(FILE_TYPES).join(',')}
                 name="files"
                 type="file"
                 multiple
+                disabled={Boolean(pendingPost)}
                 accept={Object.keys(FILE_TYPES)
                   .map((x) => '.' + x)
                   .join(',')}
-                onChange={(e) => setFiles([...e.target.files])}
+                onChange={selectFiles}
               />
             </label>
             <p className="muted">
               Tối đa 3 file/bài, 5 MB/file. Ảnh, PDF, TXT, Word, Excel, PowerPoint.
             </p>
+            {files.map((file, index) => (
+              <div key={index} className="preview-file">
+                <span>{file.name}</span>
+                <TipyButton
+                  emphasis="secondary"
+                  icon={Trash2}
+                  disabled={Boolean(pendingPost)}
+                  aria-label={`Xóa file ${file.name}`}
+                  onClick={() => setFiles((previous) => previous.filter((_, i) => i !== index))}
+                >
+                  Xóa file
+                </TipyButton>
+              </div>
+            ))}
+            {pendingPost && (
+              <p role="status">
+                Đang chờ xác nhận bài này. Nếu có lỗi mạng, bấm Đăng bài cho lớp để thử lại an toàn.
+              </p>
+            )}
             <TipyButton
               className="full"
               type="submit"

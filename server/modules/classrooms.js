@@ -441,6 +441,7 @@ export function createClassrooms(db) {
         p_body: text(input.body, 10000, 'Nội dung', false),
         p_link: safeLink(input.link),
         p_files: files,
+        ...(input.requestId ? { p_request: uuid(input.requestId) } : {}),
       });
       fail(error, 'Chưa đăng được bài. Kiểm tra file đã tải xong và thử lại.');
       return { post_id: data };

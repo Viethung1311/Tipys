@@ -53,6 +53,7 @@ export default function App() {
     user?.user_id,
   );
   const [bootstrapReady, setBootstrapReady] = useState(false);
+  const [sessionChecking, setSessionChecking] = useState(false);
   const [notificationSeed, setNotificationSeed] = useState(null),
     [notificationsOpen, setNotificationsOpen] = useState(false),
     [requestedAssessment, setRequestedAssessment] = useState(null);
@@ -68,7 +69,7 @@ export default function App() {
   const checkClasses = useCallback(async () => {
     const owner = user?.user_id;
     classroomCache.current.clear();
-    setClassCheck(null);
+    if (user?.role !== 'admin') setClassCheck(null);
     if (!owner) return;
     try {
       const data = await api('classes');
@@ -81,27 +82,32 @@ export default function App() {
         setClassCheck(owner);
       }
     }
-  }, [user?.user_id]);
+  }, [user?.user_id, user?.role]);
   useEffect(() => {
     if (screen === 'classroom') checkClasses();
   }, [screen, checkClasses]);
   useEffect(() => {
+    // Teachers keep their editor mounted when a native file picker returns focus.
+    const focused = () => {
+      if (user?.role !== 'admin') checkClasses();
+    };
     const visible = () => {
+      if (user?.role === 'admin') return;
       if (!document.hidden) checkClasses();
       else {
         classroomCache.current.clear();
         setClassCheck(null);
       }
     };
-    window.addEventListener('focus', checkClasses);
+    window.addEventListener('focus', focused);
     window.addEventListener('tipy-class-access-changed', checkClasses);
     document.addEventListener('visibilitychange', visible);
     return () => {
-      window.removeEventListener('focus', checkClasses);
+      window.removeEventListener('focus', focused);
       window.removeEventListener('tipy-class-access-changed', checkClasses);
       document.removeEventListener('visibilitychange', visible);
     };
-  }, [checkClasses]);
+  }, [checkClasses, user?.role]);
   const navigate = (next) => {
     if (next === 'classroom') {
       setClassCheck(null);
@@ -147,197 +153,203 @@ export default function App() {
   };
   return (
     <>
-      <header className="site-header">
-        <button className="brand" onClick={() => navigate('home')} aria-label="Zunimo trang chủ">
-          <span className="brand-icon">
-            <Keyboard size={23} />
-          </span>
-          <span>
-            Zunimo
-            <small>HỌC VUI MỖI NGÀY</small>
-          </span>
-        </button>
-        <div className="header-right">
-          <span className="header-message">Học thật vui. Lớn thật hay.</span>
-          <button
-            className="sound-button audio-trigger"
-            aria-label="Cài đặt âm thanh"
-            onClick={() => setAudioOpen(true)}
-          >
-            {preferences.effectsEnabled || preferences.musicEnabled ? (
-              <Volume2 size={18} />
-            ) : (
-              <VolumeX size={18} />
-            )}
-            <span className="sound-label">Âm thanh</span>
+      {sessionChecking && <Loading label="Đang kiểm tra tài khoản…" />}
+      <div style={{ display: sessionChecking ? 'none' : 'contents' }} inert={sessionChecking}>
+        <header className="site-header">
+          <button className="brand" onClick={() => navigate('home')} aria-label="Zunimo trang chủ">
+            <span className="brand-icon">
+              <Keyboard size={23} />
+            </span>
+            <span>
+              Zunimo
+              <small>HỌC VUI MỖI NGÀY</small>
+            </span>
           </button>
-        </div>
-      </header>
-      <nav className="main-nav" aria-label="Điều hướng chính">
-        <button
-          aria-current={screen === 'home' ? 'page' : undefined}
-          onClick={() => navigate('home')}
-        >
-          Trang chủ
-        </button>
-        <button
-          aria-current={['library', 'setup', 'game', 'quest'].includes(screen) ? 'page' : undefined}
-          onClick={() => navigate('library')}
-        >
-          Gõ chữ
-        </button>
-        {canClassroom && (
+          <div className="header-right">
+            <span className="header-message">Học thật vui. Lớn thật hay.</span>
+            <button
+              className="sound-button audio-trigger"
+              aria-label="Cài đặt âm thanh"
+              onClick={() => setAudioOpen(true)}
+            >
+              {preferences.effectsEnabled || preferences.musicEnabled ? (
+                <Volume2 size={18} />
+              ) : (
+                <VolumeX size={18} />
+              )}
+              <span className="sound-label">Âm thanh</span>
+            </button>
+          </div>
+        </header>
+        <nav className="main-nav" aria-label="Điều hướng chính">
           <button
-            title="Mở lớp học"
-            aria-current={screen === 'classroom' ? 'page' : undefined}
-            onClick={() => navigate('classroom')}
+            aria-current={screen === 'home' ? 'page' : undefined}
+            onClick={() => navigate('home')}
           >
-            Lớp học
+            Trang chủ
           </button>
-        )}
-        <button
-          aria-current={screen === 'tests' ? 'page' : undefined}
-          onClick={() => navigate('tests')}
-        >
-          Bài kiểm tra
-        </button>
-        <div className="header-account-group">
-          <Account
-            onUser={setUser}
-            onCatalog={setCatalog}
-            onClasses={setClasses}
-            onOpen={setAccountOpen}
-            onReady={setBootstrapReady}
-            onNotifications={setNotificationSeed}
-            companionVisible={companion.visible}
-            companionSize={companion.size}
-            onPreviewCompanion={previewCompanion}
-            onSaveCompanion={(size) => changeCompanion({ size })}
-            onToggleCompanion={() => changeCompanion({ visible: !companion.visible })}
-            onAvatarChanged={(value, userId) => {
-              classroomCache.current.clear();
-              setMyAvatar({ userId, value });
-            }}
-          />
-        </div>
-      </nav>
-      <Suspense fallback={<Loading label="Đang mở trang…" />}>
-        {screen === 'classroom' ? (
-          <Reveal key={user?.user_id || 'guest'}>
-            {user && classCheck !== user.user_id ? (
-              <Loading label="Đang kiểm tra lớp học…" />
-            ) : canClassroom ? (
-              <ClassroomPage
-                user={user}
-                classes={classes}
-                cache={classroomCache.current}
-                avatarOverride={myAvatar?.userId === user.user_id ? myAvatar.value : null}
+          <button
+            aria-current={
+              ['library', 'setup', 'game', 'quest'].includes(screen) ? 'page' : undefined
+            }
+            onClick={() => navigate('library')}
+          >
+            Gõ chữ
+          </button>
+          {canClassroom && (
+            <button
+              title="Mở lớp học"
+              aria-current={screen === 'classroom' ? 'page' : undefined}
+              onClick={() => navigate('classroom')}
+            >
+              Lớp học
+            </button>
+          )}
+          <button
+            aria-current={screen === 'tests' ? 'page' : undefined}
+            onClick={() => navigate('tests')}
+          >
+            Bài kiểm tra
+          </button>
+          <div className="header-account-group">
+            <Account
+              onSessionChecking={setSessionChecking}
+              onUser={setUser}
+              onCatalog={setCatalog}
+              onClasses={setClasses}
+              onOpen={setAccountOpen}
+              onReady={setBootstrapReady}
+              onNotifications={setNotificationSeed}
+              companionVisible={companion.visible}
+              companionSize={companion.size}
+              onPreviewCompanion={previewCompanion}
+              onSaveCompanion={(size) => changeCompanion({ size })}
+              onToggleCompanion={() => changeCompanion({ visible: !companion.visible })}
+              onAvatarChanged={(value, userId) => {
+                classroomCache.current.clear();
+                setMyAvatar({ userId, value });
+              }}
+            />
+          </div>
+        </nav>
+        <Suspense fallback={<Loading label="Đang mở trang…" />}>
+          {screen === 'classroom' ? (
+            <Reveal key={user?.user_id || 'guest'}>
+              {user && classCheck !== user.user_id ? (
+                <Loading label="Đang kiểm tra lớp học…" />
+              ) : canClassroom ? (
+                <ClassroomPage
+                  user={user}
+                  classes={classes}
+                  cache={classroomCache.current}
+                  avatarOverride={myAvatar?.userId === user.user_id ? myAvatar.value : null}
+                />
+              ) : (
+                <main className="classroom-page">
+                  <section className="panel">
+                    <h1>Lớp học</h1>
+                    <p>Bạn cần đăng nhập và được giáo viên thêm vào lớp.</p>
+                  </section>
+                </main>
+              )}
+            </Reveal>
+          ) : screen === 'home' ? (
+            <Reveal key="home">
+              <HomePage
+                ready={bootstrapReady}
+                onPlay={() => navigate('library')}
+                onClassroom={() => navigate('classroom')}
+                canClassroom={canClassroom}
               />
-            ) : (
-              <main className="classroom-page">
-                <section className="panel">
-                  <h1>Lớp học</h1>
-                  <p>Bạn cần đăng nhập và được giáo viên thêm vào lớp.</p>
-                </section>
-              </main>
-            )}
-          </Reveal>
-        ) : screen === 'home' ? (
-          <Reveal key="home">
-            <HomePage
-              ready={bootstrapReady}
-              onPlay={() => navigate('library')}
-              onClassroom={() => navigate('classroom')}
-              canClassroom={canClassroom}
-            />
-          </Reveal>
-        ) : screen === 'library' ? (
-          <Reveal key="library">
-            <GameLibrary catalog={catalog} onChoose={navigate} onHome={() => navigate('home')} />
-          </Reveal>
-        ) : screen === 'quest' ? (
-          <KeyboardQuest
-            key={user?.user_id || 'guest'}
-            user={user}
-            catalog={catalog}
-            sound={play}
-            blocked={audioOpen || accountOpen || notificationsOpen}
-            onPlayingChange={setGamePlaying}
-            avatarOverride={myAvatar && myAvatar.userId === user?.user_id ? myAvatar.value : null}
-            onBack={() => navigate('library')}
-          />
-        ) : screen === 'tests' ? (
-          <AssessmentsPage
-            key={user?.user_id || 'guest'}
-            user={user}
-            classes={classes}
-            sound={play}
-            blocked={audioOpen || accountOpen || notificationsOpen}
-            requestedAssessment={requestedAssessment}
-            onPlayingChange={setGamePlaying}
-          />
-        ) : screen === 'setup' ? (
-          <Reveal key="setup">
-            <TypingSetup
+            </Reveal>
+          ) : screen === 'library' ? (
+            <Reveal key="library">
+              <GameLibrary catalog={catalog} onChoose={navigate} onHome={() => navigate('home')} />
+            </Reveal>
+          ) : screen === 'quest' ? (
+            <KeyboardQuest
+              key={user?.user_id || 'guest'}
               user={user}
-              settings={settings}
-              setSettings={setSettings}
-              onHome={() => navigate('library')}
-              onStart={start}
+              catalog={catalog}
+              sound={play}
+              blocked={audioOpen || accountOpen || notificationsOpen}
+              onPlayingChange={setGamePlaying}
+              avatarOverride={myAvatar && myAvatar.userId === user?.user_id ? myAvatar.value : null}
+              onBack={() => navigate('library')}
             />
-          </Reveal>
-        ) : (
-          <TypingGame
-            settings={runSettings}
-            user={user}
-            onHome={() => navigate('home')}
-            onSetup={() => navigate('setup')}
-            onFinish={finish}
-            sound={play}
-            audioOpen={audioOpen || accountOpen || notificationsOpen}
-            onPlayingChange={setGamePlaying}
+          ) : screen === 'tests' ? (
+            <AssessmentsPage
+              key={user?.user_id || 'guest'}
+              user={user}
+              classes={classes}
+              sound={play}
+              blocked={audioOpen || accountOpen || notificationsOpen}
+              requestedAssessment={requestedAssessment}
+              onPlayingChange={setGamePlaying}
+            />
+          ) : screen === 'setup' ? (
+            <Reveal key="setup">
+              <TypingSetup
+                user={user}
+                settings={settings}
+                setSettings={setSettings}
+                onHome={() => navigate('library')}
+                onStart={start}
+              />
+            </Reveal>
+          ) : (
+            <TypingGame
+              settings={runSettings}
+              user={user}
+              onHome={() => navigate('home')}
+              onSetup={() => navigate('setup')}
+              onFinish={finish}
+              sound={play}
+              audioOpen={audioOpen || accountOpen || notificationsOpen}
+              onPlayingChange={setGamePlaying}
+            />
+          )}
+        </Suspense>
+        {user?.role === 'student' && (
+          <Suspense fallback={null}>
+            <StudentNotifications
+              key={user.user_id}
+              user={user}
+              initial={notificationSeed?.userId === user.user_id ? notificationSeed.data : null}
+              home={screen === 'home'}
+              playing={gamePlaying}
+              blocked={audioOpen || accountOpen}
+              companionVisible={companion.visible && myAvatar?.userId === user.user_id}
+              onOpenChange={setNotificationsOpen}
+              onView={(assessmentId) => {
+                setRequestedAssessment({ assessmentId, requestId: crypto.randomUUID() });
+                navigate('tests');
+              }}
+            />
+          </Suspense>
+        )}
+        {user && myAvatar?.userId === user.user_id && companion.visible && (
+          <Companion
+            key={user.user_id}
+            avatar={myAvatar.value}
+            preferences={{ ...companion, size: companionPreview ?? companion.size }}
+            onPosition={changeCompanion}
           />
         )}
-      </Suspense>
-      {user?.role === 'student' && (
-        <Suspense fallback={null}>
-          <StudentNotifications
-            key={user.user_id}
-            user={user}
-            initial={notificationSeed?.userId === user.user_id ? notificationSeed.data : null}
-            home={screen === 'home'}
-            playing={gamePlaying}
-            blocked={audioOpen || accountOpen}
-            companionVisible={companion.visible && myAvatar?.userId === user.user_id}
-            onOpenChange={setNotificationsOpen}
-            onView={(assessmentId) => {
-              setRequestedAssessment({ assessmentId, requestId: crypto.randomUUID() });
-              navigate('tests');
-            }}
+        {audioOpen && (
+          <AudioSettings
+            preferences={preferences}
+            onChange={setPreferences}
+            onClose={() => setAudioOpen(false)}
           />
-        </Suspense>
-      )}
-      {user && myAvatar?.userId === user.user_id && companion.visible && (
-        <Companion
-          key={user.user_id}
-          avatar={myAvatar.value}
-          preferences={{ ...companion, size: companionPreview ?? companion.size }}
-          onPosition={changeCompanion}
-        />
-      )}
-      {audioOpen && (
-        <AudioSettings
-          preferences={preferences}
-          onChange={setPreferences}
-          onClose={() => setAudioOpen(false)}
-        />
-      )}
-      <footer>
-        <span>
-          Zunimo <i>✦</i> Khơi mở tiềm năng từ những điều nhỏ
-        </span>
-        <span>Được tạo cho những đôi tay ham học hỏi.</span>
-      </footer>
+        )}
+        <footer>
+          <span>
+            Zunimo <i>✦</i> Khơi mở tiềm năng từ những điều nhỏ
+          </span>
+          <span>Được tạo cho những đôi tay ham học hỏi.</span>
+        </footer>
+      </div>
     </>
   );
 }

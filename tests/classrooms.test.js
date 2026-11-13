@@ -62,6 +62,19 @@ test('Postgres classrooms enforce membership, preserve archived rosters and atom
     const sql = readFileSync(new URL('../db/classrooms.sql', import.meta.url), 'utf8');
     await db.exec(sql);
     await db.exec(sql);
+    const requestsSql = readFileSync(
+      new URL('../db/class_post_requests.sql', import.meta.url),
+      'utf8',
+    );
+    assert.equal(
+      requestsSql,
+      readFileSync(
+        new URL('../supabase/migrations/20261113120051_class_post_requests.sql', import.meta.url),
+        'utf8',
+      ),
+    );
+    await db.exec(requestsSql);
+    await db.exec(requestsSql);
     const teacher = '11111111-1111-4111-8111-111111111111',
       student = '22222222-2222-4222-8222-222222222222',
       outsider = '33333333-3333-4333-8333-333333333333';
@@ -114,14 +127,47 @@ test('Postgres classrooms enforce membership, preserve archived rosters and atom
     );
     assert.equal((await db.query('select * from class_posts')).rows.length, 0);
     await db.exec("insert into storage.objects values('tipy-classroom','test/a.pdf')");
-    await db.query('select tipy_publish_post($1,$2,$3,$4,$5,$6)', [
+    const request = '44444444-4444-4444-8444-444444444444';
+    const publish = [
       teacher,
       classroom,
       'Bài 1',
       'Nội dung',
       'https://example.com',
       [attachment],
+      request,
+    ];
+    const receipts = await Promise.all([
+      db.query('select tipy_publish_post($1,$2,$3,$4,$5,$6,$7)', publish),
+      db.query('select tipy_publish_post($1,$2,$3,$4,$5,$6,$7)', publish),
     ]);
+    assert.deepEqual(receipts[0].rows, receipts[1].rows);
+    assert.equal(receipts[0].rows[0].tipy_publish_post, request);
+    assert.equal((await db.query('select count(*) n from class_posts')).rows[0].n, 1);
+    await assert.rejects(
+      db.query('select tipy_publish_post($1,$2,$3,$4,$5,$6,$7)', [
+        teacher,
+        classroom,
+        'Changed',
+        'Nội dung',
+        'https://example.com',
+        [attachment],
+        request,
+      ]),
+      /conflicts/,
+    );
+    await assert.rejects(
+      db.query('select tipy_publish_post($1,$2,$3,$4,$5,$6,$7)', [
+        student,
+        classroom,
+        'Bài 1',
+        'Nội dung',
+        'https://example.com',
+        [attachment],
+        request,
+      ]),
+      /Admin required/,
+    );
     assert.ok((await db.query('select post_id from class_attachments')).rows[0].post_id);
     await db.exec(`set role authenticated;set request.jwt.claim.sub='${outsider}'`);
     assert.equal((await db.query('select * from classes')).rows.length, 0);

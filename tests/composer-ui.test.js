@@ -79,6 +79,11 @@ test('teacher sees side-by-side local draft preview; images are revoked and unsa
     assert.equal(d.querySelector('.preview-image img').getAttribute('src'), 'blob:local-draft');
     Object.defineProperty(input, 'files', { configurable: true, value: [] });
     input.dispatchEvent(new w.Event('change', { bubbles: true }));
+    await sleep(20);
+    assert.equal(d.querySelector('.composer-form [name=title]').value, 'Bài Scratch vui');
+    assert.equal(d.querySelectorAll('.preview-image img').length, 1);
+    assert.deepEqual(revoked, []);
+    d.querySelector('[aria-label="Xóa file picture.png"]').click();
     await until(() => revoked.length === 1);
     assert.deepEqual(revoked, ['blob:local-draft']);
     assert.equal(requests.includes('class_upload'), false);

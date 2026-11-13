@@ -13,6 +13,7 @@ import AccountPoints from './AccountPoints.jsx';
 import '../styles/modal.css';
 export default function Account({
   onUser,
+  onSessionChecking,
   onCatalog,
   onClasses,
   onOpen,
@@ -79,12 +80,22 @@ export default function Account({
         setLoading(false);
         onReady?.(true);
       });
+    let checking;
     const changed = () => {
-      setUser(null);
-      onUser(null);
-      onClasses?.([]);
-      onNotifications?.(null);
-      bootstrap().catch(() => {});
+      if (checking) return;
+      // Hide protected UI while verifying; the same account keeps its mounted draft.
+      onSessionChecking?.(true);
+      checking = bootstrap()
+        .catch(() => {
+          setUser(null);
+          onUser(null);
+          onClasses?.([]);
+          onNotifications?.(null);
+        })
+        .finally(() => {
+          checking = null;
+          onSessionChecking?.(false);
+        });
     };
     window.addEventListener('tipy-session-changed', changed);
     return () => window.removeEventListener('tipy-session-changed', changed);
