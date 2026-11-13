@@ -1,5 +1,5 @@
 import { Check, LogIn, RotateCcw, Eye, EyeOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import TipyButton from '../../components/TipyButton.jsx';
 import { api } from '../../game/backend.js';
 import Avatar from './Avatar.jsx';
@@ -32,12 +32,15 @@ export default function AvatarPicker({
   useEffect(() => {
     setValue(normalizeAvatar(initialValue));
   }, [initialValue]);
+  const sending = useRef(false);
   const submit = async (event) => {
     event.preventDefault();
+    if (sending.current) return;
     if (!user) {
       onLogin();
       return;
     }
+    sending.current = true;
     setSaving(true);
     setError('');
     setNotice('');
@@ -49,6 +52,7 @@ export default function AvatarPicker({
     } catch (error) {
       setError(error.message);
     } finally {
+      sending.current = false;
       setSaving(false);
     }
   };

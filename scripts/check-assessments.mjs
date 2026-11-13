@@ -39,6 +39,9 @@ try {
         'assessment_class_access',
       ])
         await db.exec(readFileSync(`db/${file}.sql`, 'utf8'));
+      await db.exec(
+        readFileSync('supabase/migrations/20261113042630_assessment_result_summary.sql', 'utf8'),
+      );
       for (const n of [...Array.from({ length: 15 }, (_, i) => i + 1), 99])
         await db.query('insert into auth.users values($1,$2,$3)', [
           id(n),

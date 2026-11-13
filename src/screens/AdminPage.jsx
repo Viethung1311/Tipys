@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import ValidatedForm from '../components/ValidatedForm.jsx';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { api } from '../game/backend.js';
 import { LEVELS } from '../game/config.js';
 import { practiceTime } from '../game/results.js';
@@ -49,7 +50,14 @@ export default function AdminPage() {
       if (data.games.length) selectGame(data.games[0]);
       setClasses(data.classes || []);
       const [pageData, avatarData] = await Promise.all([
-        api('students_page'),
+        api('students_page', undefined, {
+          page: 1,
+          search: '',
+          classFilter: 'all',
+          sort: 'desc',
+          rosterClass: '',
+          membership: 'all',
+        }),
         api('avatar').catch(() => null),
       ]);
       setCompanionAvatar({ userId: data.user.user_id, value: avatarData?.avatar });
@@ -71,28 +79,10 @@ export default function AdminPage() {
       setLoading(false);
     });
   }, []);
-  useEffect(() => {
-    if (tab !== 'results' || user?.role !== 'admin') return;
-    let current = true;
-    api('students')
-      .then(({ students: rows }) => {
-        if (current)
-          setStudents((previous) => [
-            ...rows,
-            ...previous.filter(
-              (s) =>
-                s.user_id === historyStudentId && !rows.some((row) => row.user_id === s.user_id),
-            ),
-          ]);
-      })
-      .catch((error) => {
-        if (current) setError(error.message);
-      });
-    return () => {
-      current = false;
-    };
-  }, [tab, user?.user_id]);
+  const sending = useRef(false);
   const run = async (action) => {
+    if (sending.current) return;
+    sending.current = true;
     setBusy(true);
     setError('');
     setNotice('');
@@ -101,6 +91,7 @@ export default function AdminPage() {
     } catch (error) {
       setError(error.message);
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   };
@@ -192,19 +183,31 @@ export default function AdminPage() {
                 </TipyButton>
               </>
             ) : (
-              <form className="account-form" onSubmit={login}>
+              <ValidatedForm className="account-form" onSubmit={login}>
                 <label>
                   Tên đăng nhập
-                  <input name="username" autoComplete="username" required defaultValue="admin" />
+                  <input
+                    pattern="[a-zA-Z0-9][a-zA-Z0-9_.-]{0,39}"
+                    name="username"
+                    autoComplete="username"
+                    required
+                    defaultValue="admin"
+                  />
                 </label>
                 <label>
                   Mật khẩu
-                  <input name="password" type="password" autoComplete="current-password" required />
+                  <input
+                    name="password"
+                    type="password"
+                    data-byte-limit="1024"
+                    autoComplete="current-password"
+                    required
+                  />
                 </label>
                 <TipyButton type="submit" icon={LogIn} disabled={busy || !configured}>
                   {busy ? 'Đang đăng nhập…' : 'Đăng nhập admin'}
                 </TipyButton>
-              </form>
+              </ValidatedForm>
             )}
           </section>
         ) : (
@@ -267,14 +270,25 @@ export default function AdminPage() {
             {tab === 'classes' && (
               <AdminClasses
                 initialClasses={classes}
-                onChanged={load}
+                onChanged={setClasses}
                 onMembersChanged={patchMembers}
               />
             )}
             {tab === 'students' && (
               <StudentsTable
                 classes={classes}
-                onChanged={load}
+                onChanged={() => {}}
+                onData={(data) => {
+                  setSummary(data.summary);
+                  setStudents((previous) => [
+                    ...data.students,
+                    ...previous.filter(
+                      (s) =>
+                        s.user_id === historyStudentId &&
+                        !data.students.some((row) => row.user_id === s.user_id),
+                    ),
+                  ]);
+                }}
                 onResults={(student) => {
                   setStudents((previous) => [
                     ...previous.filter((s) => s.user_id !== student.user_id),
@@ -302,7 +316,9 @@ export default function AdminPage() {
                         : s,
                     ),
                   );
-                  load().catch(() => setError('Đã đặt lại, nhưng chưa tải lại được danh sách.'));
+                  api('students_page')
+                    .then((data) => setSummary(data.summary))
+                    .catch(() => setError('Đã đặt lại, nhưng chưa tải lại được thống kê.'));
                 }}
                 students={students}
                 studentId={historyStudentId}
@@ -315,7 +331,7 @@ export default function AdminPage() {
               </Suspense>
             )}
             {tab === 'games' && (
-              <section className="panel">
+              <ValidatedForm className="panel" onSubmit={save}>
                 <h2>Cấu hình trò chơi</h2>
                 <div className="account-form">
                   <label>
@@ -340,6 +356,9 @@ export default function AdminPage() {
                       <label>
                         Tên game
                         <input
+                          data-required-text
+                          required
+                          maxLength={100}
                           value={game.game_name}
                           onChange={(e) => setGame({ ...game, game_name: e.target.value })}
                         />
@@ -370,6 +389,15 @@ export default function AdminPage() {
                                 <label key={key}>
                                   {label}
                                   <input
+                                    name={`${id}-${key}`}
+                                    required
+                                    data-at-most={
+                                      key === 'minFall'
+                                        ? `${id}-fall`
+                                        : key === 'minSpawn'
+                                          ? `${id}-spawn`
+                                          : undefined
+                                    }
                                     type="number"
                                     min={min}
                                     max={max}
@@ -395,12 +423,12 @@ export default function AdminPage() {
                     ) : (
                       <p>Cấu hình riêng của game này được giữ nguyên.</p>
                     )}
-                    <TipyButton icon={Save} disabled={busy} onClick={save}>
+                    <TipyButton type="submit" icon={Save} disabled={busy}>
                       Lưu cấu hình
                     </TipyButton>
                   </>
                 )}
-              </section>
+              </ValidatedForm>
             )}
           </>
         )}

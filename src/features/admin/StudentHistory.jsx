@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import useStudentsPage from './useStudentsPage.js';
+import Pagination from './Pagination.jsx';
+import { useEffect, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { api } from '../../game/backend.js';
+import { api, clearApiCache } from '../../game/backend.js';
 import { practiceTime } from '../../game/results.js';
 import ResultsTable from '../../components/ResultsTable.jsx';
 import Loading from '../../components/Loading.jsx';
@@ -22,7 +24,22 @@ export default function StudentHistory({
     [gameId, setGameId] = useState('');
   const [resetting, setResetting] = useState(false),
     [notice, setNotice] = useState('');
-  const student = students.find((item) => item.user_id === studentId);
+  const [search, setSearch] = useState(''),
+    [page, setPage] = useState(1);
+  const { data: choices, loading: finding, error: choiceError } = useStudentsPage({ page, search });
+  const selected = useRef(null);
+  const student =
+    [...students, ...(choices?.students || [])].find((row) => row.user_id === studentId) ||
+    (selected.current?.user_id === studentId ? selected.current : null);
+  selected.current = student;
+  const options = [
+    ...new Map(
+      [...(student ? [student] : []), ...(choices?.students || students)].map((row) => [
+        row.user_id,
+        row,
+      ]),
+    ).values(),
+  ];
   useEffect(() => {
     if (!studentId || !student) return;
     let live = true;
@@ -57,6 +74,20 @@ export default function StudentHistory({
       </p>
       <div className="history-filters">
         <label>
+          Tìm học sinh
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </label>
+        {finding && <p role="status">Đang tìm học sinh…</p>}
+        {choiceError && <p role="alert">{choiceError}</p>}
+        {choices && <Pagination {...choices} onPage={setPage} disabled={finding} />}
+        <label>
           Chọn học sinh
           <select
             value={studentId}
@@ -66,7 +97,7 @@ export default function StudentHistory({
             }}
           >
             <option value="">Chọn học sinh…</option>
-            {students.map((item) => (
+            {options.map((item) => (
               <option key={item.user_id} value={item.user_id}>
                 {item.full_name} · {item.username}
                 {item.is_active ? '' : ' · Đã khóa'}
@@ -93,7 +124,10 @@ export default function StudentHistory({
             icon={RotateCcw}
             loading={loading}
             loadingLabel="Đang tải…"
-            onClick={() => setRevision((value) => value + 1)}
+            onClick={() => {
+              clearApiCache();
+              setRevision((value) => value + 1);
+            }}
           >
             Làm mới kết quả
           </TipyButton>

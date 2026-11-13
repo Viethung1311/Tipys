@@ -48,11 +48,12 @@ export function assessmentSession(
         onFinal(row);
         return row;
       }
+      // A checkpoint saves one snapshot, not every frame that arrived during the request.
+      if (action === 'assessment_checkpoint') return row;
     }
   };
   const flush = (submit = false) => {
     if (closed) return Promise.resolve(finalRow);
-    sequence++;
     queue = queue
       .catch(() => {})
       .then(() => send(submit ? 'assessment_submit' : 'assessment_checkpoint'))
@@ -65,8 +66,9 @@ export function assessmentSession(
   return {
     update(id, value, schedule = true) {
       if (closed) return;
+      if (JSON.stringify(payload[id]) === JSON.stringify(value)) return;
       payload[id] = structuredClone(value);
-      if (schedule) sequence++;
+      sequence++;
       if (schedule) notify('Đang lưu…');
       if (schedule && !timer) timer = setTimeout(() => flush().catch(() => {}), 1000);
     },

@@ -725,6 +725,12 @@ label.class-select {
   font-size: var(--tipy-content-size);
   line-height: 1.6;
 }
+.account-error[data-field-error]:not([hidden]) {
+  display: block;
+  margin-top: 6px;
+  padding: 6px 12px;
+  font-size: inherit;
+}
 .admin-success {
   background: var(--tipy-play-soft);
   color: var(--tipy-play-base);

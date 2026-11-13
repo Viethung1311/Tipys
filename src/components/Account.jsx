@@ -1,3 +1,4 @@
+import ValidatedForm from './ValidatedForm.jsx';
 import Avatar from '../features/classroom/Avatar.jsx';
 import { normalizeAvatar } from '../characters/catalog.js';
 import { useEffect, useRef, useState } from 'react';
@@ -82,7 +83,10 @@ export default function Account({
     onOpen(value);
     setError('');
   };
+  const sending = useRef(false);
   const run = async (task) => {
+    if (sending.current) return;
+    sending.current = true;
     setBusy(true);
     setError('');
     try {
@@ -90,6 +94,7 @@ export default function Account({
     } catch (error) {
       setError(error.message);
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   };
@@ -187,16 +192,24 @@ export default function Account({
                         Đăng ký
                       </button>
                     </div>
-                    <form onSubmit={submit} className="account-form">
+                    <ValidatedForm onSubmit={submit} className="account-form">
                       {mode === 'signup' && (
                         <label>
                           Tên của bạn
-                          <input name="fullName" autoComplete="name" required maxLength={100} />
+                          <input
+                            data-required-text
+                            name="fullName"
+                            autoComplete="name"
+                            required
+                            maxLength={100}
+                          />
                         </label>
                       )}
                       <label>
                         Tên đăng nhập
                         <input
+                          pattern="[a-zA-Z0-9][a-zA-Z0-9_.-]{0,39}"
+                          data-format-message="Tên đăng nhập dùng chữ không dấu, số, dấu chấm, gạch ngang hoặc gạch dưới."
                           name="username"
                           autoComplete="username"
                           autoCapitalize="none"
@@ -211,6 +224,7 @@ export default function Account({
                         <input
                           name="password"
                           type="password"
+                          data-byte-limit="1024"
                           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                           required
                           placeholder="Bạn tự chọn mật khẩu dễ nhớ"
@@ -229,7 +243,7 @@ export default function Account({
                       >
                         {mode === 'signup' ? 'Tạo tài khoản' : 'Vào chơi nào'}
                       </TipyButton>
-                    </form>
+                    </ValidatedForm>
                     {!configured && (
                       <p className="account-message">
                         Phần tài khoản đang được thiết lập. Bạn vẫn có thể chơi thử.

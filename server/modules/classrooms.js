@@ -359,7 +359,7 @@ export function createClassrooms(db) {
         db
           .from('class_members')
           .select(
-            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color),player_game_stats(total_active_seconds,best_score:best_play->score,games(game_code)),player_lesson_progress(lesson_id,best_stars,games(game_code)))',
+            'user_id,joined_at,profiles!inner(full_name,is_active,student_avatars(animal,accessory,color),player_game_stats(total_active_seconds))',
           )
           .eq('class_id', input.classId)
           .eq('is_active', true)

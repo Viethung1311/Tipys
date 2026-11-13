@@ -29,7 +29,6 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
           throw Error('Chưa tải được thành tích. Bạn thử lại nhé.');
         if (live) {
           setData(value);
-          window.dispatchEvent(new Event('tipy-points-changed'));
         }
       })
       .catch((e) => {

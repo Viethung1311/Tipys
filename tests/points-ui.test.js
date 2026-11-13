@@ -22,6 +22,7 @@ test('shared account points refresh after a saved lesson, survive navigation and
     d = w.document;
   let user = { user_id: 'child', full_name: 'Test', role: 'student' },
     points = 0,
+    starReads = 0,
     hold = false,
     finishRead;
   const response = (data) => ({ ok: true, json: async () => data });
@@ -36,6 +37,7 @@ test('shared account points refresh after a saved lesson, survive navigation and
         classes: [],
       });
     if (action === 'stars') {
+      starReads++;
       if (hold)
         return new Promise((resolve) => {
           finishRead = () => resolve(response({ stars: 999999 }));
@@ -74,6 +76,12 @@ test('shared account points refresh after a saved lesson, survive navigation and
     [...d.querySelectorAll('button')].find((el) => el.textContent.trim() === text);
   try {
     await until(() => d.querySelector('.account-points')?.textContent.includes('0'));
+    const initialReads = starReads;
+    w.dispatchEvent(
+      new w.CustomEvent('tipy-points-changed', { detail: { userId: 'another-child' } }),
+    );
+    await sleep(30);
+    assert.equal(starReads, initialReads, 'another student reward does not reload this account');
     (await until(() => d.querySelector('[data-world-id="1"]'))).click();
     (await until(() => button('Bắt đầu'))).click();
     (await until(() => button('Vào học'))).click();

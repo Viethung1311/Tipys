@@ -1,5 +1,11 @@
 # Zunimo — chuẩn giao diện dùng chung
 
+### Biểu mẫu và dữ liệu
+
+- Dùng `ValidatedForm` cho form tài khoản/quản trị: lỗi tiếng Việt ngay dưới trường, focus trường sai đầu tiên, giữ nội dung và mật khẩu nguyên văn. Enter và nút gửi đi chung đường kiểm tra; dữ liệu sai tại máy không gọi API. Lỗi có `aria-invalid`/`aria-errormessage`, nhãn truy cập giữ ổn định.
+- Bảng quản trị dùng cache bộ nhớ tối đa 30 giây theo tài khoản/bộ lọc/trang, xóa khi ghi dữ liệu, đổi tài khoản hoặc quay lại tab. Nút làm mới chủ động phải bỏ cache. Không dùng cache kết quả hoàn tất để bỏ qua kiểm tra quyền lớp/bài của học sinh.
+- Trang đứng yên không polling danh sách hoặc tổng sao; nạp lại khi quay lại tab và sau thao tác liên quan. Checkpoint lượt đang chơi và cron chốt giờ/thưởng vẫn giữ nguyên vai trò.
+
 ### Bài kiểm tra: lịch, lượt và kết quả
 
 - Chi tiết/xem trước dùng panel chung như bài đăng lớp: nền trắng, bo góc/viền/bóng theo token, tối đa 940 px, căn giữa. Chia tên bài, giới thiệu, cách chơi, thời gian, số lượt; mỗi phần chơi là thẻ nhỏ, nút trong footer thẻ. Giữ xuống dòng nội dung; một cột ở máy hẹp. Không tái sử dụng PostComposer như một form giả: dùng lớp panel chung hiện có.

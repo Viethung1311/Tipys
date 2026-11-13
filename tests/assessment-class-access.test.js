@@ -88,6 +88,9 @@ test('class targets migrate only from explicit evidence; late members, multiple 
       )
     ).rows[0].attempt_id;
     await db.exec(readFileSync('db/assessment_class_access.sql', 'utf8'));
+    await db.exec(
+      readFileSync('supabase/migrations/20261113042630_assessment_result_summary.sql', 'utf8'),
+    );
     assert.equal(
       (await db.query('select count(*)::int n from assessments')).rows[0].n,
       4,

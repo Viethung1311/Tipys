@@ -1,3 +1,4 @@
+import ValidatedForm from '../../components/ValidatedForm.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
 import { imagePreview } from './image.js';
@@ -104,11 +105,18 @@ export default function PostComposer({ classId, onPosted }) {
         <span className="teacher-only-badge">Chỉ giáo viên</span>
       </div>
       <div className="composer-layout">
-        <form className="account-form composer-form" onSubmit={submit}>
+        <ValidatedForm className="account-form composer-form" onSubmit={submit}>
           <fieldset disabled={busy}>
             <label>
               Tiêu đề
-              <input name="title" required maxLength={160} value={fields.title} onChange={change} />
+              <input
+                data-required-text
+                name="title"
+                required
+                maxLength={160}
+                value={fields.title}
+                onChange={change}
+              />
             </label>
             <label>
               Nội dung
@@ -134,6 +142,7 @@ export default function PostComposer({ classId, onPosted }) {
             <label>
               Ảnh hoặc tài liệu
               <input
+                data-extensions={Object.keys(FILE_TYPES).join(',')}
                 name="files"
                 type="file"
                 multiple
@@ -156,7 +165,7 @@ export default function PostComposer({ classId, onPosted }) {
               {busy ? 'Đang đăng bài…' : 'Đăng bài cho lớp'}
             </TipyButton>
           </fieldset>
-        </form>
+        </ValidatedForm>
         <aside className="composer-preview" aria-label="Xem trước bài đăng">
           <span className="preview-eyebrow">XEM TRƯỚC BÀI ĐĂNG</span>
           <article className="preview-paper">

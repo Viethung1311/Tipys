@@ -12,7 +12,8 @@ export default function AccountPoints({ user }) {
       latest = 0;
     setValue(null);
     setError(false);
-    const refresh = async () => {
+    const refresh = async (event) => {
+      if (event?.detail?.userId && event.detail.userId !== user.user_id) return;
       const request = ++latest;
       try {
         const result = await api('stars');
@@ -28,14 +29,15 @@ export default function AccountPoints({ user }) {
     refresh();
     window.addEventListener('tipy-points-changed', refresh);
     window.addEventListener('focus', refresh);
-    const timer = setInterval(() => {
+    const visible = () => {
       if (!document.hidden) refresh();
-    }, 60000);
+    };
+    document.addEventListener('visibilitychange', visible);
     return () => {
       live = false;
       window.removeEventListener('tipy-points-changed', refresh);
       window.removeEventListener('focus', refresh);
-      clearInterval(timer);
+      document.removeEventListener('visibilitychange', visible);
     };
   }, [user?.user_id, revision]);
   if (!user) return null;

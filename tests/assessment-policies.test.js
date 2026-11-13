@@ -144,6 +144,9 @@ test('real database: deadlines, snapshot grading, concurrent starts, limits, unl
     );
     await db.exec(readFileSync('db/assessment_policies.sql', 'utf8'));
     await db.exec(readFileSync('db/assessment_class_access.sql', 'utf8'));
+    await db.exec(
+      readFileSync('supabase/migrations/20261113042630_assessment_result_summary.sql', 'utf8'),
+    );
     const rpc = async (actor, action, input = {}) =>
       (await db.query('select tipy_assessment($1,$2,$3) data', [actor.user_id, action, input]))
         .rows[0].data;

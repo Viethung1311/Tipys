@@ -1,14 +1,60 @@
 const pendingReads = new Map();
+const readCache = new Map();
+let identity = null,
+  epoch = 0,
+  readVersion = 0;
+const adminReads = new Set([
+  'students_page',
+  'history',
+  'assessment_results',
+  'assessment_attempts',
+]);
+export function clearApiCache() {
+  readCache.clear();
+  pendingReads.clear();
+  readVersion++;
+}
+export function setApiIdentity(user) {
+  const next = user ? `${user.user_id}:${user.role}` : null;
+  if (identity !== next) {
+    identity = next;
+    epoch++;
+    clearApiCache();
+  }
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('focus', clearApiCache);
+  document.addEventListener('visibilitychange', clearApiCache);
+  window.addEventListener('tipy-class-access-changed', clearApiCache);
+}
 export function api(action, body, params = {}) {
   if (body) {
-    pendingReads.clear();
+    if (['login', 'signup', 'logout'].includes(action)) {
+      epoch++;
+      identity = null;
+    }
+    clearApiCache();
     return request(action, body, params);
   }
   const key = new URLSearchParams({ action, ...params }).toString();
+  const cached = readCache.get(key);
+  if (cached && cached.expires > Date.now()) return Promise.resolve(cached.data);
   if (pendingReads.has(key)) return pendingReads.get(key);
-  const pending = request(action, body, params).finally(() => {
-    if (pendingReads.get(key) === pending) pendingReads.delete(key);
-  });
+  const owner = epoch,
+    version = readVersion;
+  const pending = request(action, body, params)
+    .then((data) => {
+      if (owner !== epoch) throw Error('Tài khoản đã thay đổi. Hãy mở lại nội dung.');
+      if (action === 'bootstrap') setApiIdentity(data.user);
+      if (identity?.endsWith(':admin') && adminReads.has(action) && version === readVersion) {
+        if (readCache.size >= 60) readCache.delete(readCache.keys().next().value);
+        readCache.set(key, { data, expires: Date.now() + 30000 });
+      }
+      return data;
+    })
+    .finally(() => {
+      if (pendingReads.get(key) === pending) pendingReads.delete(key);
+    });
   pendingReads.set(key, pending);
   return pending;
 }

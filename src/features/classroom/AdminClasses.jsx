@@ -1,3 +1,4 @@
+import ValidatedForm from '../../components/ValidatedForm.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
 import Loading from '../../components/Loading.jsx';
@@ -44,7 +45,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
         setDeletions((rows) => [...rows.filter((row) => row.class_id !== target.class_id), target]);
       else setDeletions((rows) => rows.filter((row) => row.class_id !== target.class_id));
       try {
-        await onChanged();
+        onChanged?.(classes.filter((row) => row.class_id !== target.class_id));
         await loadDeletions();
       } catch {
         setError('Lớp đã xóa, nhưng chưa cập nhật được danh sách. Hãy tải lại trang.');
@@ -59,6 +60,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
   const load = async () => {
     const data = await api('classes');
     setClasses(data.classes);
+    onChanged?.(data.classes);
   };
   useEffect(() => {
     loadDeletions().catch((e) => setError(e.message));
@@ -70,7 +72,10 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
       .catch((e) => setError(e.message))
       .finally(() => setBusy(false));
   }, []);
+  const saving = useRef(false);
   const run = async (task) => {
+    if (saving.current) return;
+    saving.current = true;
     setBusy(true);
     setError('');
     setNotice('');
@@ -80,6 +85,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
     } catch (e) {
       setError(e.message);
     } finally {
+      saving.current = false;
       setBusy(false);
     }
   };
@@ -99,7 +105,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
           </TipyButton>
         </p>
       ))}
-      <form
+      <ValidatedForm
         className="class-create"
         onSubmit={(e) => {
           e.preventDefault();
@@ -108,13 +114,13 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
             setName('');
             await load();
             setSelected(result.class_id);
-            await onChanged();
           });
         }}
       >
         <label>
           Tên lớp mới
           <input
+            data-required-text
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -125,7 +131,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
         <TipyButton type="submit" icon={Plus} disabled={busy}>
           Tạo lớp mới
         </TipyButton>
-      </form>
+      </ValidatedForm>
       <label className="class-select">
         Chọn lớp để quản lý
         <select value={selected} onChange={(e) => setSelected(e.target.value)}>
@@ -140,7 +146,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
       </label>
       {current && (
         <>
-          <form
+          <ValidatedForm
             className="class-create"
             key={current.class_id + current.name}
             onSubmit={(e) => {
@@ -149,18 +155,23 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
               run(async () => {
                 await api('class_save', { classId: selected, name: value });
                 await load();
-                await onChanged();
               });
             }}
           >
             <label>
               Đổi tên lớp
-              <input name="name" required maxLength={100} defaultValue={current.name} />
+              <input
+                data-required-text
+                name="name"
+                required
+                maxLength={100}
+                defaultValue={current.name}
+              />
             </label>
             <TipyButton type="submit" emphasis="secondary" icon={Save} disabled={busy}>
               Lưu tên
             </TipyButton>
-          </form>
+          </ValidatedForm>
           <TipyButton
             emphasis="secondary"
             icon={Archive}
@@ -169,7 +180,6 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
               run(async () => {
                 await api('class_archive', { classId: selected, archived: !current.archived_at });
                 await load();
-                await onChanged();
               })
             }
           >
@@ -229,7 +239,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
             Không xóa tài khoản học sinh, nhân vật hoặc kết quả chơi. Hệ thống hiện chưa có dữ liệu
             bình luận.
           </p>
-          <form
+          <ValidatedForm
             onSubmit={(e) => {
               e.preventDefault();
               removeClass();
@@ -239,6 +249,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
               Nhập đúng tên lớp: {target.name}
               <input
                 autoComplete="off"
+                data-confirm={target.name}
                 value={confirmName}
                 disabled={deleting}
                 onChange={(e) => setConfirmName(e.target.value)}
@@ -259,7 +270,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
             >
               Xác nhận xóa
             </TipyButton>
-          </form>
+          </ValidatedForm>
         </Modal>
       )}
     </section>

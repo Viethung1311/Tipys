@@ -1,3 +1,4 @@
+import ValidatedForm from '../../components/ValidatedForm.jsx';
 import { useRef, useState } from 'react';
 import { Star, RotateCcw } from 'lucide-react';
 import Modal from '../../components/Modal.jsx';
@@ -38,7 +39,9 @@ export default function StudentActionDialog({
       });
       if (!result.data?.completed)
         throw Error('Chưa xác nhận được kết quả. Hãy thử lại cùng yêu cầu.');
-      window.dispatchEvent(new Event('tipy-points-changed'));
+      window.dispatchEvent(
+        new CustomEvent('tipy-points-changed', { detail: { userId: student.user_id } }),
+      );
       onDone(result.data);
     } catch (e) {
       setError(e.message);
@@ -56,7 +59,7 @@ export default function StudentActionDialog({
         if (!inFlight.current) onClose();
       }}
     >
-      <form className="account-form" onSubmit={submit}>
+      <ValidatedForm className="account-form" onSubmit={submit}>
         {gift ? (
           <>
             <label>
@@ -117,6 +120,7 @@ export default function StudentActionDialog({
               Gõ chính xác accept để xác nhận
               <input
                 autoComplete="off"
+                data-confirm="accept"
                 value={confirmation}
                 disabled={busy}
                 onChange={(e) => setConfirmation(e.target.value)}
@@ -144,7 +148,7 @@ export default function StudentActionDialog({
             {gift ? 'Tặng sao' : 'Làm lại từ đầu'}
           </TipyButton>
         </div>
-      </form>
+      </ValidatedForm>
     </Modal>
   );
 }

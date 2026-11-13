@@ -121,13 +121,12 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
     window.addEventListener('focus', verify);
     window.addEventListener('tipy-class-access-changed', verify);
     document.addEventListener('visibilitychange', verify);
-    const timer = setInterval(() => verify(true), 15000);
+    // Active attempts already validate access in checkpoints; idle pages refresh on return.
     return () => {
       live = false;
       window.removeEventListener('focus', verify);
       window.removeEventListener('tipy-class-access-changed', verify);
       document.removeEventListener('visibilitychange', verify);
-      clearInterval(timer);
     };
   }, [user?.user_id, user?.role, page]);
   const run = async (task) => {
@@ -353,16 +352,25 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
     if (!attempt.deadline) return;
     const remaining = Date.parse(attempt.deadline) - Date.parse(detail.serverNow);
     const started = performance.now();
+    let pending = false,
+      retryAt = 0,
+      retryDelay = 1000;
     const timer = setInterval(() => {
-      if (performance.now() - started >= remaining) {
+      if (!pending && performance.now() >= retryAt && performance.now() - started >= remaining) {
+        pending = true;
         setBusy(true);
         session
           .flush(true)
           .catch((e) => {
             setMessage(e.message);
             setFailure(true);
+            retryDelay = Math.min(retryDelay * 2, 30000);
+            retryAt = performance.now() + retryDelay;
           })
-          .finally(() => setBusy(false));
+          .finally(() => {
+            pending = false;
+            setBusy(false);
+          });
       }
     }, 1000);
     return () => clearInterval(timer);

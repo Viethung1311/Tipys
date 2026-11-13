@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import ValidatedForm from '../../components/ValidatedForm.jsx';
+import { useEffect, useRef, useState } from 'react';
 import { History, LockKeyhole, Trash2, Star } from 'lucide-react';
 import StudentActionDialog from './StudentActionDialog.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
@@ -9,7 +10,7 @@ import Pagination from './Pagination.jsx';
 import useStudentsPage from './useStudentsPage.js';
 import './students.css';
 
-export default function StudentsTable({ classes, onResults, onChanged }) {
+export default function StudentsTable({ classes, onResults, onChanged, onData }) {
   const [page, setPage] = useState(1),
     [search, setSearch] = useState(''),
     [classFilter, setClassFilter] = useState('all'),
@@ -23,14 +24,17 @@ export default function StudentsTable({ classes, onResults, onChanged }) {
     [notice, setNotice] = useState('');
   const { data, loading, error } = useStudentsPage({ page, search, classFilter, sort }, revision);
   useEffect(() => {
+    if (data) onData?.(data);
     if (data && data.page !== page) setPage(data.page);
   }, [data]);
   const filter = (setter, value) => {
     setter(value);
     setPage(1);
   };
+  const sending = useRef(false);
   const update = async (task) => {
-    if (busy) return;
+    if (sending.current) return;
+    sending.current = true;
     setBusy(true);
     setFailure('');
     setNotice('');
@@ -41,6 +45,7 @@ export default function StudentsTable({ classes, onResults, onChanged }) {
     } catch (e) {
       setFailure(e.message);
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   };
@@ -186,45 +191,51 @@ export default function StudentsTable({ classes, onResults, onChanged }) {
             và quan hệ thành viên của học sinh. Không thể hoàn tác. Lớp học, tài liệu dùng chung và
             tài khoản khác được giữ nguyên.
           </p>
-          <label>
-            Nhập lại tên đăng nhập
-            <input
-              autoComplete="off"
-              value={confirmation}
-              disabled={busy}
-              onChange={(e) => setConfirmation(e.target.value)}
-            />
-          </label>
-          {failure && (
-            <p role="alert" className="account-error">
-              {failure}
-            </p>
-          )}
-          <div className="student-row-actions">
-            <TipyButton emphasis="secondary" disabled={busy} onClick={() => setTarget(null)}>
-              Hủy
-            </TipyButton>
-            <TipyButton
-              className="student-delete"
-              icon={Trash2}
-              disabled={confirmation !== target.username}
-              loading={busy}
-              loadingLabel="Đang xóa…"
-              onClick={() =>
-                update(async () => {
-                  const result = await api('student_delete', {
-                    userId: target.user_id,
-                    confirmUsername: confirmation,
-                  });
-                  if (!result.data?.deleted) throw Error('Chưa xác minh xóa tài khoản.');
-                  setTarget(null);
-                  setNotice('Đã xóa tài khoản và xác minh hoàn tất.');
-                })
-              }
-            >
-              Xóa tài khoản
-            </TipyButton>
-          </div>
+          <ValidatedForm
+            onSubmit={() => {
+              if (confirmation !== target.username) return;
+              return update(async () => {
+                const result = await api('student_delete', {
+                  userId: target.user_id,
+                  confirmUsername: confirmation,
+                });
+                if (!result.data?.deleted) throw Error('Chưa xác minh xóa tài khoản.');
+                setTarget(null);
+                setNotice('Đã xóa tài khoản và xác minh hoàn tất.');
+              });
+            }}
+          >
+            <label>
+              Nhập lại tên đăng nhập
+              <input
+                autoComplete="off"
+                data-confirm={target.username}
+                value={confirmation}
+                disabled={busy}
+                onChange={(e) => setConfirmation(e.target.value)}
+              />
+            </label>
+            {failure && (
+              <p role="alert" className="account-error">
+                {failure}
+              </p>
+            )}
+            <div className="student-row-actions">
+              <TipyButton emphasis="secondary" disabled={busy} onClick={() => setTarget(null)}>
+                Hủy
+              </TipyButton>
+              <TipyButton
+                className="student-delete"
+                icon={Trash2}
+                disabled={confirmation !== target.username}
+                loading={busy}
+                loadingLabel="Đang xóa…"
+                type="submit"
+              >
+                Xóa tài khoản
+              </TipyButton>
+            </div>
+          </ValidatedForm>
         </Modal>
       )}
       {giftTarget && (
@@ -235,10 +246,6 @@ export default function StudentsTable({ classes, onResults, onChanged }) {
           onDone={(data) => {
             setNotice(`Đã tặng ${data.amount} sao cho ${giftTarget.full_name}.`);
             setGiftTarget(null);
-            setRevision((n) => n + 1);
-            Promise.resolve(onChanged?.()).catch(() =>
-              setFailure('Đã tặng sao, nhưng chưa tải lại được danh sách.'),
-            );
           }}
         />
       )}

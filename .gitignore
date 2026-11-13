@@ -10,3 +10,4 @@ playwright-report/
 
 .test-dist/
 .standalone-dist/
+supabase/.temp/

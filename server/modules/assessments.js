@@ -359,6 +359,7 @@ export function createAssessments(db) {
       scope(input);
       uuid(input.requestId);
       if (!Number.isInteger(input.version) || input.version < 0) invalid();
+      assessmentSnapshot(input, LEVELS); // Reject malformed drafts before reading game configuration.
       let levels = LEVELS;
       if (input.selection?.falling) {
         const game = await db

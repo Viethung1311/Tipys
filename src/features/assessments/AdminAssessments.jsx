@@ -1,3 +1,4 @@
+import ValidatedForm from '../../components/ValidatedForm.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Eye, Send, ArrowLeft, Copy, ChartColumn, Save, Trash2 } from 'lucide-react';
 import { api } from '../../game/backend.js';
@@ -159,8 +160,12 @@ export default function AdminAssessments({ classes = [] }) {
     setError('');
     setRevision((n) => n + 1);
   };
-  const save = () =>
-    run(async () => {
+  const save = () => {
+    if (draft.selection.falling && !draft.selection.falling.keys.length) {
+      setError('Chọn ít nhất một phím cho Chữ rơi.');
+      return;
+    }
+    return run(async () => {
       const serialized = JSON.stringify(draft);
       if (pending.current?.serialized !== serialized)
         pending.current = { serialized, requestId: crypto.randomUUID() };
@@ -172,6 +177,7 @@ export default function AdminAssessments({ classes = [] }) {
       setPreview(response.data);
       pending.current = null;
     });
+  };
   const requestDelete = (exam) => {
     setError('');
     setDeleteConfirm('');
@@ -297,7 +303,7 @@ export default function AdminAssessments({ classes = [] }) {
           </AssessmentSummary>
         </>
       ) : draft ? (
-        <form
+        <ValidatedForm
           className="account-form"
           onSubmit={(e) => {
             e.preventDefault();
@@ -311,6 +317,7 @@ export default function AdminAssessments({ classes = [] }) {
               <input
                 required
                 maxLength={100}
+                data-required-text
                 value={draft.title}
                 onChange={(e) => field('title', e.target.value)}
               />
@@ -354,6 +361,7 @@ export default function AdminAssessments({ classes = [] }) {
                   <input
                     type="datetime-local"
                     required
+                    name="opensAt"
                     value={localVN(draft.schedule.opensAt)}
                     onChange={(e) =>
                       field('schedule', {
@@ -370,6 +378,8 @@ export default function AdminAssessments({ classes = [] }) {
                   <input
                     type="datetime-local"
                     required
+                    name="closesAt"
+                    data-after="opensAt"
                     value={localVN(draft.schedule.closesAt)}
                     onChange={(e) =>
                       field('schedule', {
@@ -528,7 +538,7 @@ export default function AdminAssessments({ classes = [] }) {
               Xem trước
             </TipyButton>
           </div>
-        </form>
+        </ValidatedForm>
       ) : !list ? (
         !error && <Loading label="Đang tải bài kiểm tra…" />
       ) : (
@@ -597,29 +607,10 @@ export default function AdminAssessments({ classes = [] }) {
               {error}
             </p>
           )}
-          <label className="account-field">
-            Nhập accept để xác nhận
-            <input
-              aria-label="Nhập accept để xác nhận"
-              value={deleteConfirm}
-              onChange={(e) => setDeleteConfirm(e.target.value)}
-              disabled={busy}
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </label>
-          <div className="assessment-actions">
-            <TipyButton emphasis="secondary" disabled={busy} onClick={() => setDeleting(null)}>
-              Quay lại
-            </TipyButton>
-            <TipyButton
-              icon={Trash2}
-              variant="danger"
-              disabled={deleteConfirm !== 'accept'}
-              loading={busy}
-              loadingLabel="Đang xóa…"
-              onClick={() =>
-                run(async () => {
+          <ValidatedForm
+            onSubmit={() => {
+              if (deleteConfirm === 'accept')
+                return run(async () => {
                   const result = await api('assessment_delete', {
                     assessmentId: deleting.assessment_id,
                     title: deleting.title,
@@ -634,12 +625,37 @@ export default function AdminAssessments({ classes = [] }) {
                   setList(null);
                   setNotice('Đã xóa vĩnh viễn bài kiểm tra và kết quả liên quan.');
                   setRevision((n) => n + 1);
-                })
-              }
-            >
-              Xóa vĩnh viễn
-            </TipyButton>
-          </div>
+                });
+            }}
+          >
+            <label className="account-field">
+              Nhập accept để xác nhận
+              <input
+                aria-label="Nhập accept để xác nhận"
+                data-confirm="accept"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                disabled={busy}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </label>
+            <div className="assessment-actions">
+              <TipyButton emphasis="secondary" disabled={busy} onClick={() => setDeleting(null)}>
+                Quay lại
+              </TipyButton>
+              <TipyButton
+                icon={Trash2}
+                variant="danger"
+                disabled={deleteConfirm !== 'accept'}
+                loading={busy}
+                loadingLabel="Đang xóa…"
+                type="submit"
+              >
+                Xóa vĩnh viễn
+              </TipyButton>
+            </div>
+          </ValidatedForm>
         </Modal>
       )}
     </section>
