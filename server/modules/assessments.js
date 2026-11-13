@@ -1,4 +1,5 @@
 import { ApiError, requireAdmin } from '../errors.js';
+import { TEACHER_NAME } from '../../src/game/teacher.js';
 import { uuid, text } from './classrooms.js';
 import { validateLevels, validateProgress } from './game-validation.js';
 import { TEST_CONTENT } from '../../src/features/assessments/content.js';
@@ -349,10 +350,16 @@ export function createAssessments(db) {
     async assessments(profile, input) {
       const page = Number(input.page || 1);
       if (!Number.isInteger(page) || page < 1 || page > 100000) invalid();
-      return rpc(profile, 'list', { page });
+      const data = await rpc(profile, 'list', { page });
+      return profile.role === 'student'
+        ? { ...data, items: data.items.map((item) => ({ ...item, teacher: TEACHER_NAME })) }
+        : data;
     },
     async assessment(profile, input) {
-      return rpc(profile, 'detail', scope(input));
+      const data = await rpc(profile, 'detail', scope(input));
+      return profile.role === 'student'
+        ? { ...data, assessment: { ...data.assessment, teacher: TEACHER_NAME } }
+        : data;
     },
     async assessmentSave(profile, input) {
       requireAdmin(profile);

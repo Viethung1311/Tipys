@@ -2,6 +2,8 @@
 
 ## Ranh giới trách nhiệm
 
+Thông báo học sinh nằm ở `src/features/notifications`, mount một lần theo user_id trong App và tải lazy. Hook giữ cache trang/lô đã trình bày; bảng, chuông và lời thoại dùng chung dữ liệu. `server/modules/notifications.js` kiểm tra phiên và gọi RPC; `/api/notification-events` chuyển kênh Realtime được lọc theo tài khoản thành SSE cùng origin, giữ toàn bộ token/service key ở server. Không đưa thông báo vào engine game; thông báo mới chỉ đổi badge trong lúc chơi.
+
 `Companion` là component ảnh nổi dùng chung ở App/AdminPage, không thuộc từng game. Nhận avatar đã lưu gắn đúng userId, vị trí kéo nằm trong state riêng của component để không render lại game khi pointer di chuyển. `useCompanion` dùng load/save của config, tùy chọn riêng từng tài khoản trong localStorage; lưu cuối kéo, không thêm database/API. Footer AvatarPicker gọi Ẩn/Hiện qua layout, không dùng giá trị nhân vật đang chọn thử để thay avatar đã lưu.
 
 | Vị trí                              | Trách nhiệm                                                     |

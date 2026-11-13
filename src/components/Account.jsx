@@ -17,6 +17,7 @@ export default function Account({
   onClasses,
   onOpen,
   onReady,
+  onNotifications,
   onAvatarChanged,
   companionVisible,
   onToggleCompanion,
@@ -66,6 +67,7 @@ export default function Account({
     const data = await api('bootstrap');
     setConfigured(data.configured);
     setUser(data.user);
+    onNotifications?.({ userId: data.user?.user_id, data: data.notifications });
     onUser(data.user);
     onCatalog(data.configured ? data.games : null);
     onClasses?.(data.classes || []);
@@ -77,6 +79,15 @@ export default function Account({
         setLoading(false);
         onReady?.(true);
       });
+    const changed = () => {
+      setUser(null);
+      onUser(null);
+      onClasses?.([]);
+      onNotifications?.(null);
+      bootstrap().catch(() => {});
+    };
+    window.addEventListener('tipy-session-changed', changed);
+    return () => window.removeEventListener('tipy-session-changed', changed);
   }, []);
   const show = (value) => {
     setOpen(value);

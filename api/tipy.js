@@ -79,18 +79,24 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
           if (![401, 403].includes(error.status)) throw error;
           setSession(res, null, production);
         }
-        const [games, classes] = await Promise.all([
+        const [games, classes, notifications] = await Promise.all([
           backend.games(user?.role === 'admin'),
           user ? backend.classes(user) : [],
+          user?.role === 'student' && backend.notifications
+            ? backend.notifications(user).catch(() => null)
+            : null,
         ]);
         return res.status(200).json({
           configured: true,
           user,
           games,
           classes,
+          notifications,
         });
       }
       const { profile, access } = await current();
+      if (req.method === 'GET' && action === 'notifications')
+        return res.status(200).json(await backend.notifications(profile, req.query));
       if (req.method === 'GET' && action === 'stars')
         return res.status(200).json(await backend.stars(profile));
       if (req.method === 'GET' && action === 'class_stars')
@@ -180,6 +186,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         student_reset: 'studentReset',
         star_gift: 'starGift',
         star_reset: 'starReset',
+        notifications_present: 'notificationsPresent',
         class_save: 'classSave',
         class_archive: 'classArchive',
         class_delete: 'classDelete',

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
+import { TEACHER_NAME } from '../../game/teacher.js';
 import Loading from '../../components/Loading.jsx';
 import Reveal from '../../shared/Reveal.jsx';
 import Avatar from './Avatar.jsx';
@@ -177,7 +178,7 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
                 <Reveal key={post.post_id}>
                   <article className="panel class-post">
                     <small>
-                      👩‍🏫 Giáo viên Zunimo · {new Date(post.created_at).toLocaleString('vi-VN')}
+                      👩‍🏫 {TEACHER_NAME} · {new Date(post.created_at).toLocaleString('vi-VN')}
                     </small>
                     <h2>{post.title}</h2>
                     <p className="post-body">{post.body}</p>

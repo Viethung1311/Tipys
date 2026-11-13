@@ -1,4 +1,5 @@
 import ValidatedForm from '../../components/ValidatedForm.jsx';
+import { TEACHER_NAME } from '../../game/teacher.js';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
 import { imagePreview } from './image.js';
@@ -169,7 +170,7 @@ export default function PostComposer({ classId, onPosted }) {
         <aside className="composer-preview" aria-label="Xem trước bài đăng">
           <span className="preview-eyebrow">XEM TRƯỚC BÀI ĐĂNG</span>
           <article className="preview-paper">
-            <small>👩‍🏫 Giáo viên Zunimo · Bản nháp</small>
+            <small>👩‍🏫 {TEACHER_NAME} · Bản nháp</small>
             <h3>{fields.title || 'Tiêu đề bài học'}</h3>
             <p>{fields.body || 'Nội dung bài học sẽ hiện ở đây khi bạn nhập.'}</p>
             {fields.link &&

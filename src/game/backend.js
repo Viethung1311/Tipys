@@ -28,6 +28,11 @@ if (typeof window !== 'undefined') {
   window.addEventListener('tipy-class-access-changed', clearApiCache);
   window.addEventListener('tipy-points-changed', clearApiCache);
   window.addEventListener('storage', (event) => {
+    if (event.key === 'tipy-session-changed' && event.newValue) {
+      setApiIdentity(null);
+      window.dispatchEvent(new window.Event('tipy-session-changed'));
+      return;
+    }
     if (event.key !== 'tipy-stars-changed' || !event.newValue) return;
     try {
       window.dispatchEvent(
@@ -93,6 +98,13 @@ async function request(action, body, params) {
     )
       window.dispatchEvent(new window.Event('tipy-class-access-changed'));
     throw Error(data.error || 'Chưa xử lý được yêu cầu.');
+  }
+  if (typeof window !== 'undefined' && ['login', 'signup', 'logout'].includes(action)) {
+    try {
+      localStorage.setItem('tipy-session-changed', crypto.randomUUID());
+    } catch {
+      /* The active tab still clears its own account state. */
+    }
   }
   if (
     typeof window !== 'undefined' &&

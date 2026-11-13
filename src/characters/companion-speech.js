@@ -1,4 +1,7 @@
 export const DIALOGUE = {
+  notification_assessment: ['Vào làm bài kiểm tra thôi nào, bạn ơi!'],
+  notification_gift: ['Bạn đã nhận được sao từ thầy Hùng!'],
+  notification_batch: ['Bạn có bài kiểm tra mới và sao từ thầy Hùng!'],
   welcome: [
     'Bạn tới rồi! Chơi cùng mình nhé!',
     'Hôm nay mình khám phá gì nào?',
@@ -46,6 +49,9 @@ export const DIALOGUE = {
   ],
 };
 const PRIORITY = {
+  notification_assessment: 8,
+  notification_gift: 8,
+  notification_batch: 8,
   correct: 0,
   wrong: 0,
   welcome: 1,
@@ -74,7 +80,8 @@ export function createSpeechGate(random = Math.random) {
     const priority = PRIORITY[group];
     const gap = priority >= 2 ? 3000 : 9000;
     if (now - lastAt < gap && priority <= activePriority) return null;
-    const choices = DIALOGUE[group].filter((text) => text !== lastText);
+    const alternatives = DIALOGUE[group].filter((text) => text !== lastText);
+    const choices = alternatives.length ? alternatives : DIALOGUE[group];
     const text = choices[Math.min(choices.length - 1, Math.floor(random() * choices.length))];
     lastAt = now;
     activeUntil = now + 2500;

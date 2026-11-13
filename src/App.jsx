@@ -7,6 +7,9 @@ import AudioSettings from './components/AudioSettings.jsx';
 import Companion from './components/Companion.jsx';
 import useCompanion from './hooks/useCompanion.js';
 import HomePage from './screens/HomePage.jsx';
+const StudentNotifications = lazy(
+  () => import('./features/notifications/StudentNotifications.jsx'),
+);
 import GameLibrary from './screens/GameLibrary.jsx';
 const KeyboardQuest = lazy(() => import('./features/keyboard-quest/KeyboardQuest.jsx'));
 const TypingSetup = lazy(() => import('./features/typing/TypingSetup.jsx'));
@@ -50,6 +53,9 @@ export default function App() {
     user?.user_id,
   );
   const [bootstrapReady, setBootstrapReady] = useState(false);
+  const [notificationSeed, setNotificationSeed] = useState(null),
+    [notificationsOpen, setNotificationsOpen] = useState(false),
+    [requestedAssessment, setRequestedAssessment] = useState(null);
   const [audioOpen, setAudioOpen] = useState(false),
     [accountOpen, setAccountOpen] = useState(false),
     [gamePlaying, setGamePlaying] = useState(false);
@@ -117,7 +123,11 @@ export default function App() {
     );
   };
   const { preferences, setPreferences, play } = useGameAudio(
-    ['game', 'quest', 'tests'].includes(screen) && gamePlaying && !audioOpen && !accountOpen,
+    ['game', 'quest', 'tests'].includes(screen) &&
+      gamePlaying &&
+      !audioOpen &&
+      !accountOpen &&
+      !notificationsOpen,
   );
   useEffect(() => save('tipy-settings', settings), [settings]);
   const start = (ranked = false) => {
@@ -198,6 +208,7 @@ export default function App() {
             onClasses={setClasses}
             onOpen={setAccountOpen}
             onReady={setBootstrapReady}
+            onNotifications={setNotificationSeed}
             companionVisible={companion.visible}
             companionSize={companion.size}
             onPreviewCompanion={previewCompanion}
@@ -250,7 +261,7 @@ export default function App() {
             user={user}
             catalog={catalog}
             sound={play}
-            blocked={audioOpen || accountOpen}
+            blocked={audioOpen || accountOpen || notificationsOpen}
             onPlayingChange={setGamePlaying}
             avatarOverride={myAvatar && myAvatar.userId === user?.user_id ? myAvatar.value : null}
             onBack={() => navigate('library')}
@@ -261,7 +272,8 @@ export default function App() {
             user={user}
             classes={classes}
             sound={play}
-            blocked={audioOpen || accountOpen}
+            blocked={audioOpen || accountOpen || notificationsOpen}
+            requestedAssessment={requestedAssessment}
             onPlayingChange={setGamePlaying}
           />
         ) : screen === 'setup' ? (
@@ -282,11 +294,29 @@ export default function App() {
             onSetup={() => navigate('setup')}
             onFinish={finish}
             sound={play}
-            audioOpen={audioOpen || accountOpen}
+            audioOpen={audioOpen || accountOpen || notificationsOpen}
             onPlayingChange={setGamePlaying}
           />
         )}
       </Suspense>
+      {user?.role === 'student' && (
+        <Suspense fallback={null}>
+          <StudentNotifications
+            key={user.user_id}
+            user={user}
+            initial={notificationSeed?.userId === user.user_id ? notificationSeed.data : null}
+            home={screen === 'home'}
+            playing={gamePlaying}
+            blocked={audioOpen || accountOpen}
+            companionVisible={companion.visible && myAvatar?.userId === user.user_id}
+            onOpenChange={setNotificationsOpen}
+            onView={(assessmentId) => {
+              setRequestedAssessment({ assessmentId, requestId: crypto.randomUUID() });
+              navigate('tests');
+            }}
+          />
+        </Suspense>
+      )}
       {user && myAvatar?.userId === user.user_id && companion.visible && (
         <Companion
           key={user.user_id}

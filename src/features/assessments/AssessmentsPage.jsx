@@ -31,7 +31,14 @@ function Pages({ data, onPage }) {
   );
 }
 
-export default function AssessmentsPage({ user, classes = [], sound, blocked, onPlayingChange }) {
+export default function AssessmentsPage({
+  user,
+  classes = [],
+  sound,
+  blocked,
+  onPlayingChange,
+  requestedAssessment,
+}) {
   const [list, setList] = useState(null),
     [page, setPage] = useState(1),
     [detail, setDetail] = useState(null),
@@ -43,6 +50,7 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
   const [history, setHistory] = useState(false),
     [celebrate, setCelebrate] = useState(false);
   const celebrated = useRef(new Set());
+  const openedRequest = useRef(null);
   const sending = useRef(false),
     current = useRef({ detail, running });
   current.current = { detail, running };
@@ -63,7 +71,10 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
     setError('');
     setHistory(false);
     setCelebrate(false);
-    if (user?.role === 'student')
+    if (
+      user?.role === 'student' &&
+      (!requestedAssessment || openedRequest.current === requestedAssessment)
+    )
       api('assessments', undefined, { page })
         .then((data) => {
           if (live) setList(data);
@@ -75,6 +86,33 @@ export default function AssessmentsPage({ user, classes = [], sound, blocked, on
       live = false;
     };
   }, [user?.user_id, page, revision]);
+  useEffect(() => {
+    if (
+      user?.role !== 'student' ||
+      !requestedAssessment ||
+      openedRequest.current === requestedAssessment
+    )
+      return;
+    openedRequest.current = requestedAssessment;
+    let live = true;
+    setRunning(false);
+    setChecking(true);
+    setError('');
+    setDetail(null);
+    api('assessment', undefined, { assessmentId: requestedAssessment.assessmentId })
+      .then((value) => {
+        if (live) setDetail(value);
+      })
+      .catch((e) => {
+        if (live) setError(e.message);
+      })
+      .finally(() => {
+        if (live) setChecking(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [requestedAssessment, user?.user_id, user?.role]);
   useEffect(() => {
     if (user?.role !== 'student') return;
     let live = true;

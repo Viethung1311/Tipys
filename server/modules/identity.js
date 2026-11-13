@@ -1,6 +1,7 @@
 /** Identity owns account provisioning, short-PIN hashing and session rotation. */
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { ApiError, fail } from '../errors.js';
+import { TEACHER_NAME } from '../../src/game/teacher.js';
 export function username(value) {
   const name = String(value ?? '')
     .trim()
@@ -111,9 +112,7 @@ export function createIdentity({ db, client, env }) {
         .single();
       if (error || !data?.is_active)
         throw new ApiError(403, 'Tài khoản đang được khóa. Bạn nhờ giáo viên hỗ trợ nhé.');
-      return data.role === 'admin' && data.full_name === 'Giáo viên TIPY'
-        ? { ...data, full_name: 'Giáo viên Zunimo' }
-        : data;
+      return data.role === 'admin' ? { ...data, full_name: TEACHER_NAME } : data;
     },
     async session(access, refresh) {
       let rotated = null;
