@@ -136,7 +136,8 @@ try {
     await waitRows(7);
     await table.getByRole('button', { name: 'Trang 3', exact: true }).click();
     await waitRows(1);
-    await table.getByRole('button', { name: 'Xóa tài khoản', exact: true }).click();
+    await table.getByRole('button', { name: /Tùy chọn:/ }).click();
+    await page.getByRole('menuitem', { name: 'Xóa tài khoản', exact: true }).click();
     let dialog = page.getByRole('dialog');
     await dialog.waitFor();
     assert.match(await dialog.textContent(), /kid02/);
@@ -146,7 +147,8 @@ try {
     );
     await page.keyboard.press('Escape');
     assert.equal(writes.filter((w) => w.action === 'student_delete').length, 0);
-    await table.getByRole('button', { name: 'Xóa tài khoản', exact: true }).click();
+    await table.getByRole('button', { name: /Tùy chọn:/ }).click();
+    await page.getByRole('menuitem', { name: 'Xóa tài khoản', exact: true }).click();
     await dialog.getByRole('textbox').fill('kid02');
     await dialog.getByRole('button', { name: 'Xóa tài khoản', exact: true }).click();
     await dialog.getByRole('alert').waitFor();

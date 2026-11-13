@@ -106,7 +106,8 @@ try {
       await route.fulfill({ json });
     });
     await page.goto('http://127.0.0.1:4196/admin');
-    await page.getByRole('button', { name: 'Tặng sao', exact: true }).click();
+    await page.getByRole('button', { name: /Tùy chọn:/ }).click();
+    await page.getByRole('menuitem', { name: 'Tặng sao', exact: true }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Số sao', { exact: true }).fill('0');
     assert.ok(await dialog.getByRole('button', { name: 'Tặng sao', exact: true }).isDisabled());

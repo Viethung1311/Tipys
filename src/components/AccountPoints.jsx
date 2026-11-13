@@ -15,6 +15,11 @@ export default function AccountPoints({ user }) {
     const refresh = async (event) => {
       if (event?.detail?.userId && event.detail.userId !== user.user_id) return;
       const request = ++latest;
+      if (Number.isFinite(event?.detail?.stars)) {
+        setValue(event.detail.stars);
+        setError(false);
+        return;
+      }
       try {
         const result = await api('stars');
         if (!Number.isFinite(result.stars)) throw Error('Invalid stars');

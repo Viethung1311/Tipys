@@ -16,6 +16,23 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
     [error, setError] = useState(''),
     [revision, setRevision] = useState(0);
   useEffect(() => {
+    const refresh = (event) => {
+      if (event?.detail?.classIds && !event.detail.classIds.includes(classId)) return;
+      setRevision((n) => n + 1);
+    };
+    const visible = () => {
+      if (!document.hidden) refresh();
+    };
+    window.addEventListener('tipy-points-changed', refresh);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', visible);
+    return () => {
+      window.removeEventListener('tipy-points-changed', refresh);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, [classId]);
+  useEffect(() => {
     let live = true;
     setData(null);
     setError('');
@@ -46,7 +63,7 @@ export default function ClassAchievements({ classId, user, avatarOverride }) {
       <h2 id="class-top-heading">Top thành tích</h2>
       <div role="tablist" aria-label="Bảng thành tích lớp" className="class-top-tabs">
         {[
-          ['lessons', '1. Vượt ải'],
+          ['lessons', '1. Sao của bạn'],
           ['weekly', '2. Chữ rơi · Khó'],
         ].map(([id, label]) => (
           <button

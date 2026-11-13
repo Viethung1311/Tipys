@@ -78,7 +78,7 @@ try {
     await route.fulfill({ json });
   });
   await page.goto('http://127.0.0.1:4200/admin');
-  await page.getByRole('button', { name: 'Tặng sao', exact: true }).waitFor();
+  await page.getByRole('button', { name: /Tùy chọn:/ }).waitFor();
   assert.equal(
     reads.filter((a) => a === 'students_page').length,
     1,
@@ -108,7 +108,8 @@ try {
   await classSaved;
   assert.equal(writes.filter((a) => a === 'class_save').length, 2);
   await page.getByRole('button', { name: 'Học sinh & thời gian', exact: true }).click();
-  await page.getByRole('button', { name: 'Tặng sao', exact: true }).click();
+  await page.getByRole('button', { name: /Tùy chọn:/ }).click();
+  await page.getByRole('menuitem', { name: 'Tặng sao', exact: true }).click();
   const dialog = page.getByRole('dialog'),
     amount = dialog.getByLabel('Số sao', { exact: true });
   await amount.fill('1.5');
@@ -122,7 +123,8 @@ try {
   });
   await dialog.waitFor({ state: 'hidden' });
   assert.equal(writes.filter((a) => a === 'star_gift').length, 1);
-  await page.getByRole('button', { name: 'Tặng sao', exact: true }).click();
+  await page.getByRole('button', { name: /Tùy chọn:/ }).click();
+  await page.getByRole('menuitem', { name: 'Tặng sao', exact: true }).click();
   await dialog.getByLabel('Số sao', { exact: true }).fill('3');
   await dialog.getByLabel('Số sao', { exact: true }).press('Enter');
   await dialog.waitFor({ state: 'hidden' });

@@ -247,11 +247,12 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
           onClose={() => setGuideOpen(false)}
         >
           <section>
-            <h3>Vượt ải</h3>
+            <h3>Sao của bạn</h3>
             <p>
               Hoàn thành mỗi bài để nhận từ 1 đến 3 sao. Đạt mức cao hơn sẽ nhận thêm phần sao còn
               thiếu. Mỗi bài nhận tối đa 3 sao; đủ sao vẫn được luyện lại. Nếu thầy cô cho làm lại
-              từ đầu, bạn có thể nhận sao bài học lại.
+              từ đầu, bạn có thể nhận sao bài học lại. Bảng sao xếp theo tổng sao hiện tại, gồm sao
+              bài học, sao thầy cô tặng và thưởng tuần đã nhận.
             </p>
           </section>
           <section>
@@ -269,8 +270,10 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
           <section>
             <h3>Sao của bạn</h3>
             <p>
-              Gồm sao bài học, thưởng tuần và sao thầy cô tặng. Sao tặng không tính vào hai bảng xếp
-              hạng. Làm lại từ đầu vẫn giữ sao thầy cô tặng và thưởng tuần đã chốt.
+              Gồm sao bài học, thưởng tuần và sao thầy cô tặng. Reset sao đưa tổng sao và sao xếp
+              hạng về 0 nhưng giữ tiến độ và mức sao đã thưởng: bài đủ 3 sao không nhận lại, từ 2
+              lên 3 sao chỉ thêm 1 sao. Sao mới vẫn cộng bình thường. Điểm thi đấu Chữ rơi · Khó
+              không đổi.
             </p>
           </section>
         </Modal>

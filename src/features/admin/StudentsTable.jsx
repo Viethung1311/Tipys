@@ -1,6 +1,7 @@
 import ValidatedForm from '../../components/ValidatedForm.jsx';
 import { useEffect, useRef, useState } from 'react';
-import { History, LockKeyhole, Trash2, Star } from 'lucide-react';
+import { History, LockKeyhole, Trash2, Star, RotateCcw } from 'lucide-react';
+import ActionMenu from '../../components/ActionMenu.jsx';
 import StudentActionDialog from './StudentActionDialog.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
 import Modal from '../../components/Modal.jsx';
@@ -19,6 +20,7 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
     [busy, setBusy] = useState(false),
     [target, setTarget] = useState(null),
     [giftTarget, setGiftTarget] = useState(null),
+    [resetTarget, setResetTarget] = useState(null),
     [confirmation, setConfirmation] = useState(''),
     [failure, setFailure] = useState(''),
     [notice, setNotice] = useState('');
@@ -109,6 +111,7 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
                 'Lớp học',
                 'Tổng thời gian luyện',
                 'Tổng lượt',
+                'Tổng sao',
                 'Trạng thái',
                 'Thao tác',
               ].map((t) => (
@@ -124,51 +127,36 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
                 <td>{s.classes.map((c) => c.name).join(', ') || 'Chưa có lớp'}</td>
                 <td>{practiceTime(s.total_active_seconds)}</td>
                 <td>{s.total_plays}</td>
+                <td>{Number(s.stars || 0).toLocaleString('vi-VN')}</td>
                 <td>{s.is_active ? 'Đang mở' : 'Đã khóa'}</td>
                 <td>
-                  <div className="student-row-actions">
-                    <TipyButton
-                      emphasis="secondary"
-                      icon={History}
-                      disabled={loading || busy || !!error}
-                      onClick={() => onResults(s)}
-                    >
-                      Xem kết quả
-                    </TipyButton>
-                    <TipyButton
-                      emphasis="secondary"
-                      icon={Star}
-                      disabled={loading || busy || !!error}
-                      onClick={() => setGiftTarget(s)}
-                    >
-                      Tặng sao
-                    </TipyButton>
-                    <TipyButton
-                      emphasis="secondary"
-                      icon={LockKeyhole}
-                      disabled={loading || busy || !!error}
-                      onClick={() =>
-                        update(() =>
-                          api('student_active', { userId: s.user_id, active: !s.is_active }),
-                        )
-                      }
-                    >
-                      {s.is_active ? 'Khóa tài khoản' : 'Mở tài khoản'}
-                    </TipyButton>
-                    <TipyButton
-                      className="student-delete"
-                      emphasis="secondary"
-                      icon={Trash2}
-                      disabled={loading || busy || !!error}
-                      onClick={() => {
-                        setTarget(s);
-                        setConfirmation('');
-                        setFailure('');
-                      }}
-                    >
-                      Xóa tài khoản
-                    </TipyButton>
-                  </div>
+                  <ActionMenu
+                    description={`${s.full_name} · ${s.username}`}
+                    disabled={loading || busy || !!error}
+                    items={[
+                      { label: 'Xem kết quả', icon: History, onClick: () => onResults(s) },
+                      { label: 'Tặng sao', icon: Star, onClick: () => setGiftTarget(s) },
+                      { label: 'Reset sao', icon: RotateCcw, onClick: () => setResetTarget(s) },
+                      {
+                        label: s.is_active ? 'Khóa tài khoản' : 'Mở tài khoản',
+                        icon: LockKeyhole,
+                        onClick: () =>
+                          update(() =>
+                            api('student_active', { userId: s.user_id, active: !s.is_active }),
+                          ),
+                      },
+                      {
+                        label: 'Xóa tài khoản',
+                        icon: Trash2,
+                        danger: true,
+                        onClick: () => {
+                          setTarget(s);
+                          setConfirmation('');
+                          setFailure('');
+                        },
+                      },
+                    ]}
+                  />
                 </td>
               </tr>
             ))}
@@ -246,6 +234,19 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
           onDone={(data) => {
             setNotice(`Đã tặng ${data.amount} sao cho ${giftTarget.full_name}.`);
             setGiftTarget(null);
+          }}
+        />
+      )}
+      {resetTarget && (
+        <StudentActionDialog
+          kind="stars"
+          student={resetTarget}
+          onClose={() => setResetTarget(null)}
+          onDone={(result) => {
+            setNotice(
+              `Đã reset sao của ${resetTarget.full_name}. Tổng sao hiện tại: ${result.stars}.`,
+            );
+            setResetTarget(null);
           }}
         />
       )}

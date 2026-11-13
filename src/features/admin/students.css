@@ -24,7 +24,7 @@
 .student-row-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--tipy-space-3);
   align-items: center;
 }
 .admin-students .student-row-actions {
@@ -32,7 +32,15 @@
   min-width: max-content;
 }
 .admin-students table {
-  min-width: 1200px;
+  min-width: 900px;
+}
+.admin-students td:last-child .tipy-button {
+  min-width: max-content;
+  min-height: 48px;
+  font-size: 16px;
+  padding: 8px 10px;
+  white-space: nowrap;
+  margin: 0;
 }
 .admin-shell .student-row-actions .tipy-button {
   font-size: 14px;

@@ -2,6 +2,20 @@ import { ApiError, fail, requireAdmin } from '../errors.js';
 import { uuid } from './classrooms.js';
 export function createStars(db) {
   return {
+    async starReset(profile, input) {
+      requireAdmin(profile);
+      uuid(input.userId);
+      uuid(input.requestId);
+      if (input.confirm !== 'accept') throw new ApiError(400, 'Nhập chính xác accept để xác nhận.');
+      const result = await db.rpc('tipy_reset_stars', {
+        p_actor: profile.user_id,
+        p_user: input.userId,
+        p_request: input.requestId,
+        p_confirm: input.confirm,
+      });
+      fail(result.error, 'Chưa xác nhận được reset sao. Thử lại cùng yêu cầu để kiểm tra an toàn.');
+      return result.data;
+    },
     async studentReset(profile, input) {
       requireAdmin(profile);
       uuid(input.userId);

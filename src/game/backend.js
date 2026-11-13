@@ -26,6 +26,17 @@ if (typeof window !== 'undefined') {
   window.addEventListener('focus', clearApiCache);
   document.addEventListener('visibilitychange', clearApiCache);
   window.addEventListener('tipy-class-access-changed', clearApiCache);
+  window.addEventListener('tipy-points-changed', clearApiCache);
+  window.addEventListener('storage', (event) => {
+    if (event.key !== 'tipy-stars-changed' || !event.newValue) return;
+    try {
+      window.dispatchEvent(
+        new CustomEvent('tipy-points-changed', { detail: JSON.parse(event.newValue) }),
+      );
+    } catch {
+      /* Ignore malformed data from other tabs. */
+    }
+  });
 }
 export function api(action, body, params = {}) {
   if (body) {
