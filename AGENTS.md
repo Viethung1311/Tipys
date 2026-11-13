@@ -70,3 +70,7 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 Bài kiểm tra dùng module `src/features/assessments`, SQL `db/assessments.sql` và tài khoản/lớp hiện có. Chỉ backend chấm và ghi kết quả riêng; adapter của hai engine không được gọi endpoint luyện tập, cộng sao hoặc bảng tuần. Đề đã gửi là snapshot không sửa; quyền lớp được kiểm tra lại ở mỗi lần đọc/ghi. Dùng database/tài khoản thử, không gửi đề thử cho lớp thật. Giao theo lớp dùng assessment_class_targets và thành viên hiện tại, kể cả bạn vào sau; không suy nguồn nhận từ tên hiển thị. Xóa bài là xóa vĩnh viễn bằng xác nhận accept ở cả UI/backend; chỉ xóa dữ liệu riêng bài, không tự xóa bài thật để thử.
 
 Đợt chuẩn hóa tiếp theo đã mở rộng ra toàn bộ website theo yêu cầu chủ dự án. Dùng `src/styles/tipy-ui.css` cùng token chung, giữ bố cục gameplay ở feature riêng. TipyButton dùng cả cho quản trị và các thao tác lớp/file; quản trị kế thừa bộ token nút gọn 48 px, học sinh giữ nút chính 64 px. Chi tiết và kiểm tra được ghi trong MASTER.md. Lịch sử chơi được đặt riêng trong quản trị; không thêm lại tab này vào Tài khoản/Nhân vật.
+
+## graphify
+
+Khi phân tích luồng qua nhiều file, ưu tiên truy vấn ngắn bằng `graphify query "<từ khóa>"`, rồi đối chiếu với mã nguồn. Với thay đổi nhỏ đã biết vị trí, mở trực tiếp file liên quan. Tạo đồ thị lần đầu hoặc cập nhật sau thay đổi lớn bằng `graphify update .`. Xem lại tổng quan trong `graphify-out/GRAPH_REPORT.md`.
