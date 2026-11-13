@@ -77,7 +77,7 @@ Bài kiểm tra dùng module `src/features/assessments`, SQL `db/assessments.sql
 
 ### Ponytail — mặc định full
 
-- Trước khi làm việc với code, đọc skill Ponytail đã cài: `.agents/skills/ponytail/SKILL.md` nếu có; hiện tại dùng `C:/Users/boof1/.agents/skills/ponytail/SKILL.md` ở cấp người dùng. Áp dụng mức **full**; nếu người dùng tắt hoặc đổi mức, làm theo trong phiên đó.
+- Trước khi làm việc với code, đọc skill Ponytail của repository: `.agents/skills/ponytail/SKILL.md`; nếu thiếu, dùng `C:/Users/boof1/.agents/skills/ponytail/SKILL.md` ở cấp người dùng. Áp dụng mức **full**; nếu người dùng tắt hoặc đổi mức, làm theo trong phiên đó.
 - Chọn thay đổi nhỏ nhất giải quyết đầy đủ yêu cầu; tái sử dụng component, helper, API và quy ước hiện có. Xác định nơi sử dụng và ảnh hưởng trước khi sửa, xử lý nguyên nhân chung và kiểm tra đúng phạm vi thay đổi.
 - Giữ đầy đủ kiểm tra dữ liệu, phân quyền, xử lý lỗi và khả năng truy cập; viết code dễ đọc. Không thêm thư viện hoặc lớp trừu tượng khi không cần.
 
