@@ -70,3 +70,21 @@ Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2
 Bài kiểm tra dùng module `src/features/assessments`, SQL `db/assessments.sql` và tài khoản/lớp hiện có. Chỉ backend chấm và ghi kết quả riêng; adapter của hai engine không được gọi endpoint luyện tập, cộng sao hoặc bảng tuần. Đề đã gửi là snapshot không sửa; quyền lớp được kiểm tra lại ở mỗi lần đọc/ghi. Dùng database/tài khoản thử, không gửi đề thử cho lớp thật. Giao theo lớp dùng assessment_class_targets và thành viên hiện tại, kể cả bạn vào sau; không suy nguồn nhận từ tên hiển thị. Xóa bài là xóa vĩnh viễn bằng xác nhận accept ở cả UI/backend; chỉ xóa dữ liệu riêng bài, không tự xóa bài thật để thử.
 
 Đợt chuẩn hóa tiếp theo đã mở rộng ra toàn bộ website theo yêu cầu chủ dự án. Dùng `src/styles/tipy-ui.css` cùng token chung, giữ bố cục gameplay ở feature riêng. TipyButton dùng cả cho quản trị và các thao tác lớp/file; quản trị kế thừa bộ token nút gọn 48 px, học sinh giữ nút chính 64 px. Chi tiết và kiểm tra được ghi trong MASTER.md. Lịch sử chơi được đặt riêng trong quản trị; không thêm lại tab này vào Tài khoản/Nhân vật.
+
+## Tự chọn công cụ khi làm việc với code
+
+Áp dụng cả khi người dùng giao việc bằng tiếng Việt bình thường, không gọi tên skill. Yêu cầu trực tiếp của người dùng và hướng dẫn riêng của dự án được ưu tiên hơn skill.
+
+### Ponytail — mặc định full
+
+- Trước khi làm việc với code, đọc skill Ponytail đã cài: `.agents/skills/ponytail/SKILL.md` nếu có; hiện tại dùng `C:/Users/boof1/.agents/skills/ponytail/SKILL.md` ở cấp người dùng. Áp dụng mức **full**; nếu người dùng tắt hoặc đổi mức, làm theo trong phiên đó.
+- Chọn thay đổi nhỏ nhất giải quyết đầy đủ yêu cầu; tái sử dụng component, helper, API và quy ước hiện có. Xác định nơi sử dụng và ảnh hưởng trước khi sửa, xử lý nguyên nhân chung và kiểm tra đúng phạm vi thay đổi.
+- Giữ đầy đủ kiểm tra dữ liệu, phân quyền, xử lý lỗi và khả năng truy cập; viết code dễ đọc. Không thêm thư viện hoặc lớp trừu tượng khi không cần.
+
+### Graphify — khi cần hiểu nhiều file
+
+- Đọc `.codex/skills/graphify/SKILL.md` hiện có; nếu vị trí cài thay đổi, kiểm tra `.agents/skills/graphify/SKILL.md`. Tự dùng khi lần theo frontend → API → database, tìm request lặp, tìm nơi sử dụng hàm hoặc đánh giá ảnh hưởng qua nhiều file. Với việc nhỏ đã biết vị trí (ví dụ đổi nhãn nút), mở trực tiếp file liên quan.
+- Bắt đầu bằng `graphify query "<từ khóa>" --budget 1500`; chuyển câu hỏi tiếng Việt thành từ khóa trong code (ví dụ bài kiểm tra → `assessment`). Mở rộng khi cần; dùng `graphify path "<A>" "<B>"` hoặc `graphify explain "<concept>"` để lần quan hệ. Đối chiếu kết quả với mã nguồn trước khi sửa; đồ thị không chứng minh được số request thực tế lúc chạy.
+- Dùng lại `graphify-out/` giữa các phiên. Trước khi dựa vào đồ thị, kiểm tra manifest/trạng thái build và các file liên quan đã đổi từ lần tạo gần nhất; không chỉ dựa vào thời gian của `graph.json`. Chạy `graphify update .` khi tạo lần đầu hoặc khi file liên quan thay đổi, kể cả sau khi sửa code. File đồ thị chưa commit không phải lý do bỏ qua công cụ.
+- Nếu thiếu lệnh hoặc đồ thị lỗi, thông báo ngắn và tiếp tục bằng `rg` cùng mã nguồn; không tự cài lại công cụ. Dùng wiki nếu có để điều hướng rộng; chỉ đọc `graphify-out/GRAPH_REPORT.md` khi cần tổng quan hoặc truy vấn hẹp chưa đủ.
+- Graphify chỉ là công cụ phát triển: không thêm vào mã chạy website, dependency runtime hay build Vercel. Giữ đồ thị để tái sử dụng; không tạo lại toàn bộ nếu cập nhật tăng dần đủ dùng.
