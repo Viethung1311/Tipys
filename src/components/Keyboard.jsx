@@ -6,10 +6,11 @@ export default function Keyboard({
   lastKey,
   disabled = false,
   targetKey,
+  visibleKeys,
 }) {
   return (
     <div
-      className={`keyboard ${editing ? 'picker' : 'touchboard'}`}
+      className={`keyboard ${editing ? 'picker' : 'touchboard'}${visibleKeys ? ' keyboard--adaptive' : ''}`}
       role="region"
       tabIndex={0}
       aria-label={editing ? 'Chọn phím luyện tập' : 'Bàn phím cảm ứng'}
@@ -23,7 +24,7 @@ export default function Keyboard({
               aria-label={`${editing ? 'Chọn phím' : 'Gõ'} ${key}`}
               aria-pressed={editing ? keys.includes(key) : undefined}
               disabled={disabled || (!editing && !keys.includes(key))}
-              className={`key ${keys.includes(key) ? 'selected' : ''} ${lastKey === key ? 'lit' : ''} ${targetKey === key ? 'quest-target-key' : ''}`}
+              className={`key ${keys.includes(key) ? 'selected' : ''} ${lastKey === key ? 'lit' : ''} ${targetKey === key ? 'quest-target-key' : ''} ${visibleKeys?.includes(key) ? 'needed' : ''}`}
               onPointerDown={(e) => {
                 if (!editing) {
                   e.preventDefault();

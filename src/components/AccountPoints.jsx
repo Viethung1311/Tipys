@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { api } from '../game/backend.js';
+import { isPlaySurfaceActive } from './PlaySurface.jsx';
 import '../styles/account-points.css';
 export default function AccountPoints({ user }) {
   const [value, setValue] = useState(null),
@@ -13,6 +14,7 @@ export default function AccountPoints({ user }) {
     setValue(null);
     setError(false);
     const refresh = async (event) => {
+      if (['focus', 'visibilitychange'].includes(event?.type) && isPlaySurfaceActive()) return;
       if (event?.detail?.userId && event.detail.userId !== user.user_id) return;
       const request = ++latest;
       if (Number.isFinite(event?.detail?.stars)) {

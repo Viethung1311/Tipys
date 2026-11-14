@@ -146,12 +146,10 @@ export default function useFallingGame(
     };
     window.addEventListener('keydown', down);
     document.addEventListener('visibilitychange', hidden);
-    window.addEventListener('resize', pause);
     window.addEventListener('blur', pause);
     return () => {
       window.removeEventListener('keydown', down);
       document.removeEventListener('visibilitychange', hidden);
-      window.removeEventListener('resize', pause);
       window.removeEventListener('blur', pause);
     };
   }, [hit, pause]);

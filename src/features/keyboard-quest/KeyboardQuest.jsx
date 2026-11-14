@@ -13,6 +13,7 @@ import {
 } from './curriculum.js';
 import { updatedProgress } from './engine.js';
 import LessonPlayer from './LessonPlayer.jsx';
+import PlaySurface, { enterPlayFullscreen } from '../../components/PlaySurface.jsx';
 import './quest.css';
 import LearningProfile from './LearningProfile.jsx';
 import WorldMap from './WorldMap.jsx';
@@ -94,7 +95,7 @@ export default function KeyboardQuest({
     return () => {
       cancelled = true;
     };
-  }, [user, available, revision]);
+  }, [user?.user_id, available, revision]);
   const saved = useCallback(
     (lesson, grade, row, seconds) => {
       setProgress((old) => {
@@ -111,11 +112,12 @@ export default function KeyboardQuest({
         return next;
       });
     },
-    [user],
+    [user?.user_id],
   );
   const open = (id) => {
     const lesson = findLesson(id);
     if (lesson && available && !loading && !error && isUnlocked(lesson, progress)) {
+      if (lesson.world) enterPlayFullscreen();
       if (lesson.world) setWorldId(lesson.world);
       setRun({
         lesson: practiceLesson(lesson, progress),
@@ -161,50 +163,53 @@ export default function KeyboardQuest({
   );
   if (run)
     return (
-      <main className="quest-page adventure-page">
-        {run.lesson.world ? (
-          <nav
-            className="quest-play-navigation adventure-breadcrumbs"
-            aria-label="Đường đi hành trình"
-          >
-            <TipyButton
-              emphasis="secondary"
-              icon={Map}
-              disabled={navigating || navigationLocked || loading || !available}
-              onClick={() => navigate(map)}
+      <PlaySurface active={Boolean(run.lesson.world)}>
+        <main className="quest-page adventure-page">
+          {run.lesson.world ? (
+            <nav
+              className="quest-play-navigation adventure-breadcrumbs"
+              aria-label="Đường đi hành trình"
             >
-              Bản đồ
-            </TipyButton>
-          </nav>
-        ) : (
-          header
-        )}
-        <AdventureScene
-          world={adventureWorld(run.lesson.world || worldId || 1)}
-          playing={Boolean(run.lesson.world)}
-        >
-          <LessonPlayer
-            key={run.key}
-            lesson={run.lesson}
-            world={run.lesson.world ? adventureWorld(run.lesson.world) : null}
-            user={user}
-            sound={sound}
-            blocked={blocked || navigating}
-            navigationRef={navigationRef}
-            onNavigationLockChange={setNavigationLocked}
-            onPlayingChange={onPlayingChange}
-            onBack={back}
-            onSaved={saved}
-            mode={mode}
-            previous={run.previous}
-            nextLesson={LESSONS.find(
-              (lesson) =>
-                lesson.stage === run.lesson.stage + 1 &&
-                isUnlocked(lesson, [...progress, { lesson_id: run.lesson.id, completed: true }]),
-            )}
-          />
-        </AdventureScene>
-      </main>
+              <TipyButton
+                emphasis="secondary"
+                icon={Map}
+                disabled={navigating || navigationLocked || loading || !available}
+                onClick={() => navigate(map)}
+              >
+                Bản đồ
+              </TipyButton>
+            </nav>
+          ) : (
+            header
+          )}
+          <AdventureScene
+            world={adventureWorld(run.lesson.world || worldId || 1)}
+            playing={Boolean(run.lesson.world)}
+          >
+            <LessonPlayer
+              key={run.key}
+              lesson={run.lesson}
+              immersive={Boolean(run.lesson.world)}
+              world={run.lesson.world ? adventureWorld(run.lesson.world) : null}
+              user={user}
+              sound={sound}
+              blocked={blocked || navigating}
+              navigationRef={navigationRef}
+              onNavigationLockChange={setNavigationLocked}
+              onPlayingChange={onPlayingChange}
+              onBack={back}
+              onSaved={saved}
+              mode={mode}
+              previous={run.previous}
+              nextLesson={LESSONS.find(
+                (lesson) =>
+                  lesson.stage === run.lesson.stage + 1 &&
+                  isUnlocked(lesson, [...progress, { lesson_id: run.lesson.id, completed: true }]),
+              )}
+            />
+          </AdventureScene>
+        </main>
+      </PlaySurface>
     );
   return (
     <main className="quest-page adventure-page">

@@ -61,6 +61,7 @@ try {
       const writes = [],
         errors = [];
       const failPages = new WeakSet();
+      const failedSubmit = new WeakSet();
       const service = createAssessments({
         from: () => ({
           select() {
@@ -124,6 +125,10 @@ try {
             body = req.postDataJSON(),
             action = body?.action || query.action;
           if (body) writes.push(body);
+          if (action === 'assessment_submit' && failedSubmit.has(page)) {
+            failedSubmit.delete(page);
+            return route.fulfill({ status: 503, json: { error: 'Mất mạng thử khi nộp' } });
+          }
           if (action === 'bootstrap')
             return route.fulfill({
               json: { configured: true, user: profile, games: [], classes: await classList(n) },
@@ -263,6 +268,13 @@ try {
       await student.reload();
       await student.getByRole('button', { name: 'Xem bài', exact: true }).click();
       await student.getByRole('button', { name: 'Bắt đầu', exact: true }).click();
+      const beforePause = writes.length;
+      await student.getByRole('button', { name: 'Tạm dừng', exact: true }).click();
+      await student
+        .getByRole('dialog')
+        .getByRole('button', { name: 'Tiếp tục', exact: true })
+        .click();
+      assert.equal(writes.length, beforePause, 'pause/resume sends no writes');
       await student
         .locator('.assessment-section-list article')
         .filter({ hasText: 'Gõ và viết chữ' })
@@ -270,12 +282,28 @@ try {
         .click();
       const input = student.locator('textarea');
       await input.waitFor();
+      await student.setViewportSize({ width, height: 320 });
+      await input.focus();
+      const clipped = await student.locator('.play-surface').evaluate((root) =>
+        [
+          ...root.querySelectorAll(
+            '.quest-target,textarea,button[type=submit],.assessment-run-header button',
+          ),
+        ]
+          .filter((e) => e.getClientRects().length)
+          .some((e) => {
+            const r = e.getBoundingClientRect();
+            return r.bottom > innerHeight + 1 || r.right > innerWidth + 1;
+          }),
+      );
+      assert.equal(clipped, false, 'assessment input and controls fit short viewport');
+      await student.setViewportSize({ width, height: 900 });
       await input.dispatchEvent('compositionstart');
       await input.fill('a\u0301');
       assert.ok(await student.getByRole('button', { name: 'Kiểm tra', exact: true }).isDisabled());
       await input.dispatchEvent('compositionend');
       await student.getByRole('button', { name: 'Kiểm tra', exact: true }).click();
-      await student.getByText('Đã lưu', { exact: true }).waitFor();
+      await student.getByText('Đã lưu', { exact: true }).waitFor({ state: 'attached' });
       await student.reload();
       await student.getByRole('button', { name: 'Xem bài', exact: true }).click();
       await student.getByRole('button', { name: 'Tiếp tục', exact: true }).click();
@@ -312,11 +340,25 @@ try {
         .locator('.assessment-section-result')
         .getByRole('button', { name: 'Các phần', exact: true })
         .click();
+      failedSubmit.add(student);
       await student
         .locator('.assessment-run-header')
         .getByRole('button', { name: 'Nộp bài', exact: true })
-        .click();
-      await student.getByRole('heading', { name: 'Cần luyện thêm', exact: true }).waitFor();
+        .evaluate((button) => {
+          button.click();
+          button.click();
+        });
+      await student.getByRole('alert').filter({ hasText: 'Mất mạng thử khi nộp' }).waitFor();
+      assert.equal(
+        await student.locator('.play-result').count(),
+        0,
+        'no final before confirmation',
+      );
+      await student.getByRole('button', { name: 'Thử lưu lại', exact: true }).click();
+      const retries = writes.filter((w) => w.action === 'assessment_submit');
+      assert.equal(retries.length, 2);
+      assert.equal(retries[0].requestId, retries[1].requestId, 'same idempotency token');
+      await student.getByRole('heading', { name: 'Chưa hoàn thành', exact: true }).waitFor();
       await fit(student);
       await student.screenshot({
         path: `test-results/assessments/${width}-submitted.png`,
@@ -368,7 +410,7 @@ try {
         .getByRole('dialog')
         .getByRole('button', { name: 'Nộp bài', exact: true })
         .click();
-      await outsider.getByRole('heading', { name: 'Cần luyện thêm', exact: true }).waitFor();
+      await outsider.getByRole('heading', { name: 'Chưa hoàn thành', exact: true }).waitFor();
       await db.query('update class_members set is_active=false where user_id=$1', [id(3)]);
       await outsider.reload();
       await outsider.getByText('Chưa có bài kiểm tra nào', { exact: true }).waitFor();
@@ -389,7 +431,7 @@ try {
         .getByRole('dialog')
         .getByRole('button', { name: 'Nộp bài', exact: true })
         .click();
-      await student.getByRole('heading', { name: 'Cần luyện thêm', exact: true }).waitFor();
+      await student.getByRole('heading', { name: 'Chưa hoàn thành', exact: true }).waitFor();
       // Separate fixture exercises the new table, successful target, repeat cap and deletion without real users.
       const extraId = id(500),
         fixtureAdmin = { user_id: id(99), role: 'admin' };
@@ -427,7 +469,19 @@ try {
         .click();
       await direct.getByRole('heading', { name: 'Hoàn thành tốt', exact: true }).waitFor();
       assert.equal(await direct.evaluate(() => window.__recordNotes), 1);
-      await direct.getByRole('button', { name: 'Kết quả của em', exact: true }).click();
+      assert.equal(await direct.locator('.play-result-metrics').count(), 0);
+      await direct.getByRole('button', { name: 'Quay lại', exact: true }).click();
+      await direct
+        .locator('article')
+        .filter({ hasText: 'Bài mục tiêu thử' })
+        .getByRole('button', { name: 'Xem bài', exact: true })
+        .click();
+      await direct.getByRole('button', { name: 'Quay lại', exact: true }).click();
+      await direct
+        .locator('article')
+        .filter({ hasText: 'Bài mục tiêu thử' })
+        .getByRole('button', { name: 'Kết quả của em', exact: true })
+        .click();
       await direct.getByRole('dialog').getByText('Kết quả tốt nhất', { exact: true }).waitFor();
       await direct.keyboard.press('Escape');
       await direct.reload();
@@ -438,7 +492,7 @@ try {
         .click();
       await direct.getByRole('heading', { name: 'Hoàn thành tốt', exact: true }).waitFor();
       assert.equal(await direct.evaluate(() => window.__recordNotes), 0);
-      await direct.getByText('Số lượt còn lại: 1', { exact: true }).waitFor();
+      assert.equal(await direct.locator('.play-result-metrics').count(), 0);
       await direct.getByRole('button', { name: 'Làm lại', exact: true }).click();
       await direct.locator('.assessment-runner').waitFor();
       const staleAttempt = (
@@ -532,7 +586,7 @@ try {
       );
       assert.equal(stale.status, 410);
       assert.equal(stale.body.error, 'Bài kiểm tra đã được xóa');
-      await direct.evaluate(() => window.dispatchEvent(new Event('focus')));
+      await direct.evaluate(() => window.dispatchEvent(new Event('tipy-class-access-changed')));
       await direct
         .getByRole('alert')
         .getByText('Bài kiểm tra đã được xóa', { exact: false })
@@ -572,9 +626,7 @@ try {
         await direct.evaluate(() => {
           Date.now = () => 0;
         });
-        await direct
-          .getByText('Đã hết giờ. Kết quả được chốt từ phần đã lưu.', { exact: true })
-          .waitFor();
+        await direct.getByRole('heading', { name: 'Chưa hoàn thành', exact: true }).waitFor();
         const ended = await service.assessment(
           { user_id: id(9), role: 'student' },
           { assessmentId: timedId },
@@ -586,11 +638,8 @@ try {
           .filter({ hasText: 'Bài đóng giờ thử' })
           .getByRole('button', { name: 'Xem bài', exact: true })
           .click();
-        await direct.getByText('Đã kết thúc', { exact: true }).waitFor();
-        assert.equal(
-          await direct.getByRole('button', { name: 'Làm lại', exact: true }).isDisabled(),
-          true,
-        );
+        await direct.getByRole('heading', { name: 'Chưa hoàn thành', exact: true }).waitFor();
+        assert.equal(await direct.getByRole('button', { name: 'Làm lại', exact: true }).count(), 0);
       }
       await db.query('update class_members set is_active=false where user_id=$1', [id(1)]);
       await student.reload();
@@ -632,6 +681,10 @@ try {
           lateClassMemberReceives: true,
           privateSummaryCards: true,
           practiceUntouched: true,
+          pauseWrites: 0,
+          submitSuccessWrites: 1,
+          failedSubmitRetries: 1,
+          duplicateSubmitRows: 0,
           errors,
         }),
       );

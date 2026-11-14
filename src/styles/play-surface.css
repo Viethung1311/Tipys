@@ -1,0 +1,695 @@
+body.play-surface-open #root {
+  visibility: hidden;
+}
+body.play-surface-open .tipy-companion,
+body.play-surface-open .companion-bubble {
+  display: none;
+}
+body.play-surface-open > .overlay {
+  z-index: 2000;
+}
+body.play-surface-open > .dialog-viewport {
+  z-index: 2001;
+}
+body.play-surface-open .play-surface {
+  position: fixed;
+  z-index: 1000;
+  top: var(--play-top, 0px);
+  left: var(--play-left, 0px);
+  width: var(--play-width, 100vw);
+  height: var(--play-height, 100dvh);
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--tipy-surface);
+  color: var(--tipy-text);
+  container: play / size;
+  outline: none;
+}
+body.play-surface-open .play-surface *,
+body.play-surface-open .play-surface *::before,
+body.play-surface-open .play-surface *::after {
+  box-sizing: border-box;
+}
+body.play-surface-open .play-surface .tipy-button {
+  --tipy-button-height: 48px;
+  --tipy-button-font-size: 18px;
+  --tipy-button-depth: 3px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px 12px;
+  margin: 0;
+}
+body.play-surface-open .play-surface .tipy-button__icon {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+}
+body.play-surface-open .play-surface .quest-page,
+body.play-surface-open .play-surface .assessments-page,
+body.play-surface-open .play-surface .adventure-scene,
+body.play-surface-open .play-surface .adventure-content {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+body.play-surface-open .play-surface .quest-play-navigation,
+body.play-surface-open .play-surface .adventure-header {
+  display: none;
+}
+body.play-surface-open .play-surface .adventure-scene {
+  border: 0;
+  border-radius: var(--tipy-input-radius);
+}
+body.play-surface-open .play-surface .game-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 0;
+  gap: 6px;
+}
+body.play-surface-open .play-surface .game-heading,
+body.play-surface-open .play-surface .game-note,
+body.play-surface-open .play-surface .keyboard-caption,
+body.play-surface-open .play-surface .arena-top,
+body.play-surface-open .play-surface .speed-counter {
+  display: none;
+}
+body.play-surface-open .play-surface .game-toolbar {
+  flex: 0 0 auto;
+  min-height: 52px;
+  padding: 4px 8px;
+  margin: 0;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+body.play-surface-open .play-surface .game-toolbar small {
+  font-size: 12px;
+}
+body.play-surface-open .play-surface .game-toolbar strong {
+  font-size: 22px;
+}
+body.play-surface-open .play-surface .game-toolbar .timer {
+  margin-left: auto;
+}
+body.play-surface-open .play-surface .game-toolbar .hearts {
+  display: flex;
+  gap: 2px;
+}
+body.play-surface-open .play-surface .game-toolbar .hearts svg {
+  width: 18px;
+  height: 18px;
+}
+body.play-surface-open .play-surface .game-toolbar .wrong-counter {
+  font-size: 16px;
+}
+body.play-surface-open .play-surface .arena {
+  flex: 1 1 auto;
+  min-height: 80px;
+  height: auto;
+  margin: 0;
+  border-radius: 16px;
+}
+body.play-surface-open .play-surface .arena .fall-zone {
+  inset: 4px 4px 24px;
+}
+body.play-surface-open .play-surface .danger-line {
+  bottom: 5px;
+  font-size: 12px;
+}
+body.play-surface-open .play-surface .letter {
+  font-size: 28px;
+  width: 40px;
+  height: 40px;
+}
+body.play-surface-open .play-surface .keyboard.touchboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+  gap: 4px;
+  padding: 4px;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  overflow: visible;
+}
+body.play-surface-open .play-surface .touchboard .key-row {
+  display: contents;
+}
+body.play-surface-open .play-surface .touchboard .key {
+  width: 100%;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 2px;
+  font-size: 19px;
+  margin: 0;
+}
+body.play-surface-open .play-surface .touchboard .key:not(.selected) {
+  display: none;
+}
+body.play-surface-open .play-surface .touchboard .key.selected:disabled {
+  visibility: visible !important;
+}
+body.play-surface-open .play-surface .quest-playfield,
+body.play-surface-open .play-surface .quest-player:not(.quest-playfield) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 6px;
+  padding: 8px;
+  overflow: hidden;
+}
+body.play-surface-open .play-surface .quest-playfield .quest-player-top,
+body.play-surface-open .play-surface .quest-player-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 4px 8px;
+  margin: 0;
+}
+body.play-surface-open .play-surface .quest-playfield-header h1 {
+  font-size: clamp(18px, 2vw, 24px);
+  flex: 1;
+  text-align: center;
+}
+body.play-surface-open .play-surface .quest-playfield-time {
+  font-size: 14px;
+  gap: 4px;
+}
+body.play-surface-open .play-surface .quest-playfield-time b {
+  font-size: 18px;
+}
+body.play-surface-open .play-surface .quest-playfield-time svg {
+  display: none;
+}
+body.play-surface-open .play-surface .quest-playfield-progress {
+  margin: 0;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+body.play-surface-open .play-surface .quest-playfield-progress span {
+  font-size: 16px;
+  padding: 0 8px;
+}
+body.play-surface-open .play-surface .quest-playfield-description {
+  display: none;
+}
+body.play-surface-open .play-surface .quest-challenge {
+  flex: 1 1 auto;
+  min-height: 60px;
+  margin: 0;
+  padding: 8px;
+  gap: 4px;
+  border-radius: 18px;
+  overflow: auto;
+}
+body.play-surface-open .play-surface .quest-challenge > p {
+  margin: 0;
+  font-size: 18px;
+}
+body.play-surface-open .play-surface .quest-target {
+  font-size: clamp(24px, 4vw, 38px);
+  line-height: 1.3;
+}
+body.play-surface-open .play-surface .quest-letter-sticker {
+  width: auto;
+  height: min(18cqh, 130px);
+}
+body.play-surface-open .play-surface .quest-mascot {
+  font-size: 28px;
+  margin: 0;
+}
+body.play-surface-open .play-surface .quest-playfield-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+body.play-surface-open .play-surface .quest-playfield-guide {
+  display: none;
+}
+body.play-surface-open .play-surface .quest-playfield-input {
+  grid-column: 1;
+  grid-row: auto;
+  min-width: 0;
+}
+body.play-surface-open .play-surface .quest-playfield-tools {
+  grid-column: 2;
+  grid-row: auto;
+}
+body.play-surface-open .play-surface .quest-playfield-tools .quest-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  flex-wrap: nowrap;
+}
+body.play-surface-open .play-surface .quest-input-label {
+  font-size: 16px;
+  margin: 0;
+}
+body.play-surface-open .play-surface .quest-playfield-input form {
+  padding: 6px;
+  border-radius: 12px;
+}
+body.play-surface-open .play-surface textarea {
+  min-height: 48px;
+  height: 64px;
+  padding: 6px;
+  font-size: 20px;
+  line-height: 1.3;
+  resize: none;
+}
+body.play-surface-open .play-surface .quest-playfield-input > .quest-hint {
+  display: none;
+}
+body.play-surface-open .play-surface .quest-playfield-input .quest-space-key {
+  margin: 4px 0 0;
+  width: 100%;
+  min-height: 48px;
+}
+body.play-surface-open .play-surface .quest-feedback {
+  margin: 0;
+  font-size: 18px;
+  min-height: 24px;
+}
+body.play-surface-open .play-surface .quest-feedback + .quest-hint {
+  display: none;
+}
+body.play-surface-open .play-surface .quest-race {
+  margin: 0;
+  padding-top: 24px;
+}
+body.play-surface-open .play-surface .quest-race > span,
+body.play-surface-open .play-surface .quest-race > b {
+  font-size: 24px;
+}
+body.play-surface-open .play-surface .quest-race p {
+  display: none;
+}
+body.play-surface-open .play-surface .assessment-runner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 6px;
+}
+body.play-surface-open .play-surface .assessment-run-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+body.play-surface-open .play-surface .assessment-run-header h1 {
+  font-size: 20px;
+  flex: 1;
+  margin: 0;
+}
+body.play-surface-open .play-surface .assessment-runner > p {
+  margin: 0;
+  font-size: 16px;
+}
+body.play-surface-open .play-surface .assessment-part-content {
+  flex: 1;
+  min-height: 0;
+}
+.play-surface
+  .assessment-runner[data-part-active='true']
+  > p:not([role='alert']):not([data-save-state='saving']) {
+  display: none;
+}
+body.play-surface-open .play-surface .assessment-part-content .quest-playfield-header {
+  display: none;
+}
+body.play-surface-open .play-surface .assessment-part-content .game-toolbar > button {
+  display: none;
+}
+body.play-surface-open .play-surface .assessment-section-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+body.play-surface-open .play-surface .assessment-section-result {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  height: 100%;
+  margin: 0;
+}
+.play-result {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  padding: 12px;
+  border-radius: 24px;
+  background:
+    linear-gradient(#402b2070, #402b2060),
+    var(--result-background) center / cover;
+  overflow: auto;
+  color: white;
+  text-align: center;
+}
+.play-result-content {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: min(100%, 850px);
+}
+.play-result h1 {
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 900;
+  line-height: 1.15;
+  color: white;
+  text-shadow: 0 2px 4px #402b20;
+  margin: 0;
+}
+.play-result p {
+  font-size: 18px;
+  margin: 0;
+}
+.play-result-star {
+  width: clamp(100px, 26cqh, 260px);
+  height: auto;
+  max-height: 32cqh;
+  object-fit: contain;
+}
+.play-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  padding-bottom: 6px;
+}
+.play-result .tipy-button {
+  min-height: 56px;
+  font-size: 18px;
+  padding: 8px 12px;
+  gap: 8px;
+}
+.play-result-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(100%, 480px);
+  gap: 8px;
+}
+.play-result-metrics > div {
+  display: grid;
+  gap: 6px;
+  background: var(--tipy-surface);
+  color: var(--tipy-text);
+  border-radius: 18px;
+  padding: 12px;
+  min-width: 0;
+}
+.play-result-metrics strong {
+  font-size: 28px;
+}
+.play-result-metrics span {
+  font-size: 16px;
+}
+@keyframes result-pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.play-result--celebrate .play-result-star {
+  animation: result-pop 0.5s ease-out both;
+}
+@container play (max-width: 600px) {
+  body.play-surface-open .play-surface .quest-playfield .quest-player-top {
+    flex-wrap: wrap;
+  }
+  body.play-surface-open .play-surface .quest-playfield-header h1 {
+    flex-basis: 100%;
+    order: -1;
+    font-size: 19px;
+  }
+  body.play-surface-open .play-surface .quest-playfield-time {
+    flex: 1;
+  }
+  body.play-surface-open .play-surface .quest-playfield-bottom {
+    grid-template-columns: 1fr;
+  }
+  body.play-surface-open .play-surface .quest-playfield-tools {
+    grid-column: 1;
+  }
+  body.play-surface-open .play-surface .quest-playfield-tools .quest-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+  body.play-surface-open .play-surface .quest-playfield .quest-challenge .quest-hint {
+    font-size: 16px;
+  }
+}
+@container play (max-height: 650px) {
+  .play-result-star {
+    max-height: 18cqh;
+  }
+  .play-result-content {
+    gap: 8px;
+  }
+  .play-result h1 {
+    font-size: 28px;
+  }
+}
+@container play (max-height: 450px) {
+  body.play-surface-open .play-surface .quest-playfield,
+  body.play-surface-open .play-surface .quest-player:not(.quest-playfield) {
+    gap: 3px;
+    padding: 2px;
+  }
+  body.play-surface-open .play-surface .quest-playfield-header h1 {
+    font-size: 18px;
+  }
+  body.play-surface-open .play-surface .quest-playfield .quest-challenge {
+    padding: 4px;
+    min-height: 48px;
+  }
+  body.play-surface-open .play-surface .quest-playfield .quest-challenge > p,
+  body.play-surface-open .play-surface .quest-challenge .quest-hint,
+  body.play-surface-open .play-surface .quest-challenge .quest-mascot {
+    display: none;
+  }
+  body.play-surface-open .play-surface .quest-target {
+    margin: 0;
+    font-size: 24px;
+  }
+  body.play-surface-open .play-surface .quest-playfield-progress {
+    display: none;
+  }
+  body.play-surface-open .play-surface .quest-playfield:has(textarea:focus) .quest-feedback {
+    display: none;
+  }
+  body.play-surface-open .play-surface textarea {
+    height: 48px;
+  }
+  .play-result-star {
+    max-height: 22cqh;
+    width: auto;
+  }
+  .play-result-content {
+    gap: 8px;
+  }
+  .play-result h1 {
+    font-size: 28px;
+  }
+  .play-result-metrics > div {
+    padding: 6px 12px;
+  }
+  body.play-surface-open .play-surface .assessment-run-header {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+  body.play-surface-open .play-surface .assessment-run-header h1 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    font-size: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-result--celebrate .play-result-star {
+    animation: none;
+  }
+}
+
+@container play (max-width: 600px) {
+  body.play-surface-open .play-surface .quest-player-top > .tipy-button {
+    font-size: 16px;
+    padding: 4px 6px;
+    flex: 0 0 auto;
+  }
+  body.play-surface-open .play-surface .quest-player-top > .tipy-button .tipy-button__icon {
+    display: none;
+  }
+  body.play-surface-open .play-surface .quest-playfield-time {
+    font-size: 12px;
+  }
+  body.play-surface-open .play-surface .game-toolbar {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 2px;
+  }
+  body.play-surface-open .play-surface .game-toolbar > button:first-child {
+    font-size: 16px;
+    padding: 4px;
+  }
+  body.play-surface-open .play-surface .game-toolbar strong {
+    font-size: 18px;
+  }
+  body.play-surface-open .play-surface .assessment-run-header {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+  body.play-surface-open .play-surface .assessment-run-header h1 {
+    grid-column: 1/-1;
+    grid-row: 1;
+  }
+  body.play-surface-open .play-surface .assessment-run-header .tipy-button {
+    font-size: 16px;
+    padding: 4px;
+  }
+  body.play-surface-open .play-surface .assessment-run-header .tipy-button__icon {
+    display: none;
+  }
+}
+
+body.play-surface-open .play-surface .quest-input-label {
+  gap: 4px;
+}
+body.play-surface-open .play-surface textarea {
+  margin: 0;
+}
+@container play (max-width:600px) {
+  body.play-surface-open .play-surface .quest-playfield-tools .tipy-button {
+    font-size: 16px;
+    gap: 4px;
+    padding: 4px;
+    white-space: nowrap;
+  }
+  body.play-surface-open .play-surface .quest-playfield-tools .tipy-button__icon {
+    display: none;
+  }
+}
+@container play (max-height:450px) {
+  body.play-surface-open .play-surface .quest-player-top {
+    padding: 0;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  body.play-surface-open .play-surface .quest-playfield:has(textarea:focus) .quest-input-label {
+    font-size: 0;
+    gap: 0;
+  }
+  body.play-surface-open
+    .play-surface
+    .quest-playfield:has(textarea:focus)
+    .quest-playfield-tools
+    .quest-actions
+    > button:not([type='submit']) {
+    display: none;
+  }
+  body.play-surface-open
+    .play-surface
+    .quest-playfield:has(textarea:focus)
+    .quest-playfield-tools
+    .tipy-button {
+    height: 48px;
+  }
+}
+
+body.play-surface-open .play-surface .play-game-title {
+  font-size: 18px;
+  line-height: 1.2;
+  margin: 0;
+  text-align: center;
+}
+body.play-surface-open .play-surface .assessment-part-content .play-game-title {
+  display: none;
+}
+@container play (max-width:600px) {
+  body.play-surface-open .play-surface .game-page .keyboard--adaptive .key:not(.needed) {
+    display: none;
+  }
+}
+@container play (max-height:450px) {
+  body.play-surface-open .play-surface .game-page .keyboard--adaptive .key:not(.needed) {
+    display: none;
+  }
+}
+
+@container play (min-width:500px) and (max-height:450px) {
+  .play-result-content {
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 6px;
+  }
+  .play-result-content > :not(img) {
+    grid-column: 2;
+  }
+  .play-result-star {
+    grid-column: 1;
+    grid-row: 1 / span 6;
+    align-self: center;
+    width: 100px;
+    max-height: 70cqh;
+  }
+  body.play-surface-open .play-surface .play-result .tipy-button {
+    font-size: 16px;
+    padding: 6px;
+    gap: 4px;
+  }
+  .play-result-actions {
+    gap: 12px;
+  }
+  .play-result-metrics > div {
+    padding: 4px;
+  }
+  .play-result-metrics strong {
+    font-size: 24px;
+  }
+}
+
+body.play-surface-open .play-surface .tipy-button--primary {
+  min-height: 56px;
+}
+body.play-surface-open
+  .play-surface
+  .quest-playfield-tools
+  button[type='submit']
+  .tipy-button__icon,
+body.play-surface-open
+  .play-surface
+  .assessment-run-header
+  .tipy-button--primary
+  .tipy-button__icon {
+  display: block;
+}
+
+@container play (max-height:450px) {
+  body.play-surface-open
+    .play-surface
+    .quest-playfield:has(textarea:focus)
+    .quest-playfield-bottom {
+    grid-template-columns: minmax(0, 1fr) minmax(96px, auto);
+  }
+  body.play-surface-open .play-surface .quest-playfield:has(textarea:focus) .quest-playfield-tools {
+    grid-column: 2;
+  }
+}

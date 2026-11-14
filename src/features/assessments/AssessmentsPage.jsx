@@ -1,11 +1,13 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Play, Send, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Play, Send, RotateCcw, Pause } from 'lucide-react';
+import PlaySurface, { enterPlayFullscreen } from '../../components/PlaySurface.jsx';
+import CompletionScreen, { assessmentSucceeded } from '../../components/CompletionScreen.jsx';
 import { api } from '../../game/backend.js';
 import TipyButton from '../../components/TipyButton.jsx';
 import Modal from '../../components/Modal.jsx';
 import Loading from '../../components/Loading.jsx';
 import AssessmentSummary from './AssessmentSummary.jsx';
-import { AttemptHistory, ResultBanner, availability } from './ResultViews.jsx';
+import { AttemptHistory, availability } from './ResultViews.jsx';
 import { assessmentSession } from './session.js';
 import { createAnswers } from '../keyboard-quest/engine.js';
 import { adventureWorld } from '../keyboard-quest/adventure.js';
@@ -47,27 +49,41 @@ export default function AssessmentsPage({
     [error, setError] = useState(''),
     [revision, setRevision] = useState(0),
     [checking, setChecking] = useState(false);
-  const [history, setHistory] = useState(false),
+  const [immersive, setImmersive] = useState(false),
+    [closedAtBoundary, setClosedAtBoundary] = useState(false),
+    [history, setHistory] = useState(false),
     [celebrate, setCelebrate] = useState(false);
   const celebrated = useRef(new Set());
   const openedRequest = useRef(null);
   const sending = useRef(false),
     current = useRef({ detail, running });
-  current.current = { detail, running };
-  const finished = (row) => {
-    if (row.results?.some((r) => r.outcome === 'good') && !celebrated.current.has(row.attempt_id)) {
+  current.current = { detail, running, immersive };
+  const finished = (row, allowSound = true) => {
+    const claim = `tipy-assessment-celebrated:${user?.user_id}:${row.attempt_id}`;
+    let claimed = celebrated.current.has(row.attempt_id);
+    try {
+      claimed ||= sessionStorage.getItem(claim) === '1';
+    } catch {}
+    if (allowSound && assessmentSucceeded(row) && !claimed) {
       celebrated.current.add(row.attempt_id);
+      try {
+        sessionStorage.setItem(claim, '1');
+      } catch {}
       setCelebrate(true);
       sound?.('record');
     }
-    setDetail((old) => (old ? { ...old, attempt: row } : old));
+    setDetail((old) =>
+      old ? { ...old, attempt: row, serverNow: row.server_now || old.serverNow } : old,
+    );
     setRunning(false);
+    setImmersive(true);
   };
   useEffect(() => {
     let live = true;
     setList(null);
     setDetail(null);
     setRunning(false);
+    setImmersive(false);
     setError('');
     setHistory(false);
     setCelebrate(false);
@@ -101,7 +117,10 @@ export default function AssessmentsPage({
     setDetail(null);
     api('assessment', undefined, { assessmentId: requestedAssessment.assessmentId })
       .then((value) => {
-        if (live) setDetail(value);
+        if (live) {
+          setDetail(value);
+          if (value.attempt?.submitted_at) setImmersive(true);
+        }
       })
       .catch((e) => {
         if (live) setError(e.message);
@@ -118,6 +137,7 @@ export default function AssessmentsPage({
     let live = true;
     let pending = false;
     const verify = async (background = false) => {
+      if (current.current.immersive && background?.type !== 'tipy-class-access-changed') return;
       if (document.hidden || pending) return;
       pending = true;
       if (background !== true) setChecking(true);
@@ -150,6 +170,7 @@ export default function AssessmentsPage({
           setHistory(false);
           setRunning(false);
           setError(e.message);
+          setImmersive(false);
         } else if (live && !current.current.running) setError(e.message);
       } finally {
         pending = false;
@@ -187,6 +208,25 @@ export default function AssessmentsPage({
       setBusy(false);
     }
   };
+  useEffect(() => {
+    setClosedAtBoundary(false);
+    const schedule = detail?.assessment.definition.schedule;
+    if (schedule?.mode !== 'scheduled' || !detail?.serverNow) return;
+    const delay = Date.parse(schedule.closesAt) - Date.parse(detail.serverNow);
+    if (delay <= 0) {
+      setClosedAtBoundary(true);
+      return;
+    }
+    const end = performance.now() + delay;
+    let timer;
+    const check = () => {
+      const remaining = end - performance.now();
+      if (remaining <= 0) setClosedAtBoundary(true);
+      else timer = setTimeout(check, Math.min(remaining, 2147483647));
+    };
+    check();
+    return () => clearTimeout(timer);
+  }, [detail?.assessment.assessment_id, detail?.serverNow]);
   if (user?.role === 'admin')
     return (
       <main className="assessments-page">
@@ -196,6 +236,7 @@ export default function AssessmentsPage({
       </main>
     );
   const back = () => {
+    setImmersive(false);
     setHistory(false);
     setCelebrate(false);
     setDetail(null);
@@ -206,147 +247,191 @@ export default function AssessmentsPage({
     detail?.allowedAttempts === null
       ? null
       : Math.max(0, (detail?.allowedAttempts || 0) - (detail?.attempt?.attempt_number || 0));
+  const startAttempt = () => {
+    if (sending.current) return;
+    enterPlayFullscreen();
+    setImmersive(true);
+    run(async () => {
+      try {
+        const response = await api('assessment_start', {
+          assessmentId: detail.assessment.assessment_id,
+        });
+        setDetail((old) => ({
+          ...old,
+          attempt: response.data,
+          serverNow: response.data.server_now || old.serverNow,
+        }));
+        setCelebrate(false);
+        setRunning(!response.data.submitted_at);
+      } catch (error) {
+        setImmersive(Boolean(detail.attempt?.submitted_at));
+        throw error;
+      }
+    });
+  };
+  const canRetry =
+    detail?.attempt?.submitted_at &&
+    !closedAtBoundary &&
+    detail.assessment.status === 'published' &&
+    availability(detail.assessment.definition.schedule, detail.serverNow) === 'Đang mở' &&
+    (detail.allowedAttempts === null || detail.allowedAttempts > detail.attempt.attempt_number);
   return (
-    <main className="assessments-page assessments">
-      {!running && <h1>Bài kiểm tra</h1>}
-      {error && (
-        <p role="alert" className="account-error">
-          {error}{' '}
-          <TipyButton
-            emphasis="secondary"
-            icon={RotateCcw}
-            onClick={() => {
-              setError('');
-              setRevision((n) => n + 1);
-            }}
-          >
-            Tải lại
-          </TipyButton>
-        </p>
-      )}
-      {!user ? (
-        <p>Đăng nhập để xem bài thầy cô giao nhé.</p>
-      ) : running && detail ? (
-        <AssessmentRunner
-          key={detail.attempt.attempt_id}
-          detail={detail}
-          user={user}
-          sound={sound}
-          blocked={blocked || checking}
-          onPlayingChange={onPlayingChange}
-          onDone={finished}
-          onDenied={(message) => {
-            setError(message);
-            setDetail(null);
-            setList(null);
-            setHistory(false);
-            setRunning(false);
-          }}
-        />
-      ) : detail ? (
-        <>
-          <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
-            Danh sách
-          </TipyButton>
-          <AssessmentSummary definition={detail.assessment.definition} student>
-            <p>Người giao: {detail.assessment.teacher}</p>
-            <p>
-              <b>{availability(detail.assessment.definition.schedule, detail.serverNow)}</b>
-              {detail.assessment.status === 'deleted' ? ' · Bài đã ẩn, không mở lượt mới' : ''}
-            </p>
-            <p>
-              {remainingAttempts === null
-                ? 'Số lượt còn lại: Không giới hạn'
-                : `Số lượt còn lại: ${remainingAttempts}`}
-            </p>
-            <TipyButton emphasis="secondary" onClick={() => setHistory(true)}>
-              Kết quả của em
+    <PlaySurface active={immersive}>
+      <main className="assessments-page assessments">
+        {!running && !immersive && <h1>Bài kiểm tra</h1>}
+        {error && (
+          <p role="alert" className="account-error">
+            {error}{' '}
+            <TipyButton
+              emphasis="secondary"
+              icon={RotateCcw}
+              onClick={() => {
+                setError('');
+                setRevision((n) => n + 1);
+              }}
+            >
+              Tải lại
             </TipyButton>
-            {detail.attempt?.submitted_at ? (
-              <ResultBanner attempt={detail.attempt} celebrate={celebrate} />
-            ) : null}
-            {(!detail.attempt?.submitted_at ||
-              detail.allowedAttempts === null ||
-              detail.allowedAttempts > detail.attempt.attempt_number) && (
+          </p>
+        )}
+        {immersive && busy && !running && !detail?.attempt?.submitted_at ? (
+          <Loading label="Đang vào bài kiểm tra…" />
+        ) : !user ? (
+          <p>Đăng nhập để xem bài thầy cô giao nhé.</p>
+        ) : running && detail ? (
+          <AssessmentRunner
+            key={detail.attempt.attempt_id}
+            detail={detail}
+            user={user}
+            sound={sound}
+            blocked={blocked || checking}
+            onPlayingChange={onPlayingChange}
+            onDone={finished}
+            onExit={back}
+            onDenied={(message) => {
+              setImmersive(false);
+              setError(message);
+              setDetail(null);
+              setList(null);
+              setHistory(false);
+              setRunning(false);
+            }}
+          />
+        ) : immersive && detail?.attempt?.submitted_at ? (
+          <CompletionScreen
+            good={assessmentSucceeded(detail.attempt)}
+            celebrate={celebrate}
+            background={
+              adventureWorld(
+                detail.assessment.definition.sections.find((s) => s.type === 'quest')?.items?.[0]
+                  ?.world || 3,
+              ).background.src
+            }
+            busy={busy}
+            onBack={back}
+            onRetry={canRetry ? startAttempt : undefined}
+          />
+        ) : detail ? (
+          <>
+            <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
+              Danh sách
+            </TipyButton>
+            <AssessmentSummary definition={detail.assessment.definition} student>
+              <p>Người giao: {detail.assessment.teacher}</p>
+              <p>
+                <b>{availability(detail.assessment.definition.schedule, detail.serverNow)}</b>
+                {detail.assessment.status === 'deleted' ? ' · Bài đã ẩn, không mở lượt mới' : ''}
+              </p>
+              <p>
+                {remainingAttempts === null
+                  ? 'Số lượt còn lại: Không giới hạn'
+                  : `Số lượt còn lại: ${remainingAttempts}`}
+              </p>
               <TipyButton
-                icon={Play}
-                loading={busy}
-                disabled={
-                  availability(detail.assessment.definition.schedule, detail.serverNow) !==
-                    'Đang mở' ||
-                  (detail.assessment.status === 'deleted' &&
-                    (!detail.attempt || detail.attempt.submitted_at))
-                }
-                onClick={() =>
-                  run(async () => {
-                    const response = await api('assessment_start', {
-                      assessmentId: detail.assessment.assessment_id,
-                    });
-                    setDetail((old) => ({
-                      ...old,
-                      attempt: response.data,
-                      serverNow: response.data.server_now || old.serverNow,
-                    }));
-                    if (response.data.submitted_at) {
-                      setRunning(false);
-                      return;
-                    }
-                    setCelebrate(false);
-                    setRunning(true);
-                  })
-                }
+                emphasis="secondary"
+                onClick={() => setHistory(detail.assessment.assessment_id)}
               >
-                {detail.attempt && !detail.attempt.submitted_at
-                  ? 'Tiếp tục'
-                  : detail.attempt
-                    ? 'Làm lại'
-                    : 'Bắt đầu'}
+                Kết quả của em
               </TipyButton>
-            )}
-          </AssessmentSummary>
-        </>
-      ) : !list ? (
-        !error && <Loading label="Đang tải bài kiểm tra…" />
-      ) : (
-        <>
-          {!list.items.length && <p>Chưa có bài kiểm tra nào</p>}
-          {list.items.map((exam) => (
-            <article className="panel assessment-list-item" key={exam.assessment_id}>
-              <h2>{exam.title}</h2>
-              <p>{exam.description}</p>
-              <p>Người giao: {exam.teacher}</p>
-              <strong>{statusLabel[exam.attempt_status]}</strong>
-              <p>{availability(exam.schedule, exam.server_now)}</p>
-              <TipyButton
-                icon={Play}
-                disabled={busy}
-                onClick={() =>
-                  run(async () => {
-                    const data = await api('assessment', undefined, {
-                      assessmentId: exam.assessment_id,
-                    });
-                    setDetail(data);
-                  })
-                }
-              >
-                Xem bài
-              </TipyButton>
-            </article>
-          ))}
-          <Pages data={list} onPage={setPage} />
-        </>
-      )}
-      {history && detail && (
-        <AttemptHistory
-          assessmentId={detail.assessment.assessment_id}
-          onClose={() => setHistory(false)}
-        />
-      )}
-    </main>
+              {(!detail.attempt?.submitted_at ||
+                detail.allowedAttempts === null ||
+                detail.allowedAttempts > detail.attempt.attempt_number) && (
+                <TipyButton
+                  icon={Play}
+                  loading={busy}
+                  disabled={
+                    availability(detail.assessment.definition.schedule, detail.serverNow) !==
+                      'Đang mở' ||
+                    (detail.assessment.status === 'deleted' &&
+                      (!detail.attempt || detail.attempt.submitted_at))
+                  }
+                  onClick={startAttempt}
+                >
+                  {detail.attempt && !detail.attempt.submitted_at
+                    ? 'Tiếp tục'
+                    : detail.attempt
+                      ? 'Làm lại'
+                      : 'Bắt đầu'}
+                </TipyButton>
+              )}
+            </AssessmentSummary>
+          </>
+        ) : !list ? (
+          !error && <Loading label="Đang tải bài kiểm tra…" />
+        ) : (
+          <>
+            {!list.items.length && <p>Chưa có bài kiểm tra nào</p>}
+            {list.items.map((exam) => (
+              <article className="panel assessment-list-item" key={exam.assessment_id}>
+                <h2>{exam.title}</h2>
+                <p>{exam.description}</p>
+                <p>Người giao: {exam.teacher}</p>
+                <strong>{statusLabel[exam.attempt_status]}</strong>
+                <p>{availability(exam.schedule, exam.server_now)}</p>
+                {exam.attempt_status === 'submitted' && (
+                  <TipyButton emphasis="secondary" onClick={() => setHistory(exam.assessment_id)}>
+                    Kết quả của em
+                  </TipyButton>
+                )}
+                <TipyButton
+                  icon={Play}
+                  disabled={busy}
+                  onClick={() =>
+                    run(async () => {
+                      const data = await api('assessment', undefined, {
+                        assessmentId: exam.assessment_id,
+                      });
+                      setDetail(data);
+                      if (data.attempt?.submitted_at) {
+                        setImmersive(true);
+                        setCelebrate(false);
+                      }
+                    })
+                  }
+                >
+                  Xem bài
+                </TipyButton>
+              </article>
+            ))}
+            <Pages data={list} onPage={setPage} />
+          </>
+        )}
+        {history && <AttemptHistory assessmentId={history} onClose={() => setHistory(false)} />}
+      </main>
+    </PlaySurface>
   );
 }
 
-function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDone, onDenied }) {
+function AssessmentRunner({
+  detail,
+  user,
+  sound,
+  blocked,
+  onPlayingChange,
+  onDone,
+  onDenied,
+  onExit,
+}) {
   const exam = detail.assessment,
     attempt = detail.attempt;
   const [partId, setPartId] = useState(null),
@@ -354,7 +439,9 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
     [failure, setFailure] = useState(false),
     [confirm, setConfirm] = useState(false),
     [busy, setBusy] = useState(false),
-    [version, setVersion] = useState(0);
+    [version, setVersion] = useState(0),
+    [paused, setPaused] = useState(false),
+    [exiting, setExiting] = useState(false);
   const writing = useRef(false),
     live = useRef(true);
   const session = useMemo(
@@ -516,7 +603,12 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
         },
       };
     }
-    let signature = '';
+    let signature = [
+      Math.floor((initial.state?.elapsed || 0) / 10),
+      initial.state?.correct || 0,
+      initial.state?.wrong || 0,
+      initial.state?.missed || 0,
+    ].join(':');
     return {
       initial: initial.state,
       onBack: leave,
@@ -530,7 +622,6 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
           state.correct,
           state.wrong,
           state.missed,
-          state.status,
         ].join(':');
         savePart(
           part.id,
@@ -539,7 +630,7 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
             seconds: Math.floor(state.elapsed),
             done: done || state.status === 'result',
           },
-          next !== signature || flush,
+          next !== signature || done || flush,
         );
         signature = next;
         if (flush) session.flush().catch(() => {});
@@ -547,14 +638,33 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
     };
   }, [part, initial, session, lesson]);
   return (
-    <section className="assessment-runner" data-version={version}>
+    <section className="assessment-runner" data-version={version} data-part-active={Boolean(part)}>
       <header className="assessment-run-header">
+        <TipyButton
+          icon={ArrowLeft}
+          emphasis="secondary"
+          disabled={busy}
+          onClick={() => setExiting(true)}
+        >
+          Quay lại
+        </TipyButton>
         <h1>{exam.definition.title}</h1>
+        <TipyButton
+          icon={Pause}
+          emphasis="secondary"
+          disabled={busy}
+          onClick={() => setPaused(true)}
+        >
+          Tạm dừng
+        </TipyButton>
         <TipyButton icon={Send} loading={busy} onClick={requestSubmit}>
           Nộp bài
         </TipyButton>
       </header>
-      <p role={failure ? 'alert' : 'status'}>
+      <p
+        role={failure ? 'alert' : 'status'}
+        data-save-state={failure ? 'error' : message === 'Đã lưu' ? 'idle' : 'saving'}
+      >
         {message}
         {failure && (
           <TipyButton emphasis="secondary" onClick={() => session.flush().catch(() => {})}>
@@ -579,10 +689,7 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
         {exam.definition.sections.length} phần hoàn thành
       </p>
       {part ? (
-        <>
-          <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={leave}>
-            Các phần
-          </TipyButton>
+        <div className="assessment-part-content">
           <Suspense fallback={<Loading label="Đang mở phần kiểm tra…" />}>
             {part.type === 'quest' ? (
               <div
@@ -597,9 +704,11 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
                     lesson={lesson}
                     world={adventureWorld(lesson.world)}
                     assessment={adapter}
+                    immersive
+                    externalPaused={paused || exiting || confirm}
                     user={user}
                     sound={sound}
-                    blocked={blocked || confirm || busy || failure}
+                    blocked={blocked || confirm || busy || failure || paused || exiting}
                     onPlayingChange={onPlayingChange}
                     onBack={leave}
                     onSaved={noop}
@@ -611,9 +720,10 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
                 key={part.id}
                 settings={part.settings}
                 assessment={adapter}
+                externalPaused={paused || exiting || confirm}
                 user={user}
                 sound={sound}
-                audioOpen={blocked || confirm || busy || failure}
+                audioOpen={blocked || confirm || busy || failure || paused || exiting}
                 onPlayingChange={onPlayingChange}
                 onFinish={() => false}
                 onHome={leave}
@@ -621,7 +731,7 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
               />
             )}
           </Suspense>
-        </>
+        </div>
       ) : (
         <div className="assessment-section-list">
           {exam.definition.sections.map((section, index) => (
@@ -663,6 +773,56 @@ function AssessmentRunner({ detail, user, sound, blocked, onPlayingChange, onDon
               Nộp bài
             </TipyButton>
           </div>
+        </Modal>
+      )}
+      {paused && !exiting && (
+        <Modal
+          title="Tạm dừng"
+          description="Nội dung đã giữ nguyên. Giờ đóng bài của thầy cô vẫn được áp dụng."
+          onClose={() => setPaused(false)}
+        >
+          <TipyButton icon={Play} onClick={() => setPaused(false)}>
+            Tiếp tục
+          </TipyButton>
+        </Modal>
+      )}
+      {exiting && (
+        <Modal
+          title={part ? 'Quay lại các phần?' : 'Quay lại danh sách?'}
+          description="Bài đang làm sẽ được lưu. Giờ đóng bài và số lượt làm vẫn theo quy định của thầy cô."
+          onClose={() => {
+            if (!busy) setExiting(false);
+          }}
+        >
+          <TipyButton emphasis="secondary" disabled={busy} onClick={() => setExiting(false)}>
+            Làm tiếp
+          </TipyButton>
+          <TipyButton
+            icon={ArrowLeft}
+            loading={busy}
+            onClick={async () => {
+              if (writing.current) return;
+              writing.current = true;
+              setBusy(true);
+              try {
+                await session.flush();
+                if (part) {
+                  setPartId(null);
+                  setExiting(false);
+                  setVersion((v) => v + 1);
+                } else onExit();
+              } catch (error) {
+                setMessage(error.message);
+                setFailure(true);
+                setExiting(false);
+              } finally {
+                writing.current = false;
+                setBusy(false);
+              }
+            }}
+          >
+            Quay lại
+          </TipyButton>
         </Modal>
       )}
     </section>

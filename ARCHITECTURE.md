@@ -129,3 +129,9 @@ Lưới học sinh và form giáo viên dùng key khác nhau (`roster-...`, `com
 Kiểm tra browser production: npm run build rồi node scripts/check-performance.mjs (cần Google Chrome). Script dùng asset production thật và chuyển đổi ảnh bằng canvas thật, nhưng giả lập API/Storage; không đo độ trễ Vercel/Supabase thực tế.
 
 Vercel Functions được đặt tại Singapore (sin1) để gần Supabase và người dùng Việt Nam; region mặc định iad1 làm mỗi truy vấn phải đi xa. Chỉ một region, không thay đổi schema hoặc quyền truy cập.
+
+## PlaySurface và kết quả
+
+PlaySurface portal vào body để giữ header, chuông và giao diện website inert trong lượt chơi. CSS dùng visualViewport và container query, không đẩy kích thước vào state engine. Fullscreen API được gọi trước await từ nút bắt đầu; native Esc chỉ đổi chế độ trình duyệt. Focus/visibility không nạp lại dữ liệu tài khoản/lớp khi đang chơi; SSE thông báo vẫn xử lý dữ liệu mới và dọn khi ẩn/đăng xuất.
+
+Hai engine giữ nguyên session/recorder và adapter kiểm tra. Pause là UI; checkpoint vẫn theo tiến độ/thời gian hiện có. Kết quả kiểm tra dùng CompletionScreen sau response submitted_at, giữ toàn bộ điểm và kết quả từng phần ở backend/ResultViews. Không đổi schema, quyền, thưởng hoặc giới hạn lượt.

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../game/backend.js';
+import { isPlaySurfaceActive } from '../../components/PlaySurface.jsx';
 const keyFor = (id) => `tipy-notifications-pending:${id}`;
 const loadPending = (id) => {
   try {
@@ -154,13 +155,15 @@ export default function useNotifications(userId, initial) {
       stream.onerror = unavailable;
     };
     reconnect.current = connect;
-    const refresh = () => {
+    const refresh = (event) => {
       clearTimeout(timer);
       if (document.hidden) {
         source.current?.close();
         source.current = null;
         return;
       }
+      if (['focus', 'visibilitychange'].includes(event?.type) && isPlaySurfaceActive()) return;
+      if (event?.type === 'tipy-play-ended' && source.current) return;
       timer = setTimeout(() => {
         const ids = [...pending.current].slice(0, 50);
         if (ids.length) present(ids, false);
@@ -198,6 +201,7 @@ export default function useNotifications(userId, initial) {
     if (typeof EventSource !== 'undefined') connect();
     else if (!initial) page();
     window.addEventListener('focus', refresh);
+    window.addEventListener('tipy-play-ended', refresh);
     window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', refresh);
     window.addEventListener('storage', storage);
@@ -209,6 +213,7 @@ export default function useNotifications(userId, initial) {
       source.current = null;
       reconnect.current = null;
       window.removeEventListener('focus', refresh);
+      window.removeEventListener('tipy-play-ended', refresh);
       window.removeEventListener('online', refresh);
       document.removeEventListener('visibilitychange', refresh);
       window.removeEventListener('storage', storage);

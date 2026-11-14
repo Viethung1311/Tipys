@@ -102,7 +102,7 @@ test('reward messages show only the delta, capped stars never block replay, and 
       }
       await until(() => d.body.textContent.includes(`Nhận thêm ${extra} sao`));
       assert.ok(d.body.textContent.includes(message));
-      await click('Danh sách bài');
+      await click('Quay lại');
       await click('Tiến bộ');
       assert.match(
         d.querySelector('.quest-profile').textContent,

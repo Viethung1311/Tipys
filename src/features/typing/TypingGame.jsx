@@ -9,15 +9,15 @@ import {
   Play,
   RotateCcw,
   Home,
-  Trophy,
-  SlidersHorizontal,
 } from 'lucide-react';
 import Modal from '../../components/Modal.jsx';
 import Keyboard from '../../components/Keyboard.jsx';
 import { playRecorder } from '../../game/backend.js';
 import useFallingGame from '../../hooks/useFallingGame.js';
-import { LEVELS, load, recordKey } from '../../game/config.js';
+import { LEVELS } from '../../game/config.js';
 import { accuracy, formatTime } from '../../game/engine.js';
+import CompletionScreen from '../../components/CompletionScreen.jsx';
+import { enterPlayFullscreen } from '../../components/PlaySurface.jsx';
 export default function Game({
   settings,
   onHome,
@@ -28,10 +28,13 @@ export default function Game({
   onPlayingChange,
   user,
   assessment = null,
+  externalPaused = false,
 }) {
   const recorder = useRef(null),
     latest = useRef(null);
   const [saveMessage, setSaveMessage] = useState('');
+  const [leaving, setLeaving] = useState(false);
+  const parentPaused = useRef(false);
   const finished = (state) => {
     if (assessment) {
       assessment.onChange(state, true);
@@ -49,7 +52,9 @@ export default function Game({
   } = useFallingGame(
     settings,
     finished,
-    sound,
+    (name) => {
+      if (!assessment || !['record', 'finish'].includes(name)) sound(name);
+    },
     (state) => {
       latest.current = { ...state };
       assessment?.onChange(state);
@@ -71,6 +76,7 @@ export default function Game({
     };
   }, []);
   const playAgain = () => {
+    enterPlayFullscreen();
     recorder.current?.update(latest.current, 'quit');
     if (user) recorder.current = playRecorder(user, settings, setSaveMessage);
     setSaveMessage('');
@@ -83,19 +89,38 @@ export default function Game({
   useEffect(() => {
     if (audioOpen) pause();
   }, [audioOpen, pause]);
-  const best = assessment ? 0 : load(recordKey(settings), 0);
+  useEffect(() => {
+    if (externalPaused) pause();
+    else if (parentPaused.current) resume();
+    parentPaused.current = externalPaused;
+  }, [externalPaused, pause]);
   if (assessment && s.status === 'result')
     return (
       <section className="panel assessment-section-result">
         <h2>Đã kết thúc phần Chữ rơi</h2>
-        <p>
-          {s.score} điểm · {s.correct} đúng · {s.wrong} sai · {accuracy(s)}% chính xác
-        </p>
-        <p>Phần này không cộng sao hoặc điểm xếp hạng luyện tập.</p>
+        <p>Phần này đã được giữ lại. Quay về các phần rồi bấm Nộp bài khi sẵn sàng.</p>
         <TipyButton icon={ArrowLeft} onClick={assessment.onBack}>
           Các phần
         </TipyButton>
       </section>
+    );
+  if (!assessment && s.status === 'result')
+    return (
+      <CompletionScreen
+        title={s.correct > 0 ? 'Bạn đã luyện rất tốt!' : 'Cùng thử lại nhé!'}
+        good={s.correct > 0}
+        celebrate={s.correct > 0}
+        metrics={[
+          [s.score, 'điểm'],
+          [`${accuracy(s)}%`, 'chính xác'],
+          [formatTime(s.elapsed), 'luyện tập'],
+        ]}
+        onRetry={playAgain}
+        retryLabel="Luyện lại"
+        onBack={onHome}
+      >
+        {saveMessage && <p role="alert">Chưa lưu được kết quả: {saveMessage}</p>}
+      </CompletionScreen>
     );
   return (
     <main className="game-page">
@@ -114,7 +139,18 @@ export default function Game({
           {settings.keys.length} phím
         </span>
       </div>
+      <h1 className="play-game-title">Chữ rơi · {LEVELS[settings.difficulty].name}</h1>
       <div className="game-toolbar">
+        <button
+          className="text-button"
+          onClick={() => {
+            pause();
+            setLeaving(true);
+          }}
+        >
+          <ArrowLeft size={20} />
+          Quay lại
+        </button>
         <div>
           <small>ĐIỂM CỦA BẠN</small>
           <strong data-testid="score">
@@ -190,6 +226,11 @@ export default function Game({
       </div>
       <Keyboard
         keys={settings.keys}
+        visibleKeys={
+          settings.keys.length > 8
+            ? [...settings.keys.slice(0, 4), ...s.letters.map((letter) => letter.key)]
+            : undefined
+        }
         onKey={hit}
         lastKey={s.lastKey}
         disabled={s.status !== 'playing'}
@@ -198,7 +239,7 @@ export default function Game({
         Gõ đúng +10 điểm <span>•</span> Sai lần thứ 6 sẽ kết thúc <span>•</span> Mỗi 500 điểm tăng
         tốc <span>•</span> Esc để tạm dừng
       </p>
-      {s.status === 'paused' && !audioOpen && (
+      {s.status === 'paused' && !audioOpen && !leaving && !parentPaused.current && (
         <Modal
           title="Nghỉ một chút nhé ☕"
           description="Chữ và thời gian đã dừng. Tiếp tục khi bạn sẵn sàng."
@@ -217,61 +258,34 @@ export default function Game({
               Chơi lại
             </TipyButton>
           )}
-          <button
-            className="text-button centered"
-            onClick={assessment ? assessment.onBack : onHome}
-          >
-            <Home size={17} /> {assessment ? 'Các phần' : 'Về trang chủ'}
+          <button className="text-button centered" onClick={() => setLeaving(true)}>
+            <Home size={17} /> Quay lại
           </button>
         </Modal>
       )}
-      {s.status === 'result' && !audioOpen && (
+      {leaving && (
         <Modal
-          title="Bạn đã làm rất tốt! 🌟"
-          description="Kết thúc lượt chơi · Mỗi lần luyện là một lần tiến bộ."
+          title="Quay lại?"
+          description={
+            assessment
+              ? 'Phần đang làm sẽ được lưu trước khi quay lại các phần.'
+              : 'Lượt luyện hiện tại sẽ kết thúc. Bạn muốn quay lại?'
+          }
+          onClose={() => setLeaving(false)}
         >
-          <p className="end-reason">
-            {s.endReason === 'wrong_limit'
-              ? 'Bạn đã bấm sai quá 5 lần. Mình thử chậm lại nhé!'
-              : 'Luyện tập thêm một chút để giữ được nhiều chữ hơn nhé!'}
-          </p>
-          <div className="result-score">
-            {s.score}
-            <span>điểm</span>
-          </div>
-          <div className="record">
-            <Trophy size={16} /> Kỷ lục trên máy này: {Math.max(best, s.score)}
-          </div>
-          <div className="result-grid">
-            {[
-              ['Thời gian', formatTime(s.elapsed)],
-              ['Độ chính xác', `${accuracy(s)}%`],
-              ['Bấm đúng', s.correct],
-              ['Bấm sai', s.wrong],
-              ['Bỏ lỡ', s.missed],
-              ['Độ khó', LEVELS[settings.difficulty].name],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <small>{label}</small>
-                <strong>{value}</strong>
-              </div>
-            ))}
-          </div>
-          <p className="result-keys">Bộ phím: {[...settings.keys].sort().join(', ')}</p>
-          <TipyButton variant="play" icon={RotateCcw} className="full" onClick={playAgain}>
-            Chơi lại nào
-          </TipyButton>
           <TipyButton
             emphasis="secondary"
-            icon={SlidersHorizontal}
-            className="full"
-            onClick={onSetup}
+            icon={Play}
+            onClick={() => {
+              setLeaving(false);
+              resume();
+            }}
           >
-            Đổi cài đặt
+            Làm tiếp
           </TipyButton>
-          <button className="text-button centered" onClick={onHome}>
-            Về trang chủ
-          </button>
+          <TipyButton icon={ArrowLeft} onClick={assessment ? assessment.onBack : onHome}>
+            Quay lại
+          </TipyButton>
         </Modal>
       )}
     </main>

@@ -1,5 +1,9 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './game/backend.js';
+import PlaySurface, {
+  enterPlayFullscreen,
+  isPlaySurfaceActive,
+} from './components/PlaySurface.jsx';
 import { rankedSettings } from './game/ranked.js';
 import { Keyboard, Volume2, VolumeX } from 'lucide-react';
 import Account from './components/Account.jsx';
@@ -89,9 +93,11 @@ export default function App() {
   useEffect(() => {
     // Teachers keep their editor mounted when a native file picker returns focus.
     const focused = () => {
+      if (isPlaySurfaceActive()) return;
       if (user?.role !== 'admin') checkClasses();
     };
     const visible = () => {
+      if (isPlaySurfaceActive()) return;
       if (user?.role === 'admin') return;
       if (!document.hidden) checkClasses();
       else {
@@ -137,6 +143,7 @@ export default function App() {
   );
   useEffect(() => save('tipy-settings', settings), [settings]);
   const start = (ranked = false) => {
+    enterPlayFullscreen();
     const game = catalog?.find((g) => g.game_code === 'falling_letters');
     setRunSettings(
       ranked === true ? rankedSettings() : { ...settings, levels: game?.config?.levels || LEVELS },
@@ -298,16 +305,20 @@ export default function App() {
               />
             </Reveal>
           ) : (
-            <TypingGame
-              settings={runSettings}
-              user={user}
-              onHome={() => navigate('home')}
-              onSetup={() => navigate('setup')}
-              onFinish={finish}
-              sound={play}
-              audioOpen={audioOpen || accountOpen || notificationsOpen}
-              onPlayingChange={setGamePlaying}
-            />
+            <PlaySurface>
+              <Suspense fallback={<Loading label="Đang mở lượt chơi…" />}>
+                <TypingGame
+                  settings={runSettings}
+                  user={user}
+                  onHome={() => navigate('home')}
+                  onSetup={() => navigate('setup')}
+                  onFinish={finish}
+                  sound={play}
+                  audioOpen={audioOpen || accountOpen || notificationsOpen}
+                  onPlayingChange={setGamePlaying}
+                />
+              </Suspense>
+            </PlaySurface>
           )}
         </Suspense>
         {user?.role === 'student' && (

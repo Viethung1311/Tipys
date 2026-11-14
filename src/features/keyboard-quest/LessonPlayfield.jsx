@@ -1,4 +1,4 @@
-import { Pause, Timer } from 'lucide-react';
+import { Pause, Timer, ArrowLeft } from 'lucide-react';
 import TipyButton from '../../components/TipyButton.jsx';
 import './playfield.css';
 
@@ -10,6 +10,7 @@ export default function LessonPlayfield({
   index,
   paused,
   onPause,
+  onBack,
   challenge,
   inputArea,
   controls,
@@ -23,6 +24,11 @@ export default function LessonPlayfield({
       aria-label={`Bài ${lesson.stage}: ${lesson.title}`}
     >
       <header className="quest-playfield-header quest-player-top">
+        {onBack && (
+          <TipyButton emphasis="secondary" icon={ArrowLeft} onClick={onBack}>
+            Quay lại
+          </TipyButton>
+        )}
         <span className="quest-playfield-time">
           <Timer aria-hidden="true" size={22} />
           <span>

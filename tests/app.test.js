@@ -36,7 +36,9 @@ test('complete UI flow: setup, custom keys, input, pause, results, replay, persi
   const code = readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8');
   w.eval(code);
   const button = (text) =>
-    [...d.querySelectorAll('button')].find((b) => b.textContent.includes(text));
+    [...(d.querySelector('[role="dialog"]') || d).querySelectorAll('button')].find((b) =>
+      b.textContent.includes(text),
+    );
   const click = async (text) => {
     const el = await until(() => button(text));
     assert.ok(el);
@@ -84,16 +86,17 @@ test('complete UI flow: setup, custom keys, input, pause, results, replay, persi
     w.dispatchEvent(new w.Event('blur'));
     await until(() => d.querySelector('[role="dialog"]'));
     await click('Tiếp tục');
-    await until(() => d.querySelector('.result-score'));
-    assert.match(d.querySelector('.result-score').textContent, /20/);
-    assert.match(d.querySelector('.result-grid').textContent, /67%/);
+    await until(() => d.querySelector('.play-result'));
+    assert.match(d.querySelector('.play-result-metrics').textContent, /20/);
+    assert.match(d.querySelector('.play-result-metrics').textContent, /67%/);
     assert.equal(JSON.parse(w.localStorage.getItem('tipy-best-easy-FGHJ')), 20);
-    await click('Chơi lại nào');
+    await click('Luyện lại');
     await until(() => d.querySelector('.countdown'));
     assert.match(d.querySelector('[data-testid="score"]').textContent, /^0/);
     d.querySelector('[aria-label="Tạm dừng"]').click();
     await until(() => d.querySelector('[role="dialog"]'));
-    await click('Về trang chủ');
+    await click('Quay lại');
+    await click('Quay lại');
     await until(() => d.querySelector('.hero'));
     await click('Luyện bàn phím');
     await click('Chơi');

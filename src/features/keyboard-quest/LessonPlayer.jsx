@@ -20,6 +20,7 @@ import { FINGER_HINTS } from './curriculum.js';
 import { createAnswers, errorKind, gradeLesson, matchesTarget } from './engine.js';
 import { createLessonSession } from './session.js';
 import { companionSay } from '../../characters/companion-speech.js';
+import CompletionScreen from '../../components/CompletionScreen.jsx';
 
 export default function LessonPlayer({
   lesson,
@@ -36,6 +37,8 @@ export default function LessonPlayer({
   previous,
   navigationRef,
   onNavigationLockChange,
+  immersive = false,
+  externalPaused = false,
 }) {
   const formId = useId();
   const [phase, setPhase] = useState(user ? 'starting' : 'playing'),
@@ -52,6 +55,8 @@ export default function LessonPlayer({
     [reward, setReward] = useState(null),
     [lastKey, setLastKey] = useState(''),
     [ime, setIme] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const parentPaused = useRef(false);
   const answers = useRef(
       assessment?.answers ? structuredClone(assessment.answers) : createAnswers(lesson),
     ),
@@ -80,6 +85,11 @@ export default function LessonPlayer({
   const kind = target.kind || lesson.kind;
   const pause = useCallback(() => setPhase((old) => (old === 'playing' ? 'paused' : old)), []);
   useEffect(() => {
+    if (externalPaused) pause();
+    else if (parentPaused.current) setPhase((old) => (old === 'paused' ? 'playing' : old));
+    parentPaused.current = externalPaused;
+  }, [externalPaused, pause]);
+  useEffect(() => {
     live.current = true;
     let cancelled = false,
       recording;
@@ -104,7 +114,7 @@ export default function LessonPlayer({
       live.current = false;
       recording?.quit(Math.floor(elapsed.current / 1000)).catch(() => {});
     };
-  }, [lesson, user]);
+  }, [lesson, user?.user_id]);
   useEffect(() => {
     const hidden = () => {
       if (document.hidden) pause();
@@ -240,6 +250,11 @@ export default function LessonPlayer({
     if (typeof destination === 'function') destination();
     else onBack();
   };
+  const requestLeave = () => {
+    if (!immersive) return leave();
+    pause();
+    setLeaving(true);
+  };
   // External map navigation uses the same queued quit as the in-lesson Back button.
   useImperativeHandle(navigationRef, () => leave);
   useEffect(() => {
@@ -294,9 +309,6 @@ export default function LessonPlayer({
       return (
         <section className="panel assessment-section-result">
           <h2>Đã hoàn thành phần gõ</h2>
-          <p>
-            {grade.correct} lượt đúng · {grade.wrong} lượt sai · {grade.accuracy}% chính xác
-          </p>
           <p role="status">
             {saving
               ? 'Đang lưu phần làm bài…'
@@ -315,6 +327,44 @@ export default function LessonPlayer({
           </TipyButton>
         </section>
       );
+  if (phase === 'result' && immersive)
+    return (
+      <CompletionScreen
+        good={grade.completed}
+        celebrate={saved && grade.completed}
+        background={world?.background.src}
+        metrics={[
+          [grade.correct, 'lượt đúng'],
+          [`${grade.accuracy}%`, 'chính xác'],
+          [`${seconds}s`, 'luyện tập'],
+        ]}
+        busy={saving}
+        onRetry={saved ? () => onBack(lesson.id) : undefined}
+        retryLabel="Luyện lại"
+        onNext={saved && nextLesson && grade.completed ? () => onBack(nextLesson.id) : undefined}
+        onBack={() => {
+          if (saved || window.confirm('Kết quả chưa lưu được. Bạn vẫn muốn quay lại?')) onBack();
+        }}
+      >
+        <p role="status">
+          {saving
+            ? 'Đang lưu tiến độ…'
+            : saved
+              ? user
+                ? `Đã lưu vào tài khoản Zunimo. Nhận thêm ${reward?.award_this_play || 0} sao · ${reward?.awarded_stars >= 3 ? 'Đã nhận đủ 3 sao' : reward?.award_this_play > 0 ? `Bài này đã nhận ${reward.awarded_stars}/3 sao` : 'Chưa vượt thành tích cũ'}`
+                : 'Đã lưu bản chơi thử trên máy này.'
+              : ''}
+        </p>
+        {saveError && (
+          <>
+            <p role="alert">{saveError}</p>
+            <TipyButton icon={Save} loading={saving} onClick={persist}>
+              Thử lưu lại
+            </TipyButton>
+          </>
+        )}
+      </CompletionScreen>
+    );
   if (phase === 'result')
     return (
       <section className="panel quest-result">
@@ -541,7 +591,21 @@ export default function LessonPlayer({
     kind === 'key' ? (
       <>
         <Keyboard
-          keys={[...SUPPORTED_KEYS]}
+          keys={
+            immersive
+              ? [
+                  ...new Set([
+                    ...lesson.items
+                      .map((item) => item.target)
+                      .filter((key) => SUPPORTED_KEYS.has(key)),
+                    'A',
+                    'S',
+                    'F',
+                    'J',
+                  ]),
+                ]
+              : [...SUPPORTED_KEYS]
+          }
           lastKey={lastKey}
           targetKey={world && !hint ? undefined : target.target}
           disabled={phase !== 'playing' || blocked}
@@ -604,15 +668,49 @@ export default function LessonPlayer({
       )}
     </div>
   );
-  const pauseDialog = phase === 'paused' && !blocked && (
-    <Modal title="Nghỉ một chút nhé" description="Thời gian luyện đã dừng. Không vội đâu!">
-      <TipyButton variant="play" icon={Play} className="full" onClick={() => setPhase('playing')}>
-        Tiếp tục
-      </TipyButton>
-      <TipyButton emphasis="secondary" icon={ArrowLeft} className="full" onClick={leave}>
-        Bản đồ
-      </TipyButton>
-    </Modal>
+  const pauseDialog = (
+    <>
+      {phase === 'paused' && !blocked && !leaving && !parentPaused.current && (
+        <Modal title="Nghỉ một chút nhé" description="Thời gian luyện đã dừng. Không vội đâu!">
+          <TipyButton
+            variant="play"
+            icon={Play}
+            className="full"
+            onClick={() => setPhase('playing')}
+          >
+            Tiếp tục
+          </TipyButton>
+          <TipyButton emphasis="secondary" icon={ArrowLeft} className="full" onClick={requestLeave}>
+            {immersive ? 'Quay lại' : 'Bản đồ'}
+          </TipyButton>
+        </Modal>
+      )}
+      {leaving && (
+        <Modal
+          title="Quay lại?"
+          description={
+            assessment
+              ? 'Phần đang làm sẽ được lưu.'
+              : 'Lượt luyện hiện tại sẽ kết thúc và thời gian đã luyện được giữ.'
+          }
+          onClose={() => setLeaving(false)}
+        >
+          <TipyButton
+            emphasis="secondary"
+            icon={Play}
+            onClick={() => {
+              setLeaving(false);
+              setPhase('playing');
+            }}
+          >
+            Làm tiếp
+          </TipyButton>
+          <TipyButton icon={ArrowLeft} onClick={() => leave()}>
+            Quay lại
+          </TipyButton>
+        </Modal>
+      )}
+    </>
   );
   if (world)
     return (
@@ -623,6 +721,7 @@ export default function LessonPlayer({
         index={index}
         paused={phase !== 'playing' || blocked}
         onPause={pause}
+        onBack={immersive && !assessment ? requestLeave : undefined}
         race={race}
         challenge={challenge}
         inputArea={
