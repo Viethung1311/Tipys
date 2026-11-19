@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "scripts/check-assessments.mjs": {
-    "mtime": 1794644080.3233695,
-    "seen": 1795093473.4083397,
-    "ast_hash": "1416b874a6b2e1fdb4ab6bb952d5fecd",
+    "mtime": 1795096671.8901393,
+    "seen": 1795096783.9474754,
+    "ast_hash": "560452d68d2a74da376c2c6d5221442d",
     "semantic_hash": ""
   },
   "scripts/check-characters.mjs": {
@@ -138,9 +138,9 @@
     "semantic_hash": ""
   },
   "server/modules/assessments.js": {
-    "mtime": 1795085400.489043,
-    "seen": 1795093473.4331348,
-    "ast_hash": "ff539fa923671a9fdc75e5f6bd00a780",
+    "mtime": 1795096021.9872437,
+    "seen": 1795096783.9475353,
+    "ast_hash": "c4f2e609276902bf0cfb8ab742461028",
     "semantic_hash": ""
   },
   "server/modules/classrooms.js": {
@@ -240,9 +240,9 @@
     "semantic_hash": ""
   },
   "src/components/Keyboard.jsx": {
-    "mtime": 1794643658.2036774,
-    "seen": 1795093473.4533942,
-    "ast_hash": "f79405423465d8372c4afe3677c91c71",
+    "mtime": 1795096477.1847408,
+    "seen": 1795096783.9475865,
+    "ast_hash": "c4e181bc1e5a647ebe8712dd7284af96",
     "semantic_hash": ""
   },
   "src/components/Loading.jsx": {
@@ -312,15 +312,15 @@
     "semantic_hash": ""
   },
   "src/features/assessments/AssessmentSummary.jsx": {
-    "mtime": 1794503940.8938973,
-    "seen": 1794554456.8608181,
-    "ast_hash": "760e466b6aa74a838170455c4854f5db",
+    "mtime": 1795096654.5652146,
+    "seen": 1795096783.9476206,
+    "ast_hash": "304fee4592b495092e6800f956eded14",
     "semantic_hash": ""
   },
   "src/features/assessments/AssessmentsPage.jsx": {
-    "mtime": 1795086196.559211,
-    "seen": 1795093473.4761953,
-    "ast_hash": "858c5bc627c3b005d9fab041f6a13ae4",
+    "mtime": 1795096924.5001385,
+    "seen": 1795097147.4914606,
+    "ast_hash": "0bf6209089dc0c8e427633193f76c5b9",
     "semantic_hash": ""
   },
   "src/features/assessments/ContentPicker.jsx": {
@@ -348,9 +348,9 @@
     "semantic_hash": ""
   },
   "src/features/assessments/session.js": {
-    "mtime": 1794541969.592127,
-    "seen": 1794554456.86083,
-    "ast_hash": "17ac482a43cc6f84419b506afe000431",
+    "mtime": 1795096626.531661,
+    "seen": 1795096783.9476342,
+    "ast_hash": "6922ce6c2627f3ff64c2ac026722e4d7",
     "semantic_hash": ""
   },
   "src/features/classroom/AdminClasses.jsx": {
@@ -444,9 +444,9 @@
     "semantic_hash": ""
   },
   "src/features/keyboard-quest/LessonPlayer.jsx": {
-    "mtime": 1794642910.3706303,
-    "seen": 1795093473.5243776,
-    "ast_hash": "230a4d4f874287a192c3a93b097c031c",
+    "mtime": 1795096625.9093697,
+    "seen": 1795096783.9476836,
+    "ast_hash": "8d43a8e2188916a66a662910f6501fbc",
     "semantic_hash": ""
   },
   "src/features/keyboard-quest/LessonPlayfield.jsx": {
@@ -516,9 +516,9 @@
     "semantic_hash": ""
   },
   "src/features/typing/TypingGame.jsx": {
-    "mtime": 1794643727.5979843,
-    "seen": 1795093473.5548184,
-    "ast_hash": "5d5b2c1d84800f7cc66577e5b47a369b",
+    "mtime": 1795096396.7926564,
+    "seen": 1795096783.9477162,
+    "ast_hash": "7d877729636caca5646d4321704c523f",
     "semantic_hash": ""
   },
   "src/features/typing/TypingSetup.jsx": {
@@ -546,15 +546,15 @@
     "semantic_hash": ""
   },
   "src/game/config.js": {
-    "mtime": 1794288780.0236723,
-    "seen": 1794554456.8609004,
-    "ast_hash": "682527c215c432b8bb2ae14fd8381faf",
+    "mtime": 1795096535.4935272,
+    "seen": 1795096783.9477277,
+    "ast_hash": "6c1c44d24ffc87466c8d8e00dfc193e0",
     "semantic_hash": ""
   },
   "src/game/engine.js": {
-    "mtime": 1794288780.0255525,
-    "seen": 1794554456.8609023,
-    "ast_hash": "6c3b7bb27c7c2873d6c36649cb26cd85",
+    "mtime": 1795096021.7402115,
+    "seen": 1795096783.9477298,
+    "ast_hash": "9a5da75b9cfade9eec413e134fa1c916",
     "semantic_hash": ""
   },
   "src/game/points.js": {
@@ -594,9 +594,9 @@
     "semantic_hash": ""
   },
   "src/hooks/useFallingGame.js": {
-    "mtime": 1794642417.8217452,
-    "seen": 1795093473.5855255,
-    "ast_hash": "c07f47fc913d3bc8a08ebb208965bdce",
+    "mtime": 1795096769.9677598,
+    "seen": 1795096783.9477484,
+    "ast_hash": "17082c8000833219895a73d5febd3a43",
     "semantic_hash": ""
   },
   "src/hooks/useGameAudio.js": {
@@ -924,15 +924,15 @@
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
-    "mtime": 1795082232.951941,
-    "seen": 1795093473.6959279,
-    "ast_hash": "e83bc02b9438ac70ee6674975759b0b8",
+    "mtime": 1795097127.1848607,
+    "seen": 1795097147.491945,
+    "ast_hash": "88e165a6549c6146987b149545c6b643",
     "semantic_hash": ""
   },
   "BACKEND.md": {
-    "mtime": 1795091118.7449338,
-    "seen": 1795093473.69593,
-    "ast_hash": "f881d380c29ff2d889cc5aa32e450a26",
+    "mtime": 1795097590.395949,
+    "seen": 1795097607.366631,
+    "ast_hash": "82f89ad5b440165e44acad9ed1a428d6",
     "semantic_hash": ""
   },
   "PERFORMANCE_REPORT.md": {
@@ -960,9 +960,9 @@
     "semantic_hash": ""
   },
   "design-system/tipy/MASTER.md": {
-    "mtime": 1795085636.8696167,
-    "seen": 1795093473.7045088,
-    "ast_hash": "605da42bc1ea31c14d767a7a72f1aed4",
+    "mtime": 1795097130.448652,
+    "seen": 1795097147.491968,
+    "ast_hash": "295ccbb11d36e5a78990d131ba0e48ec",
     "semantic_hash": ""
   },
   "design-system/tipy/preview.html": {
@@ -1560,9 +1560,9 @@
     "semantic_hash": ""
   },
   "src/components/CompletionScreen.jsx": {
-    "mtime": 1794642419.169914,
-    "seen": 1795093473.4533916,
-    "ast_hash": "bda1022602db4be49612a12ac074c6f1",
+    "mtime": 1795095536.827969,
+    "seen": 1795096783.9475842,
+    "ast_hash": "d62c5c174a92b21efa7afc319c129a20",
     "semantic_hash": ""
   },
   "src/components/PlaySurface.jsx": {
@@ -1887,6 +1887,30 @@
     "mtime": 1795090347.0642896,
     "seen": 1795093596.5614786,
     "ast_hash": "effb79654da76c221110e3fd13b5a54e",
+    "semantic_hash": ""
+  },
+  "db/assessment_auto_finish.sql": {
+    "mtime": 1795095534.6335227,
+    "seen": 1795096783.947383,
+    "ast_hash": "3ddbad9e7800e19403545071a4d86239",
+    "semantic_hash": ""
+  },
+  "scripts/check-assessment-autosave.mjs": {
+    "mtime": 1795097130.194922,
+    "seen": 1795097147.4912972,
+    "ast_hash": "569cc17411a7870435e5a788c9bc2ab1",
+    "semantic_hash": ""
+  },
+  "tests/assessment-autosave.test.js": {
+    "mtime": 1795096490.4235108,
+    "seen": 1795096783.9478025,
+    "ast_hash": "fb74d353f477fab2b4396c04b36bb43e",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261119141302_assessment_auto_finish.sql": {
+    "mtime": 1795095534.6335227,
+    "seen": 1795097607.3664339,
+    "ast_hash": "3ddbad9e7800e19403545071a4d86239",
     "semantic_hash": ""
   },
   "package-lock.json": {

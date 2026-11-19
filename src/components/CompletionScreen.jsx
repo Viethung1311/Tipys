@@ -20,6 +20,7 @@ export default function CompletionScreen({
   celebrate = false,
   background,
   metrics = [],
+  scores = [],
   children,
   onBack,
   onRetry,
@@ -41,6 +42,16 @@ export default function CompletionScreen({
           width="1280"
           height="1280"
         />
+        {scores.length > 0 && (
+          <div className="play-result-scores">
+            {scores.map(([value, label]) => (
+              <p key={label}>
+                <span>{scores.length > 1 ? `${label}: ` : ''}</span>
+                <strong>{value}</strong>
+              </p>
+            ))}
+          </div>
+        )}
         <h1>{title || (good ? 'Hoàn thành tốt' : 'Chưa hoàn thành')}</h1>
         {!good && <p>Mình thử lại nhé, mỗi lần luyện là một bước tiến!</p>}
         {metrics.length > 0 && (
@@ -55,6 +66,11 @@ export default function CompletionScreen({
         )}
         {children}
         <div className="play-result-actions">
+          {scores.length > 0 && onBack && (
+            <TipyButton icon={ArrowLeft} disabled={busy} onClick={onBack}>
+              Quay lại
+            </TipyButton>
+          )}
           {onNext && (
             <TipyButton icon={ChevronRight} disabled={busy} onClick={onNext}>
               Bài tiếp
@@ -65,7 +81,7 @@ export default function CompletionScreen({
               {retryLabel}
             </TipyButton>
           )}
-          {onBack && (
+          {onBack && scores.length === 0 && (
             <TipyButton icon={ArrowLeft} disabled={busy} onClick={onBack}>
               Quay lại
             </TipyButton>

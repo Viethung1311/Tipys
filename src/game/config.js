@@ -50,6 +50,11 @@ export const LEVELS = {
   },
 };
 export const DEFAULT = { difficulty: 'easy', keys: PRESETS['4 phím'] };
+const SHIFTED = Object.fromEntries(
+  [..."1234567890;',./"].map((key, index) => [key, [...'!@#$%^&*():"<>?'][index]]),
+);
+export const virtualKey = (key, shifted) =>
+  shifted ? SHIFTED[key] || key : /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
 export function load(key, fallback) {
   try {
     return JSON.parse(localStorage.getItem(key)) ?? fallback;

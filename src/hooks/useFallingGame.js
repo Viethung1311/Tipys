@@ -20,6 +20,10 @@ export default function useFallingGame(
           status: initialState.status === 'result' ? 'result' : 'paused',
         }
       : createGame(settings);
+  if (settings.targetScore != null && model.current.score >= settings.targetScore) {
+    model.current.status = 'result';
+    model.current.endReason = 'target';
+  }
   const [view, setView] = useState(() => ({ ...model.current }));
   const finish = useRef(onFinish),
     sound = useRef(onSound),

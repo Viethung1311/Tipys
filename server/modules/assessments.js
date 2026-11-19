@@ -192,6 +192,8 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
       const state = value.state;
       if (!state || !['countdown', 'playing', 'paused', 'result'].includes(state.status)) invalid();
       const { correct, wrong, missed } = state;
+      const reachedTarget = section.targetScore != null && correct * 10 >= section.targetScore;
+      if (state.status === 'result' && !reachedTarget && wrong !== 6 && missed !== 3) invalid();
       validateProgress(
         {
           active_seconds: old?.seconds || 0,
@@ -203,7 +205,10 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
         {
           seconds: value.seconds,
           score: correct * 10,
-          result: state.status === 'result' ? 'game_over' : 'in_progress',
+          result:
+            state.status === 'result' && (wrong === 6 || missed === 3)
+              ? 'game_over'
+              : 'in_progress',
           metrics: { correct, wrong, missed },
         },
         now,
@@ -277,7 +282,7 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
           nextId: state.nextId,
           lastKey: section.settings.keys.includes(state.lastKey) ? state.lastKey : '',
           feedback: '',
-          endReason: wrong === 6 ? 'wrong_limit' : undefined,
+          endReason: wrong === 6 ? 'wrong_limit' : reachedTarget ? 'target' : undefined,
         },
       };
       results.push({
@@ -301,6 +306,10 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
   )
     invalid();
   for (const result of results) {
+    if (result.type === 'quest') {
+      result.score = result.accuracy;
+      result.scoreMax = 100;
+    }
     const section = definition.sections.find((s) => s.id === result.id);
     if (result.type === 'falling' && section.targetScore != null) {
       result.targetScore = section.targetScore;
@@ -461,6 +470,7 @@ export function createAssessments(db) {
       return rpc(profile, 'retake', input);
     },
     async assessmentStart(profile, input) {
+      if (input.requestId) uuid(input.requestId);
       return rpc(profile, 'start', scope(input));
     },
     async assessmentSubmit(profile, input) {
@@ -480,6 +490,14 @@ export function createAssessments(db) {
         input.payload,
         detail.attempt,
       );
+      if (submit && input.automatic && !Object.values(grade.payload).every((part) => part.done))
+        invalid();
+      if (
+        submit &&
+        input.automatic &&
+        Object.keys(grade.payload).length !== detail.assessment.definition.sections.length
+      )
+        invalid();
       return rpc(profile, submit ? 'submit' : 'checkpoint', {
         assessmentId: input.assessmentId,
         attemptId: input.attemptId,

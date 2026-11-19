@@ -130,7 +130,8 @@ body.play-surface-open .play-surface .letter {
 }
 body.play-surface-open .play-surface .keyboard.touchboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+  grid-template-columns: 1fr;
+  flex: 0 0 auto;
   gap: 4px;
   padding: 4px;
   margin: 0;
@@ -139,19 +140,27 @@ body.play-surface-open .play-surface .keyboard.touchboard {
   overflow: visible;
 }
 body.play-surface-open .play-surface .touchboard .key-row {
-  display: contents;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
 }
 body.play-surface-open .play-surface .touchboard .key {
   width: 100%;
-  min-width: 48px;
-  height: 48px;
-  min-height: 48px;
+  flex: 1 1 0;
+  max-width: 70px;
+  min-width: 0;
+  height: clamp(32px, 6cqh, 48px);
+  min-height: 32px;
   padding: 2px;
-  font-size: 19px;
+  font-size: clamp(16px, 2.5cqw, 20px);
   margin: 0;
 }
 body.play-surface-open .play-surface .touchboard .key:not(.selected) {
-  display: none;
+  display: block;
+  opacity: 0.45;
 }
 body.play-surface-open .play-surface .touchboard .key.selected:disabled {
   visibility: visible !important;
@@ -624,32 +633,8 @@ body.play-surface-open .play-surface .play-game-title {
 body.play-surface-open .play-surface .assessment-part-content .play-game-title {
   display: none;
 }
-@container play (max-width:600px) {
-  body.play-surface-open .play-surface .game-page .keyboard--adaptive .key:not(.needed) {
-    display: none;
-  }
-}
-@container play (max-height:450px) {
-  body.play-surface-open .play-surface .game-page .keyboard--adaptive .key:not(.needed) {
-    display: none;
-  }
-}
 
 @container play (min-width:500px) and (max-height:450px) {
-  .play-result-content {
-    grid-template-columns: 100px minmax(0, 1fr);
-    gap: 6px;
-  }
-  .play-result-content > :not(img) {
-    grid-column: 2;
-  }
-  .play-result-star {
-    grid-column: 1;
-    grid-row: 1 / span 6;
-    align-self: center;
-    width: 100px;
-    max-height: 70cqh;
-  }
   body.play-surface-open .play-surface .play-result .tipy-button {
     font-size: 16px;
     padding: 6px;
@@ -691,5 +676,129 @@ body.play-surface-open
   }
   body.play-surface-open .play-surface .quest-playfield:has(textarea:focus) .quest-playfield-tools {
     grid-column: 2;
+  }
+}
+
+/* Both engines keep QWERTY rows beneath the prompt, including when only a few keys are targets. */
+body.play-surface-open .play-surface .touchboard .key span {
+  display: none;
+}
+body.play-surface-open .play-surface .touchboard .key:disabled {
+  visibility: visible;
+}
+body.play-surface-open .play-surface .quest-playfield-bottom,
+body.play-surface-open .play-surface .quest-playfield:has(textarea:focus) .quest-playfield-bottom {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+body.play-surface-open .play-surface .quest-playfield-tools,
+body.play-surface-open .play-surface .quest-playfield:has(textarea:focus) .quest-playfield-tools {
+  grid-column: 1;
+  grid-row: 1;
+}
+body.play-surface-open .play-surface .quest-playfield-tools .quest-actions {
+  flex-direction: row;
+  justify-content: center;
+}
+body.play-surface-open .play-surface .quest-playfield-input {
+  grid-row: 2;
+}
+body.play-surface-open .play-surface .quest-playfield-input form {
+  padding: 0;
+  margin: 0 0 4px;
+}
+body.play-surface-open .play-surface .quest-playfield-input textarea {
+  height: 48px;
+}
+.play-result-scores strong {
+  font-size: clamp(28px, 5vw, 44px);
+}
+@container play (max-height: 500px) {
+  body.play-surface-open .play-surface .keyboard.touchboard {
+    gap: 2px;
+    padding: 0;
+  }
+  body.play-surface-open .play-surface .touchboard .key {
+    height: 30px;
+    min-height: 30px;
+  }
+  body.play-surface-open
+    .play-surface
+    .quest-playfield-tools
+    .quest-actions
+    > button:not([type='submit']) {
+    display: none;
+  }
+  body.play-surface-open .play-surface .quest-feedback {
+    display: none;
+  }
+  body.play-surface-open .play-surface .quest-playfield-tools {
+    display: none;
+  }
+  body.play-surface-open .play-surface .assessment-run-header {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  body.play-surface-open .play-surface .assessment-run-header h1 {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+/* A native phone keyboard can leave only 300 px of visual viewport. */
+@container play (max-height: 350px) {
+  body.play-surface-open .play-surface .quest-playfield-header h1 {
+    display: none;
+  }
+  body.play-surface-open .play-surface .quest-playfield .quest-challenge {
+    min-height: 24px;
+    padding: 0;
+  }
+  body.play-surface-open .play-surface .quest-target {
+    font-size: 20px;
+    line-height: 1.1;
+  }
+  body.play-surface-open .play-surface .quest-letter-sticker {
+    height: 28px;
+  }
+  body.play-surface-open .play-surface .keyboard.touchboard {
+    gap: 1px;
+    padding: 0;
+  }
+  body.play-surface-open .play-surface .touchboard .key {
+    min-height: 22px;
+    height: 22px;
+  }
+  body.play-surface-open .play-surface .quest-playfield-input textarea {
+    min-height: 40px;
+    height: 40px;
+  }
+  body.play-surface-open .play-surface .quest-playfield-input .quest-input-label {
+    font-size: 0;
+    gap: 0;
+  }
+}
+@container play (min-height: 351px) and (max-height: 650px) {
+  body.play-surface-open .play-surface .quest-playfield {
+    padding: 4px;
+    gap: 4px;
+  }
+  body.play-surface-open .play-surface .touchboard .key {
+    height: 30px;
+    min-height: 30px;
+  }
+  body.play-surface-open .play-surface .quest-feedback {
+    min-height: 20px;
+    font-size: 16px;
+  }
+}
+@container play (min-height: 351px) and (max-height: 650px) {
+  body.play-surface-open .play-surface .quest-playfield-progress {
+    display: none;
+  }
+}
+
+@container play (max-height: 450px) {
+  body.play-surface-open .play-surface .quest-playfield-input .quest-input-label {
+    font-size: 0;
+    gap: 0;
   }
 }

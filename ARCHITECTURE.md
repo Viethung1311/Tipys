@@ -134,7 +134,7 @@ Vercel Functions được đặt tại Singapore (sin1) để gần Supabase và
 
 PlaySurface portal vào body để giữ header, chuông và giao diện website inert trong lượt chơi. CSS dùng visualViewport và container query, không đẩy kích thước vào state engine. Fullscreen API được gọi trước await từ nút bắt đầu; native Esc chỉ đổi chế độ trình duyệt. Focus/visibility không nạp lại dữ liệu tài khoản/lớp khi đang chơi; SSE thông báo vẫn xử lý dữ liệu mới và dọn khi ẩn/đăng xuất.
 
-Hai engine giữ nguyên session/recorder và adapter kiểm tra. Pause là UI; checkpoint vẫn theo tiến độ/thời gian hiện có. Kết quả kiểm tra dùng CompletionScreen sau response submitted_at, giữ toàn bộ điểm và kết quả từng phần ở backend/ResultViews. Không đổi schema, quyền, thưởng hoặc giới hạn lượt.
+Hai engine giữ nguyên session/recorder và adapter kiểm tra. Pause là UI; bản nháp cục bộ không gọi API. Bài có hạn giờ gửi bằng chứng thay đổi tối đa một lô/30 giây; kết thúc chung chốt một kết quả với requestId được giữ khi thử lại. Kết quả kiểm tra dùng CompletionScreen sau response submitted_at, giữ toàn bộ điểm và kết quả từng phần ở backend/ResultViews. Biên nhận assessment_start_requests chống tạo lại lượt khi phát lại request. Giữ quyền, thưởng và giới hạn lượt hiện có.
 
 ## Ba vai trò và phạm vi giáo viên
 

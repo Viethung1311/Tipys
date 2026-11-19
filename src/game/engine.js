@@ -52,6 +52,10 @@ export function press(s, key) {
     s.score += 10;
     s.correct++;
     s.feedback = 'correct';
+    if (s.settings.targetScore != null && s.score >= s.settings.targetScore) {
+      s.status = 'result';
+      s.endReason = 'target';
+    }
   } else {
     s.wrong++;
     s.feedback = 'wrong';

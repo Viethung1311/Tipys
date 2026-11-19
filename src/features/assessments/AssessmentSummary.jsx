@@ -19,7 +19,7 @@ export default function AssessmentSummary({ definition, student = false, childre
       <p className="assessment-text">{definition.description || 'Cùng thử sức nhé!'}</p>
       <h3>Cách chơi</h3>
       <p className="assessment-text">
-        {definition.instructions || 'Làm từng phần, sau đó bấm Nộp bài.'}
+        {definition.instructions || 'Làm từng phần. Kết quả sẽ được tự lưu khi kết thúc.'}
       </p>
       <div className="assessment-facts">
         <section>

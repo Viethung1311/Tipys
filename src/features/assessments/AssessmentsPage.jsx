@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Play, Send, RotateCcw, Pause } from 'lucide-react';
+import { ArrowLeft, Play, RotateCcw, Pause } from 'lucide-react';
 import PlaySurface, { enterPlayFullscreen } from '../../components/PlaySurface.jsx';
 import CompletionScreen, { assessmentSucceeded } from '../../components/CompletionScreen.jsx';
 import { api } from '../../game/backend.js';
@@ -8,7 +8,7 @@ import Modal from '../../components/Modal.jsx';
 import Loading from '../../components/Loading.jsx';
 import AssessmentSummary from './AssessmentSummary.jsx';
 import { AttemptHistory, availability } from './ResultViews.jsx';
-import { assessmentSession } from './session.js';
+import { assessmentSession, clearAssessmentDraft } from './session.js';
 import { createAnswers } from '../keyboard-quest/engine.js';
 import { adventureWorld } from '../keyboard-quest/adventure.js';
 import { readHub } from '../classroom/hub-cache.js';
@@ -58,6 +58,7 @@ export default function AssessmentsPage({
     [celebrate, setCelebrate] = useState(false);
   const celebrated = useRef(new Set());
   const openedRequest = useRef(null);
+  const startRequests = useRef(new Map());
   const sending = useRef(false),
     current = useRef({ detail, running });
   current.current = { detail, running, immersive };
@@ -94,7 +95,15 @@ export default function AssessmentsPage({
       sound?.('record');
     }
     setDetail((old) =>
-      old ? { ...old, attempt: row, serverNow: row.server_now || old.serverNow } : old,
+      old
+        ? {
+            ...old,
+            attempt: row,
+            allowedAttempts:
+              row.allowedAttempts === undefined ? old.allowedAttempts : row.allowedAttempts,
+            serverNow: row.server_now || old.serverNow,
+          }
+        : old,
     );
     setRunning(false);
     setImmersive(true);
@@ -286,24 +295,31 @@ export default function AssessmentsPage({
     detail?.allowedAttempts === null
       ? null
       : Math.max(0, (detail?.allowedAttempts || 0) - (detail?.attempt?.attempt_number || 0));
-  const startAttempt = () => {
-    if (sending.current) return;
+  const startAttempt = (selected = detail?.assessment) => {
+    if (sending.current || !selected?.assessment_id) return;
+    const assessmentId = selected.assessment_id;
+    if (!startRequests.current.has(assessmentId))
+      startRequests.current.set(assessmentId, crypto.randomUUID());
     enterPlayFullscreen();
     setImmersive(true);
     run(async () => {
       try {
-        const response = await api('assessment_start', {
-          assessmentId: detail.assessment.assessment_id,
+        const { data } = await api('assessment_start', {
+          assessmentId,
+          requestId: startRequests.current.get(assessmentId),
         });
-        setDetail((old) => ({
-          ...old,
-          attempt: response.data,
-          serverNow: response.data.server_now || old.serverNow,
-        }));
+        startRequests.current.delete(assessmentId);
+        if (data.submitted_at) clearAssessmentDraft(user.user_id, assessmentId, data.attempt_id);
+        setDetail({
+          assessment: data.assessment || { ...selected, definition: data.definition },
+          attempt: data,
+          allowedAttempts: data.allowedAttempts,
+          serverNow: data.server_now,
+        });
         setCelebrate(false);
-        setRunning(!response.data.submitted_at);
+        setRunning(!data.submitted_at);
       } catch (error) {
-        setImmersive(Boolean(detail.attempt?.submitted_at));
+        setImmersive(Boolean(detail?.attempt?.submitted_at));
         throw error;
       }
     });
@@ -369,7 +385,11 @@ export default function AssessmentsPage({
             }
             busy={busy}
             onBack={back}
-            onRetry={canRetry ? startAttempt : undefined}
+            scores={detail.attempt.results.map((r) => [
+              r.type === 'falling' ? r.score + ' điểm' : (r.score ?? r.accuracy) + '/100 điểm',
+              r.title,
+            ])}
+            onRetry={canRetry ? () => startAttempt() : undefined}
           />
         ) : detail ? (
           <>
@@ -407,7 +427,7 @@ export default function AssessmentsPage({
                     ((detail.assessment.hidden || detail.assessment.status === 'deleted') &&
                       (!detail.attempt || detail.attempt.submitted_at))
                   }
-                  onClick={startAttempt}
+                  onClick={() => startAttempt()}
                 >
                   {detail.attempt && !detail.attempt.submitted_at
                     ? 'Tiếp tục'
@@ -437,21 +457,17 @@ export default function AssessmentsPage({
                 )}
                 <TipyButton
                   icon={Play}
-                  disabled={busy}
-                  onClick={() =>
-                    run(async () => {
-                      const data = await api('assessment', undefined, {
-                        assessmentId: exam.assessment_id,
-                      });
-                      setDetail(data);
-                      if (data.attempt?.submitted_at) {
-                        setImmersive(true);
-                        setCelebrate(false);
-                      }
-                    })
+                  disabled={
+                    busy ||
+                    availability(exam.schedule, exam.server_now) !== 'Đang mở' ||
+                    (exam.hidden && exam.attempt_status !== 'in_progress') ||
+                    (exam.attempt_status !== 'in_progress' &&
+                      exam.allowedAttempts != null &&
+                      exam.attemptNumber >= exam.allowedAttempts)
                   }
+                  onClick={() => startAttempt(exam)}
                 >
-                  Xem bài
+                  {exam.attempt_status === 'in_progress' ? 'Tiếp tục' : 'Bắt đầu'}
                 </TipyButton>
               </article>
             ))}
@@ -476,112 +492,102 @@ function AssessmentRunner({
 }) {
   const exam = detail.assessment,
     attempt = detail.attempt;
-  const [partId, setPartId] = useState(null),
-    [message, setMessage] = useState('Đã lưu'),
+  const [message, setMessage] = useState('Đã giữ trên thiết bị'),
     [failure, setFailure] = useState(false),
-    [confirm, setConfirm] = useState(false),
     [busy, setBusy] = useState(false),
-    [version, setVersion] = useState(0),
+    [ending, setEnding] = useState(false),
     [paused, setPaused] = useState(false),
-    [exiting, setExiting] = useState(false);
-  const writing = useRef(false),
-    live = useRef(true);
+    [exiting, setExiting] = useState(false),
+    [version, setVersion] = useState(0);
+  const live = useRef(true),
+    writing = useRef(false);
   const session = useMemo(
     () =>
       assessmentSession(
         exam.assessment_id,
         attempt,
         (text, error = false) => {
-          if (live.current) {
-            setMessage(text);
-            setFailure(error);
-            if (error && /không có quyền|Đăng nhập|Bài kiểm tra đã được xóa/.test(text))
-              onDenied(text);
-          }
+          if (!live.current) return;
+          setMessage(text);
+          setFailure(error);
+          if (error && /không có quyền|Đăng nhập|Bài kiểm tra đã được xóa/.test(text))
+            onDenied(text);
         },
         api,
         (row) => {
           if (live.current) onDone(row);
         },
+        { userId: user.user_id },
       ),
     [attempt.attempt_id],
   );
-  useEffect(() => {
-    live.current = true;
-    return () => {
-      live.current = false;
-      session.stop();
-      session.flush().catch(() => {});
-    };
-  }, [session]);
-  // Monotonic elapsed time drives the UI; the database independently enforces the deadline.
-  useEffect(() => {
-    if (!attempt.deadline) return;
-    const remaining = Date.parse(attempt.deadline) - Date.parse(detail.serverNow);
-    const started = performance.now();
-    let pending = false,
-      retryAt = 0,
-      retryDelay = 1000;
-    const timer = setInterval(() => {
-      if (!pending && performance.now() >= retryAt && performance.now() - started >= remaining) {
-        pending = true;
-        setBusy(true);
-        session
-          .flush(true)
-          .catch((e) => {
-            setMessage(e.message);
-            setFailure(true);
-            retryDelay = Math.min(retryDelay * 2, 30000);
-            retryAt = performance.now() + retryDelay;
-          })
-          .finally(() => {
-            pending = false;
-            setBusy(false);
-          });
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [session]);
-  const part = exam.definition.sections.find((section) => section.id === partId);
-  const payload = session.payload();
-  const complete = exam.definition.sections.every((section) => payload[section.id]?.done);
-  const savePart = useCallback(
-    (id, value, schedule = true) => {
-      session.update(id, value, schedule);
-    },
-    [session],
+  const [partId, setPartId] = useState(
+    () => exam.definition.sections.find((p) => !session.payload()[p.id]?.done)?.id,
   );
-  const leave = async () => {
-    try {
-      await session.flush();
-      setPartId(null);
-      setVersion((v) => v + 1);
-    } catch {}
-  };
-  const submit = async () => {
+  const finalize = useCallback(async () => {
     if (writing.current) return;
     writing.current = true;
+    setEnding(true);
     setBusy(true);
     try {
       await session.flush(true);
-    } catch (e) {
-      setMessage(e.message);
-      setFailure(true);
+    } catch {
+      /* The immutable request stays on this device for retry. */
     } finally {
       writing.current = false;
-      setBusy(false);
+      if (live.current) setBusy(false);
     }
-  };
-  const requestSubmit = () => {
-    if (complete) submit();
-    else setConfirm(true);
-  };
-  // Each adapter is fixed for the mounted section; its engine never writes to practice endpoints.
+  }, [session]);
+  useEffect(() => {
+    live.current = true;
+    const keep = () => session.keep();
+    window.addEventListener('pagehide', keep);
+    return () => {
+      live.current = false;
+      session.stop();
+      window.removeEventListener('pagehide', keep);
+    };
+  }, [session]);
+  useEffect(() => {
+    if (session.pendingFinal() || !partId) finalize();
+  }, [session, partId, finalize]);
+  useEffect(() => {
+    if (!attempt.deadline) return;
+    const deadline =
+      performance.now() + Date.parse(attempt.deadline) - Date.parse(detail.serverNow);
+    let timer;
+    const check = () => {
+      const remaining = deadline - performance.now();
+      if (remaining <= 0) finalize();
+      else timer = setTimeout(check, Math.min(remaining, 2147483647));
+    };
+    check();
+    // The server closes scheduled attempts from its last verified evidence, even if the browser disappears.
+    const evidence = setInterval(() => {
+      if (!writing.current && !session.pendingFinal()) session.flush().catch(() => {});
+    }, 30000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(evidence);
+    };
+  }, [session, finalize]);
+  const savePart = useCallback(
+    (id, value) => {
+      if (session.payload()[id]?.done) return;
+      session.update(id, value);
+      if (!value.done || session.pendingFinal()) return;
+      const next = exam.definition.sections.find((p) => !session.payload()[p.id]?.done);
+      setPartId(next?.id);
+      setVersion((v) => v + 1);
+    },
+    [session, exam],
+  );
+  const part = exam.definition.sections.find((p) => p.id === partId);
   const lesson = useMemo(
     () =>
       part?.type === 'quest'
         ? {
-            id: `assessment-${exam.assessment_id}`,
+            id: 'assessment-' + exam.assessment_id,
             stage: 1,
             world: part.items[0].world || 1,
             title: part.title,
@@ -589,96 +595,69 @@ function AssessmentRunner({
             telex: true,
             threshold: 0,
             items: part.items,
-            description: 'Làm từng nội dung theo mẫu. Bấm Nộp bài khi đã sẵn sàng.',
+            description: 'Làm từng nội dung theo mẫu.',
           }
         : null,
     [part],
   );
   const initial = useMemo(
-    () => (part ? structuredClone(session.payload()[part.id] || {}) : null),
+    () => (part ? structuredClone(session.payload()[part.id] || {}) : {}),
     [part, session],
   );
   const adapter = useMemo(() => {
     if (!part) return null;
     if (part.type === 'quest') {
       const answers = initial.answers || createAnswers(lesson);
-      const update = (rows, seconds) => {
+      const update = (rows, seconds) =>
         savePart(part.id, {
           answers: rows,
           seconds,
           done: rows.every((row) => Boolean(row.answer)),
         });
-      };
-      let lastSeconds = initial.seconds || 0;
       return {
         answers,
-        seconds: lastSeconds,
+        seconds: initial.seconds || 0,
         onChange: update,
+        draft: session.ui(part.id),
+        onDraft: (value) => session.setUI(part.id, value),
         session: {
           ready: Promise.resolve(attempt.attempt_id),
           progress(seconds) {
             const current = session.payload()[part.id] || { answers };
-            const checkpoint = seconds - lastSeconds >= 10;
-            savePart(
-              part.id,
-              {
-                answers: current.answers,
-                seconds,
-                done: current.answers.every((row) => Boolean(row.answer)),
-              },
-              checkpoint,
-            );
-            if (!checkpoint) return Promise.resolve();
-            lastSeconds = seconds;
-            return session.flush();
+            update(current.answers, seconds);
+            return Promise.resolve();
           },
-          async finish(seconds, rows) {
+          finish(seconds, rows) {
             update(rows, seconds);
-            await session.flush();
-            return { data: { progress: {} } };
+            return Promise.resolve({ data: { progress: {} } });
           },
-          async quit(seconds) {
+          quit(seconds) {
             const current = session.payload()[part.id] || { answers };
-            update(current.answers, Math.max(seconds, current.seconds || 0));
-            await session.flush();
+            session.update(part.id, {
+              ...current,
+              seconds: Math.max(seconds, current.seconds || 0),
+            });
+            session.keep();
+            return Promise.resolve();
           },
         },
       };
     }
-    let signature = [
-      Math.floor((initial.state?.elapsed || 0) / 10),
-      initial.state?.correct || 0,
-      initial.state?.wrong || 0,
-      initial.state?.missed || 0,
-    ].join(':');
     return {
       initial: initial.state,
-      onBack: leave,
-      onChange(state, done = false, flush = false) {
+      onBack: onExit,
+      onChange(state, done = false) {
         const { settings, ...snapshot } = state;
-        // An overdue spawn is immediately eligible; persist 0 while keeping strict server bounds.
         snapshot.spawnIn = Math.max(0, snapshot.spawnIn);
         snapshot.countdown = Math.max(0, snapshot.countdown);
-        const next = [
-          Math.floor(state.elapsed / 10),
-          state.correct,
-          state.wrong,
-          state.missed,
-        ].join(':');
-        savePart(
-          part.id,
-          {
-            state: snapshot,
-            seconds: Math.floor(state.elapsed),
-            done: done || state.status === 'result',
-          },
-          next !== signature || done || flush,
-        );
-        signature = next;
-        if (flush) session.flush().catch(() => {});
+        savePart(part.id, {
+          state: snapshot,
+          seconds: Math.floor(state.elapsed),
+          done: done || state.status === 'result',
+        });
       },
     };
-  }, [part, initial, session, lesson]);
+  }, [part, initial, lesson, session, savePart]);
   return (
     <section className="assessment-runner" data-version={version} data-part-active={Boolean(part)}>
       <header className="assessment-run-header">
@@ -694,50 +673,38 @@ function AssessmentRunner({
         <TipyButton
           icon={Pause}
           emphasis="secondary"
-          disabled={busy}
+          disabled={ending}
           onClick={() => setPaused(true)}
         >
           Tạm dừng
         </TipyButton>
-        <TipyButton icon={Send} loading={busy} onClick={requestSubmit}>
-          Nộp bài
-        </TipyButton>
       </header>
       <p
         role={failure ? 'alert' : 'status'}
-        data-save-state={failure ? 'error' : message === 'Đã lưu' ? 'idle' : 'saving'}
+        data-save-state={failure ? 'error' : busy ? 'saving' : 'idle'}
       >
         {message}
         {failure && (
-          <TipyButton emphasis="secondary" onClick={() => session.flush().catch(() => {})}>
-            Thử lưu lại
+          <TipyButton
+            emphasis="secondary"
+            disabled={busy}
+            onClick={() => (ending ? finalize() : session.flush().catch(() => {}))}
+          >
+            Thử lại
           </TipyButton>
         )}
       </p>
-      {failure && (
-        <p>
-          Chưa lưu được thay đổi. Đừng tải lại khi đang lưu; nếu bài đổi ở tab khác, mở lại bài kiểm
-          tra.{' '}
-          <TipyButton
-            emphasis="secondary"
-            onClick={() => onDenied('Mở lại bài để lấy dữ liệu mới nhất đã lưu.')}
-          >
-            Mở lại bài
-          </TipyButton>
-        </p>
-      )}
-      <p>
-        Tiến độ: {exam.definition.sections.filter((section) => payload[section.id]?.done).length}/
-        {exam.definition.sections.length} phần hoàn thành
-      </p>
-      {part ? (
+      {ending || !part ? (
+        <Loading label={failure ? 'Chưa lưu được, thử lại' : 'Đang lưu kết quả…'} />
+      ) : (
         <div className="assessment-part-content">
           <Suspense fallback={<Loading label="Đang mở phần kiểm tra…" />}>
             {part.type === 'quest' ? (
               <div
                 className="adventure-scene quest-play-scene"
                 style={{
-                  '--adventure-background': `url("${adventureWorld(lesson.world).background.src}")`,
+                  '--adventure-background':
+                    'url("' + adventureWorld(lesson.world).background.src + '")',
                 }}
               >
                 <div className="adventure-content">
@@ -747,12 +714,12 @@ function AssessmentRunner({
                     world={adventureWorld(lesson.world)}
                     assessment={adapter}
                     immersive
-                    externalPaused={paused || exiting || confirm}
+                    externalPaused={paused || exiting}
                     user={user}
                     sound={sound}
-                    blocked={blocked || confirm || busy || failure || paused || exiting}
+                    blocked={blocked || ending || paused || exiting}
                     onPlayingChange={onPlayingChange}
-                    onBack={leave}
+                    onBack={onExit}
                     onSaved={noop}
                   />
                 </div>
@@ -760,67 +727,25 @@ function AssessmentRunner({
             ) : (
               <FallingGame
                 key={part.id}
-                settings={part.settings}
+                settings={{ ...part.settings, targetScore: part.targetScore }}
                 assessment={adapter}
-                externalPaused={paused || exiting || confirm}
+                externalPaused={paused || exiting}
                 user={user}
                 sound={sound}
-                audioOpen={blocked || confirm || busy || failure || paused || exiting}
+                audioOpen={blocked || ending || paused || exiting}
                 onPlayingChange={onPlayingChange}
                 onFinish={() => false}
-                onHome={leave}
-                onSetup={leave}
+                onHome={onExit}
+                onSetup={onExit}
               />
             )}
           </Suspense>
         </div>
-      ) : (
-        <div className="assessment-section-list">
-          {exam.definition.sections.map((section, index) => (
-            <article className="panel" key={section.id}>
-              <h2>
-                Phần {index + 1} · {section.title}
-              </h2>
-              <p>
-                {payload[section.id]?.done
-                  ? 'Đã làm xong'
-                  : payload[section.id]
-                    ? 'Đang làm'
-                    : 'Chưa làm'}
-              </p>
-              {payload[section.id]?.done ? (
-                <p>Phần đã kết thúc, không chơi lại trong lượt chính thức này.</p>
-              ) : (
-                <TipyButton icon={Play} onClick={() => setPartId(section.id)}>
-                  {payload[section.id] ? 'Tiếp tục' : 'Bắt đầu phần'}
-                </TipyButton>
-              )}
-            </article>
-          ))}
-        </div>
-      )}
-      {confirm && (
-        <Modal
-          title="Nộp bài chưa làm hết?"
-          description="Một số phần hoặc nội dung chưa hoàn thành. Bạn vẫn muốn nộp bài?"
-          onClose={() => {
-            if (!busy) setConfirm(false);
-          }}
-        >
-          <div className="assessment-actions">
-            <TipyButton emphasis="secondary" disabled={busy} onClick={() => setConfirm(false)}>
-              Làm tiếp
-            </TipyButton>
-            <TipyButton icon={Send} loading={busy} onClick={submit}>
-              Nộp bài
-            </TipyButton>
-          </div>
-        </Modal>
       )}
       {paused && !exiting && (
         <Modal
           title="Tạm dừng"
-          description="Nội dung đã giữ nguyên. Giờ đóng bài của thầy cô vẫn được áp dụng."
+          description="Nội dung được giữ trên thiết bị. Giờ đóng bài vẫn được áp dụng."
           onClose={() => setPaused(false)}
         >
           <TipyButton icon={Play} onClick={() => setPaused(false)}>
@@ -830,37 +755,19 @@ function AssessmentRunner({
       )}
       {exiting && (
         <Modal
-          title={part ? 'Quay lại các phần?' : 'Quay lại danh sách?'}
-          description="Bài đang làm sẽ được lưu. Giờ đóng bài và số lượt làm vẫn theo quy định của thầy cô."
-          onClose={() => {
-            if (!busy) setExiting(false);
-          }}
+          title="Quay lại danh sách?"
+          description="Tiến trình được giữ trên thiết bị này. Giờ đóng bài và số lượt vẫn theo quy định."
+          onClose={() => setExiting(false)}
         >
-          <TipyButton emphasis="secondary" disabled={busy} onClick={() => setExiting(false)}>
+          <TipyButton emphasis="secondary" onClick={() => setExiting(false)}>
             Làm tiếp
           </TipyButton>
           <TipyButton
             icon={ArrowLeft}
-            loading={busy}
-            onClick={async () => {
-              if (writing.current) return;
-              writing.current = true;
-              setBusy(true);
-              try {
-                await session.flush();
-                if (part) {
-                  setPartId(null);
-                  setExiting(false);
-                  setVersion((v) => v + 1);
-                } else onExit();
-              } catch (error) {
-                setMessage(error.message);
-                setFailure(true);
-                setExiting(false);
-              } finally {
-                writing.current = false;
-                setBusy(false);
-              }
+            disabled={busy}
+            onClick={() => {
+              session.keep();
+              onExit();
             }}
           >
             Quay lại

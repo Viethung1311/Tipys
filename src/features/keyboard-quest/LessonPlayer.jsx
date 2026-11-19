@@ -15,12 +15,14 @@ import LessonPlayfield from './LessonPlayfield.jsx';
 import LetterTarget from './LetterTarget.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
 import Modal from '../../components/Modal.jsx';
-import { physicalKey, SUPPORTED_KEYS } from '../../game/config.js';
+import { physicalKey, SUPPORTED_KEYS, virtualKey } from '../../game/config.js';
 import { FINGER_HINTS } from './curriculum.js';
 import { createAnswers, errorKind, gradeLesson, matchesTarget } from './engine.js';
 import { createLessonSession } from './session.js';
 import { companionSay } from '../../characters/companion-speech.js';
 import CompletionScreen from '../../components/CompletionScreen.jsx';
+import './quest.css';
+import './adventure.css';
 
 export default function LessonPlayer({
   lesson,
@@ -45,7 +47,8 @@ export default function LessonPlayer({
     [index, setIndex] = useState(() =>
       Math.max(0, assessment?.answers?.findIndex((row) => !row.answer) ?? 0),
     ),
-    [value, setValue] = useState(''),
+    [value, setValue] = useState(assessment?.draft?.value || ''),
+    [shifted, setShifted] = useState(false),
     [feedback, setFeedback] = useState(''),
     [hint, setHint] = useState(true),
     [seconds, setSeconds] = useState(assessment?.seconds || 0),
@@ -67,6 +70,10 @@ export default function LessonPlayer({
     input = useRef(null),
     live = useRef(true);
   const target = lesson.items[index];
+  const nextTextKey = [...target.target.normalize('NFC')][[...value.normalize('NFC')].length];
+  useEffect(() => {
+    assessment?.onDraft?.({ value, index });
+  }, [value, index]);
   const greeted = useRef(false),
     previousPhase = useRef(null);
   useEffect(() => {
@@ -168,7 +175,7 @@ export default function LessonPlayer({
         else {
           setIndex(index + 1);
           setValue('');
-          input.current?.focus();
+          if (document.activeElement === input.current) input.current?.focus();
         }
       } else {
         row.errors++;
@@ -216,6 +223,16 @@ export default function LessonPlayer({
     window.addEventListener('keydown', down);
     return () => window.removeEventListener('keydown', down);
   }, [kind, submit, pause, phase, blocked]);
+  useEffect(() => {
+    if (
+      (immersive || assessment) &&
+      kind === 'text' &&
+      !ime &&
+      value &&
+      matchesTarget(value, target.target)
+    )
+      submit(value);
+  }, [value, ime, kind, target, submit]);
   const grade = phase === 'result' ? gradeLesson(lesson, answers.current) : null;
   const persist = useCallback(async () => {
     setSaving(true);
@@ -305,28 +322,7 @@ export default function LessonPlayer({
       </section>
     );
   if (phase === 'result')
-    if (assessment)
-      return (
-        <section className="panel assessment-section-result">
-          <h2>Đã hoàn thành phần gõ</h2>
-          <p role="status">
-            {saving
-              ? 'Đang lưu phần làm bài…'
-              : saved
-                ? 'Đã lưu phần làm bài. Bạn vẫn cần bấm Nộp bài.'
-                : ''}
-          </p>
-          {saveError && <p role="alert">{saveError}</p>}
-          {saveError && (
-            <TipyButton icon={Save} onClick={persist} loading={saving}>
-              Thử lưu lại
-            </TipyButton>
-          )}
-          <TipyButton icon={ArrowLeft} disabled={!saved || saving} onClick={() => onBack()}>
-            Các phần
-          </TipyButton>
-        </section>
-      );
+    if (assessment) return <p role="status">Đang chuyển phần và lưu kết quả…</p>;
   if (phase === 'result' && immersive)
     return (
       <CompletionScreen
@@ -551,8 +547,9 @@ export default function LessonPlayer({
             composing.current = true;
             setIme(true);
           }}
-          onCompositionEnd={() => {
+          onCompositionEnd={(event) => {
             composing.current = false;
+            setValue(event.currentTarget.value.normalize('NFC'));
             setIme(false);
           }}
           onChange={(event) => setValue(event.target.value)}
@@ -631,13 +628,51 @@ export default function LessonPlayer({
           Phím cách
         </TipyButton>
       </>
+    ) : immersive || assessment ? (
+      <Keyboard
+        keys={[...SUPPORTED_KEYS]}
+        textInput
+        shifted={shifted}
+        extraKeys={
+          nextTextKey && nextTextKey !== ' ' && !SUPPORTED_KEYS.has(nextTextKey.toUpperCase())
+            ? [nextTextKey]
+            : []
+        }
+        lastKey={lastKey}
+        targetKey={
+          hint
+            ? nextTextKey && /^[a-z]$/i.test(nextTextKey)
+              ? nextTextKey.toUpperCase()
+              : nextTextKey
+            : undefined
+        }
+        disabled={phase !== 'playing' || blocked || ime}
+        onKey={(key) => {
+          setLastKey(key);
+          if (key === 'Shift') {
+            setShifted((old) => !old);
+            return;
+          }
+          if (key === 'Enter') {
+            submit(value);
+            return;
+          }
+          const element = input.current,
+            start = document.activeElement === element ? element.selectionStart : value.length,
+            end = document.activeElement === element ? element.selectionEnd : value.length;
+          const next =
+            key === 'Backspace'
+              ? value.slice(0, Math.max(0, start - (start === end ? 1 : 0))) + value.slice(end)
+              : value.slice(0, start) +
+                (key === 'Space' ? ' ' : virtualKey(key, shifted)) +
+                value.slice(end);
+          setValue(next.slice(0, 160));
+        }}
+      />
     ) : (
-      <p className="quest-hint">
-        {lesson.telex
-          ? 'Bật Telex trên máy (UniKey/EVKey hoặc bộ gõ của thiết bị), rồi gõ vào ô. Bàn phím cảm ứng của máy cũng dùng được.'
-          : 'Dùng bàn phím của máy hoặc chạm vào ô để mở bàn phím cảm ứng.'}
-      </p>
+      <p className="quest-hint">Dùng bàn phím của máy hoặc chạm vào ô để mở bàn phím cảm ứng.</p>
     );
+
   const tools = (
     <div className="quest-actions">
       <TipyButton

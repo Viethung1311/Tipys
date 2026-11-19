@@ -196,11 +196,11 @@ Modal chọn nhân vật dùng header cố định trong khung với nút X 48 �
 ### Bài kiểm tra
 
 - Mục Bài kiểm tra ở sau Lớp học nếu có, nếu không thì sau Gõ chữ. Nhóm tài khoản/avatar/sao luôn ở cột cuối bên phải; dưới 1000 px xuống hàng riêng, dưới 680 px các mục điều hướng chia hai cột, giữ vị trí ổn định dù ẩn Lớp học.
-- Học sinh dùng danh sách → giới thiệu → Bắt đầu/Tiếp tục → các phần → Nộp bài. Hiện Chưa làm/Đang làm/Đã nộp; bài chưa hoàn thành có modal xác nhận nộp. Không có bảng điểm chung khác đơn vị hoặc sao luyện tập trong kết quả kiểm tra.
+- Học sinh dùng danh sách → Bắt đầu/Tiếp tục → tự chuyển các phần → tự lưu kết quả. Hiện Chưa làm/Đang làm/Đã nộp; không có bước bấm nộp. Không có bảng điểm chung khác đơn vị hoặc sao luyện tập trong kết quả kiểm tra.
 - Công cụ giáo viên dùng cùng TipyButton, Modal, token và form hiện có, nút gọn 48 px. Kho nội dung đọc 327 mục từ 39 bài/chủ đề thực, sắp theo Màn → Bài → Nội dung; không sửa Từ vựng. Chọn bằng Set mã mục, giữ qua tìm kiếm/thu gọn/trang chọn người nhận; nút chọn tất cả ghi rõ phạm vi (cả kết quả lọc đang thu gọn hoặc toàn màn).
 - Xem trước lưu nháp và mở bản tổng hợp; Chỉnh sửa giữ lựa chọn; Gửi bài riêng chỉ khi có phần và người nhận. Đề đã gửi có Tạo bản mới, không chỉnh trực tiếp. Nơi nhận là các thành viên tại thời điểm gửi và các học sinh chọn riêng; học sinh nhận qua lớp cần còn là thành viên lớp đang hoạt động. Admin quản trị hệ thống; role teacher chỉ quản lý bài do mình tạo trong lớp được phân công, đọc kết quả trong phạm vi lớp và tặng sao. Quyền được kiểm tra lại tại backend.
 - Mỗi lượt có checkpoint riêng; hiện Đang lưu/Đã lưu/lỗi rõ, lỗi không được báo thành danh sách trống. Lỗi ghi tạm dừng engine, cho thử lại hoặc mở dữ liệu mới. Tái sử dụng LessonPlayer và TypingGame bằng adapter; không gọi start/progress/quest_finish luyện tập trong chế độ này. Bàn phím, IME, pause và cấu hình được giữ; sao/điểm tuần không thay đổi.
-- Kiểm tra trọn luồng qua `scripts/check-assessments.mjs` bằng API thật và SQL trên PGlite riêng, ở 320/768/1440. Không tạo đề hoặc gửi đề thử vào Supabase thật. Giọng đọc/thiết bị thật và tải lớp đông cần kiểm chứng riêng.
+- Kiểm tra trọn luồng qua `scripts/check-assessment-autosave.mjs` bằng API thật và SQL trên PGlite riêng, ở 320/768/1440. Không tạo đề hoặc gửi đề thử vào Supabase thật. Giọng đọc/thiết bị thật và tải lớp đông cần kiểm chứng riêng.
 
 ### Xóa vĩnh viễn lớp
 
@@ -223,10 +223,12 @@ Chỉ lớp đã lưu trữ có nút Xóa vĩnh viễn cạnh Khôi phục lớp
 ## Khu vực chơi phủ màn hình
 
 - Chữ rơi và 30 màn bàn phím dùng chung PlaySurface: gọi Fullscreen API trực tiếp từ nút bắt đầu; fallback phủ visualViewport, safe area. Esc thoát fullscreen trình duyệt vẫn giữ lượt chơi. Không dựng lại engine khi resize, xoay máy hoặc tạm dừng. Từ vựng luyện tập giữ bố cục riêng.
-- Trong lượt chơi, ẩn/inert giao diện website và nhân vật nổi. Header gọn có Quay lại, Tạm dừng và tiến độ/thời gian; bàn phím/phím chạm tối thiểu 48 px, nút chính 56 px. Với bộ phím Chữ rơi lớn trên màn hẹp/thấp, bàn phím cảm ứng ưu tiên chữ đang rơi và nhóm phím đầu; phím vật lý vẫn nhận toàn bộ bộ phím đã chọn. Khi bàn phím hệ thống chiếm chỗ, ưu tiên đề, ô nhập và Kiểm tra; ẩn các nút gợi ý/nghe phụ đến khi đóng bàn phím.
-- CompletionScreen dùng ảnh /quest-art/smiling-star.png và nền chủ đề sẵn có. Kết quả kiểm tra chỉ có hình, Hoàn thành tốt/Chưa hoàn thành, động viên khi chưa đạt và Làm lại/Quay lại theo quyền backend. Không có số điểm hoặc chi tiết từng phần trên màn cuối. Lịch sử ở danh sách bài và bảng giáo viên giữ đầy đủ dữ liệu.
+- Trong lượt chơi, ẩn/inert giao diện website và nhân vật nổi. Header gọn có Quay lại, Tạm dừng và tiến độ/thời gian; nút điều khiển tối thiểu 48 px, nút chính 56 px; phím QWERTY co theo khung chơi. Bàn phím chơi luôn giữ đủ hàng số và QWERTY, không ẩn các phím ngoài gợi ý. Trên màn hẹp, phím co theo hàng để cả đề và bàn phím cùng hiển thị; chữ tối thiểu 16 px, các nút điều khiển vẫn 48–56 px. Phím tiếng Việt bổ sung theo nội dung, nhập bằng IME của thiết bị giữ cơ chế composition. Khi bàn phím hệ thống chiếm chỗ, ưu tiên đề, ô nhập và Kiểm tra; ẩn các nút gợi ý/nghe phụ đến khi đóng bàn phím.
+- CompletionScreen dùng ảnh /quest-art/smiling-star.png và nền chủ đề sẵn có. Kết quả kiểm tra xếp giữa theo thứ tự hình sao, điểm backend xác nhận, Hoàn thành tốt/Chưa hoàn thành và hàng Quay lại bên trái/Làm lại bên phải nếu còn quyền. Chữ rơi giữ điểm game; gõ chữ dùng thang 100 theo độ chính xác đã chấm, ghi /100 điểm. Bài nhiều phần ghi riêng từng thang, không cộng tổng. Lịch sử ở danh sách bài và bảng giáo viên giữ đầy đủ dữ liệu.
 - Chỉ hiện màn cuối sau xác nhận nộp của backend; tất cả phần cần đạt quy tắc riêng mới là Hoàn thành tốt. Hiệu ứng một lần cho lượt đạt, tôn trọng âm thanh và reduced motion; hình sao không cấp thưởng. Luyện tập giữ thống kê gọn, Luyện lại và Bài tiếp theo tiến trình.
-- Kiểm tra: node scripts/check-play-surface.mjs và node scripts/check-assessments.mjs sau build; dùng fixture cục bộ, không ghi tài khoản thật.
+- Kiểm tra: node scripts/check-assessment-autosave.mjs sau build (luồng tự lưu thay thế kịch bản kiểm tra thủ công trước 19/11); dùng fixture cục bộ, không ghi tài khoản thật.
+
+- Bài kiểm tra mở trực tiếp bằng Bắt đầu/Tiếp tục, backend kiểm tra lịch/quyền/lượt. Không có Nộp bài: đạt mốc Chữ rơi hoặc hoàn tất nội dung sẽ khóa nhập, tự chuyển phần và chốt cuối một lần. Tiến trình cục bộ có khóa tài khoản/bài/lượt; chỉ khôi phục sau xác minh backend. Lỗi mạng giữ nguyên mã yêu cầu để thử lại. Bài không hẹn giờ không ghi giữa lượt; bài có giờ đóng gửi bằng chứng thay đổi tối đa một lô/30 giây để máy chủ tự chốt khi mất kết nối. Khi đã quá hạn, kết quả chính thức theo bằng chứng cuối máy chủ nhận trước hạn, không tin thời gian do máy khách khai.
 
 ## Giáo viên riêng
 

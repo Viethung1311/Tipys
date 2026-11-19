@@ -95,15 +95,7 @@ export default function Game({
     parentPaused.current = externalPaused;
   }, [externalPaused, pause]);
   if (assessment && s.status === 'result')
-    return (
-      <section className="panel assessment-section-result">
-        <h2>Đã kết thúc phần Chữ rơi</h2>
-        <p>Phần này đã được giữ lại. Quay về các phần rồi bấm Nộp bài khi sẵn sàng.</p>
-        <TipyButton icon={ArrowLeft} onClick={assessment.onBack}>
-          Các phần
-        </TipyButton>
-      </section>
-    );
+    return <p role="status">Đang chuyển phần và lưu kết quả…</p>;
   if (!assessment && s.status === 'result')
     return (
       <CompletionScreen
@@ -226,11 +218,6 @@ export default function Game({
       </div>
       <Keyboard
         keys={settings.keys}
-        visibleKeys={
-          settings.keys.length > 8
-            ? [...settings.keys.slice(0, 4), ...s.letters.map((letter) => letter.key)]
-            : undefined
-        }
         onKey={hit}
         lastKey={s.lastKey}
         disabled={s.status !== 'playing'}
