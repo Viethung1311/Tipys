@@ -21,3 +21,38 @@
   white-space: normal;
   text-align: left;
 }
+.tipy-action-menu:has(.tipy-menu-summary) {
+  padding: var(--tipy-space-5);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--tipy-space-4);
+}
+.tipy-action-menu > .tipy-menu-summary {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  justify-content: center;
+  border-radius: var(--tipy-input-radius);
+  background: var(--tipy-play-soft);
+}
+.tipy-action-menu:has(.tipy-menu-summary) > button {
+  grid-column: 1;
+}
+.tipy-action-menu:has(.tipy-menu-summary) > button:nth-child(2) {
+  grid-row: 1;
+}
+.tipy-action-menu:has(.tipy-menu-summary) > button:nth-child(3) {
+  grid-row: 2;
+}
+.tipy-action-menu:has(.tipy-menu-summary) > button:nth-child(4) {
+  grid-row: 3;
+}
+@media (max-width: 480px) {
+  .tipy-action-menu:has(.tipy-menu-summary) {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--tipy-space-4);
+  }
+  .tipy-action-menu > .tipy-menu-summary,
+  .tipy-action-menu:has(.tipy-menu-summary) > button:nth-child(n) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}

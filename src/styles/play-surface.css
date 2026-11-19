@@ -150,13 +150,15 @@ body.play-surface-open .play-surface .touchboard .key-row {
 body.play-surface-open .play-surface .touchboard .key {
   width: 100%;
   flex: 1 1 0;
-  max-width: 70px;
+  max-width: 64px;
   min-width: 0;
-  height: clamp(32px, 6cqh, 48px);
+  height: clamp(32px, 6cqh, 52px);
   min-height: 32px;
   padding: 2px;
   font-size: clamp(16px, 2.5cqw, 20px);
   margin: 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 0 var(--tipy-border);
 }
 body.play-surface-open .play-surface .touchboard .key:not(.selected) {
   display: block;
@@ -226,7 +228,7 @@ body.play-surface-open .play-surface .quest-challenge > p {
   font-size: 18px;
 }
 body.play-surface-open .play-surface .quest-target {
-  font-size: clamp(24px, 4vw, 38px);
+  font-size: clamp(24px, 4vw, 52px);
   line-height: 1.3;
 }
 body.play-surface-open .play-surface .quest-letter-sticker {
@@ -388,7 +390,7 @@ body.play-surface-open .play-surface .assessment-section-result {
   margin: 0;
 }
 .play-result-star {
-  width: clamp(100px, 26cqh, 260px);
+  width: clamp(100px, 28cqh, 250px);
   height: auto;
   max-height: 32cqh;
   object-fit: contain;
@@ -711,7 +713,8 @@ body.play-surface-open .play-surface .quest-playfield-input textarea {
   height: 48px;
 }
 .play-result-scores strong {
-  font-size: clamp(28px, 5vw, 44px);
+  font-size: clamp(28px, 5vw, 56px);
+  font-weight: 900;
 }
 @container play (max-height: 500px) {
   body.play-surface-open .play-surface .keyboard.touchboard {

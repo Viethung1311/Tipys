@@ -25,7 +25,7 @@ export default function TipyButton({
       aria-busy={loading || undefined}
       className={`tipy-button tipy-button--${variant} tipy-button--${emphasis} ${className}`.trim()}
     >
-      <Icon className="tipy-button__icon" aria-hidden="true" focusable="false" strokeWidth={2.4} />
+      <Icon className="tipy-button__icon" aria-hidden="true" focusable="false" strokeWidth={2} />
       <span className="tipy-button__label">{loading ? loadingLabel : children}</span>
     </button>
   );

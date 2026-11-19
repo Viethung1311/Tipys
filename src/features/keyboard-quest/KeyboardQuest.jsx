@@ -164,7 +164,7 @@ export default function KeyboardQuest({
   if (run)
     return (
       <PlaySurface active={Boolean(run.lesson.world)}>
-        <main className="quest-page adventure-page">
+        <main className={`quest-page adventure-page${run.lesson.world ? '' : ' vocabulary-page'}`}>
           {run.lesson.world ? (
             <nav
               className="quest-play-navigation adventure-breadcrumbs"
@@ -212,7 +212,7 @@ export default function KeyboardQuest({
       </PlaySurface>
     );
   return (
-    <main className="quest-page adventure-page">
+    <main className={`quest-page adventure-page${view === 'library' ? ' vocabulary-page' : ''}`}>
       {header}
       {loading ? (
         <Loading label="Đang mở hành trình…" />

@@ -131,7 +131,15 @@ export default function StudentNotifications({
     if (!kinds.size) return;
     const teachers = [
       ...new Set(
-        claimed.filter((n) => n.kind === 'star_gift').map((n) => n.payload.teacher || TEACHER_NAME),
+        claimed
+          .filter((n) => n.kind === 'star_gift')
+          .map(
+            (n) =>
+              n.payload?.teacher ||
+              data?.items.find((item) => item.notification_id === n.notification_id)?.payload
+                ?.teacher ||
+              TEACHER_NAME,
+          ),
       ),
     ];
     companionSay(

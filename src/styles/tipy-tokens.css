@@ -5,6 +5,9 @@
   --tipy-text: #402b20;
   --tipy-text-muted: #655548;
   --tipy-border: #d8cbbd;
+  --tipy-gold: #ffd767;
+  --tipy-avatar-size: 80px;
+  --tipy-button-icon-size: 20px;
   --tipy-learn-soft: #fff0df;
   --tipy-play-soft: #e4f4ef;
   --tipy-danger-soft: #fff0ed;
@@ -33,8 +36,8 @@
   --tipy-space-4: 16px;
   --tipy-space-5: 24px;
   --tipy-space-6: 32px;
-  --tipy-button-height: 64px;
-  --tipy-button-font-size: 22px;
+  --tipy-button-height: 56px;
+  --tipy-button-font-size: 18px;
   --tipy-button-radius: 24px;
   --tipy-button-depth: 6px;
   --tipy-button-pressed-depth: 2px;

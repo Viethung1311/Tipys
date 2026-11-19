@@ -27,7 +27,7 @@ export default function ActionMenu({
     if (!open) return;
     const place = () => {
       const box = anchor.current.getBoundingClientRect();
-      const width = Math.min(260, innerWidth - 24);
+      const width = Math.min(header ? 460 : 260, innerWidth - 24);
       const height = Math.min(menu.current.offsetHeight, innerHeight - 24);
       setPosition({
         width,

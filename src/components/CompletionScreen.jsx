@@ -66,24 +66,24 @@ export default function CompletionScreen({
         )}
         {children}
         <div className="play-result-actions">
-          {scores.length > 0 && onBack && (
-            <TipyButton icon={ArrowLeft} disabled={busy} onClick={onBack}>
+          {onBack && (
+            <TipyButton emphasis="secondary" icon={ArrowLeft} disabled={busy} onClick={onBack}>
               Quay lại
+            </TipyButton>
+          )}
+          {onRetry && (
+            <TipyButton
+              emphasis={onNext ? 'secondary' : 'primary'}
+              icon={RotateCcw}
+              loading={busy}
+              onClick={onRetry}
+            >
+              {retryLabel}
             </TipyButton>
           )}
           {onNext && (
             <TipyButton icon={ChevronRight} disabled={busy} onClick={onNext}>
               Bài tiếp
-            </TipyButton>
-          )}
-          {onRetry && (
-            <TipyButton emphasis="secondary" icon={RotateCcw} loading={busy} onClick={onRetry}>
-              {retryLabel}
-            </TipyButton>
-          )}
-          {onBack && scores.length === 0 && (
-            <TipyButton icon={ArrowLeft} disabled={busy} onClick={onBack}>
-              Quay lại
             </TipyButton>
           )}
         </div>

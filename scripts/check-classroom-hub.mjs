@@ -316,6 +316,31 @@ try {
   ]) {
     await page.setViewportSize({ width, height });
     await page.waitForTimeout(80);
+    if (width === 1440) {
+      assert.equal(
+        await page
+          .locator('.hub-member-grid .student-avatar')
+          .first()
+          .evaluate((e) => e.clientWidth),
+        76,
+        '80 px avatar includes its two 2 px borders',
+      );
+      assert.equal(
+        await page
+          .locator('.hub-place.rank-1 > strong')
+          .evaluate((e) => getComputedStyle(e).backgroundColor),
+        'rgb(255, 215, 103)',
+        'podium uses the shared Figma gold token',
+      );
+      assert.equal(
+        await page
+          .locator('.hub-toolbar .tipy-button')
+          .first()
+          .evaluate((e) => e.getBoundingClientRect().height),
+        56,
+        'desktop toolbar uses the shared 56 px control',
+      );
+    }
     const geometry = await page.evaluate(() => {
       const hub = document.querySelector('.classroom-hub').getBoundingClientRect(),
         roster = document.querySelector('.hub-members .hub-scroll');

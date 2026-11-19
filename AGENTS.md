@@ -1,100 +1,51 @@
 # Hướng dẫn làm việc với Zunimo
 
-Thương hiệu hiển thị là Zunimo. Các tên kỹ thuật `tipy`, `TipyButton`, token/font CSS, cookie, API, bucket và đường dẫn `design-system/tipy` được giữ để tương thích. Không đổi tên miền khi chủ dự án chưa yêu cầu.
+Zunimo là website học tập cho học sinh từ lớp 1. Giữ các định danh kỹ thuật `tipy`, `TipyButton`, font CSS `TIPY Nunito`, API, cookie, bucket và đường dẫn `design-system/tipy` để tương thích. Không đổi tên miền khi chưa được yêu cầu.
 
-Header dùng nhóm tài khoản cố định bên phải, không phụ thuộc mục Lớp học. Tiền thưởng hiển thị là Sao của bạn: gồm sao bài học (chỉ cộng phần tăng thêm, tối đa 3 sao/bài), thưởng tuần và sao giáo viên tặng; không cộng điểm game hoặc quy đổi điểm cũ. Xem quy tắc trong MASTER.md, db/stars.sql, db/lesson_star_upgrades.sql và db/student_actions.sql. Học sinh không được tự cộng sao.
+## Nguồn chuẩn và cách làm
 
-Zunimo là website học tập có học sinh từ lớp 1 sử dụng. Các quy tắc dưới đây được chép từ Custom instructions của Project do chủ dự án cung cấp. Chúng áp dụng cho mọi lần sửa giao diện trong repository này.
+- Trước khi sửa, đọc `design-system/tipy/MASTER.md`, component/CSS liên quan, `ARCHITECTURE.md`, `BACKEND.md` và hướng dẫn thư mục con nếu có. MASTER là quy chuẩn giao diện chung; màu, chữ, kích thước, bố cục và ánh xạ code nằm ở đó, không lặp tại đây.
+- [Figma Zunimo](https://www.figma.com/design/DOldfpt6VKk7O77fkXM1QN) là nguồn tham chiếu thiết kế. Trước khi sửa một phần, đọc đúng màn, component và trạng thái bằng dữ liệu thiết kế cùng ảnh chụp; không coi mockup là quy tắc backend.
+- Giữ nguyên font hiện tại của website. Giao diện sáng, phối màu theo chức năng nhưng thống nhất; khung nội dung lớn, rõ, có khoảng thở; chữ tiếng Việt dễ đọc và hành động cụ thể, ít chữ thừa.
+- Dùng token/component chung. Khi cần kiểu mới, cập nhật MASTER và primitive dùng chung trong cùng thay đổi triển khai, rồi để các trang tái sử dụng. Không chép màu/kích thước/nút riêng rải rác, không thêm thư viện lớn chỉ để chỉnh giao diện. Nếu có `ui-ux-pro-max`, có thể dùng hỗ trợ; quy tắc Zunimo được ưu tiên.
+- Khi Figma bị chặn hoặc thiếu trạng thái, báo rõ giới hạn trước khi suy ra chuẩn. Chỉ ghi giá trị có nguồn; tách thông số Figma đã kiểm chứng, hiện trạng code và đề xuất kế thừa. Không tuyên bố đã xem màn chưa đọc được hoặc tự lấy kích thước từ ảnh co nhỏ làm số đo thiết kế.
+- Yêu cầu trực tiếp của chủ dự án được ưu tiên. Sửa tài liệu chuẩn không đồng nghĩa tự đổi giao diện, nghiệp vụ hoặc triển khai production. Không mở rộng sang các màn ngoài phạm vi được giao.
 
-## Trước khi thay đổi
+## Dữ liệu và phân quyền phải giữ
 
-- Đọc file này, `design-system/tipy/MASTER.md`, component và CSS của phần đang sửa; giữ nguyên các hướng dẫn kỹ thuật hiện có trong `ARCHITECTURE.md`, `BACKEND.md` và hướng dẫn ở thư mục con nếu có.
-- `design-system/tipy/MASTER.md` là chuẩn thiết kế dùng chung. Khi thêm một kiểu mới, cập nhật chuẩn và component/token chung trong cùng thay đổi. Không tạo bảng màu hoặc kiểu nút riêng ở từng trang.
-- Nếu có skill `ui-ux-pro-max`, dùng để hỗ trợ; quy tắc Zunimo được ưu tiên khi khác biệt. Không tự cài thêm skill hoặc thư viện lớn chỉ để chỉnh giao diện.
-- Giữ nguyên chức năng, dữ liệu, phân quyền và luồng nghiệp vụ khi nhiệm vụ chỉ yêu cầu sửa giao diện. Các thay đổi tài khoản/lớp/ảnh private vẫn phải giữ kiểm tra quyền tại backend.
+- Giữ chức năng, dữ liệu và luồng nghiệp vụ khi chỉ sửa giao diện. Vai trò tin cậy lấy từ `profiles` ở backend: `student`, `teacher`, `admin`; kiểm tra quyền hiện tại tại API/RPC/RLS/Storage, kể cả truy cập tệp. Khóa đặc quyền chỉ ở backend; không nâng giáo viên thành Admin để dùng lại chức năng.
+- Chỉ Admin tạo/khóa giáo viên, phân công qua `class_teachers` và quản trị tài khoản/lớp/game/reset. Giáo viên chỉ làm việc trong lớp được giao, quản lý bài đăng/bài kiểm tra của mình, xem kết quả, cộng/trừ sao và loại thành viên theo quyền hiện có. Loại bằng `accept` chỉ bỏ quan hệ của lớp được chọn, giữ tài khoản, lịch sử và lớp khác. Chủ dự án đã chọn chỉ tặng sao, chưa thêm điểm tặng.
+- **Sao của bạn** là số dư từ ledger: sao bài học chỉ cộng phần tăng thêm, tối đa 3 sao/bài, cộng sao tặng và thưởng tuần, trừ các tác động reset/trừ hợp lệ. Không cộng điểm game/quy đổi điểm cũ; học sinh không tự cộng sao. Bảng **Sao trong lớp tuần này** tính riêng theo nguồn lớp và tuần Việt Nam, không lấy tổng sao tài khoản. Quy tắc đầy đủ nằm trong MASTER và SQL/backend.
+- Kiểm tra dùng `src/features/assessments` và SQL hiện có. Chỉ backend chấm/lưu kết quả; adapter không gọi endpoint luyện tập, cấp sao hoặc ghi bảng tuần. Đề đã gửi là snapshot bất biến; giao theo lớp dùng `assessment_class_targets` và thành viên hiện tại, kể cả học sinh vào sau, không suy từ tên hiển thị. Xóa bài vĩnh viễn cần đúng `accept` ở UI/backend, chỉ tác động dữ liệu riêng bài đó.
+- Không dùng tài khoản/lớp thật để tặng/trừ/reset sao, gửi đề hoặc xóa thử. Giữ kiểm tra dữ liệu, xử lý lỗi, chống gửi trùng và tính nhất quán database. Xem `db/teacher_roles.sql`, `db/classroom_hub.sql`, `db/stars.sql`, `db/lesson_star_upgrades.sql`, `db/student_actions.sql` và `BACKEND.md`.
 
-## 1. Định hướng chung
+## Hiệu năng và trạng thái
 
-- Vui nhộn, thân thiện, gọn gàng, dễ hiểu với trẻ nhỏ; thao tác rõ ràng, ít chữ, chữ lớn và biểu tượng dễ nhận biết.
-- Mỗi màn hình có một hành động chính nổi bật. Admin dành cho giáo viên có thể nhiều thông tin hơn nhưng vẫn cùng nhận diện.
+- Giữ lazy loading, ảnh lazy, phân trang/lọc/sắp xếp/tổng hợp ở backend, cache theo tài khoản/lớp/tab/trang và chia sẻ request đang chạy. Đổi tài khoản phải xóa cache riêng và bỏ phản hồi phiên cũ; đổi lớp bỏ phản hồi lớp trước.
+- Lớp học dùng trang lazy `/classroom?class=<id>&tab=members|notifications|tests|messages`, khung theo visual viewport và cuộn nội bộ. Tổng quan tải 24 thành viên/trang cùng Top 3; tab khác chỉ tải khi cần. Quản trị học sinh/kết quả vẫn giữ phân trang 7 hàng theo luồng hiện có.
+- Mở/đóng menu, hộp thoại đã tải, fullscreen và tạm dừng chỉ đổi UI; không tạo request ghi, không dựng lại engine. Không polling liên tục hay truy vấn theo từng hàng. Sau thao tác chỉ cập nhật phần/cache liên quan; dọn listener, timer và kết nối khi đổi phạm vi hoặc rời trang.
+- Giữ lịch, số lượt, thời gian máy chủ, lưu bản nháp và tự chốt bài theo luật hiện tại; không thêm bước nộp thủ công hoặc checkpoint dày trở lại vì mockup. Không báo thành công trước xác nhận backend.
 
-## 2. Nút bấm
+## Kiểm tra và bàn giao
 
-- Nút bo tròn, có chiều sâu nhẹ theo hai mẫu “Vào học” và “Chơi”; dùng component chung `TipyButton` cho các nút học sinh được chuẩn hóa.
-- Nhãn thường 1–3 từ, động từ cụ thể: “Vào học”, “Chơi”, “Nộp bài”, “Xem bài”, “Làm lại”, “Quay lại”. Không rút ngắn làm mất nghĩa; hành động quan trọng phải rõ ràng.
-- Nút chính học sinh luôn có chữ và biểu tượng đơn giản, không chỉ có biểu tượng.
-- Nút chính cao tối thiểu 56 px, chữ khoảng 20–24 px đậm, đệm rộng. Vùng bấm khác tối thiểu 48 × 48 px, cách nhau đủ để tránh bấm nhầm.
-- Có đủ trạng thái bình thường, nhấn, focus, đang xử lý và vô hiệu hóa. Nhấn lún nhẹ; không dùng chuyển động lặp hoặc gây phân tâm.
+- Với UI: kiểm tra máy tính/điện thoại, xoay màn hình, vùng nhìn khi bàn phím mở, dấu tiếng Việt, tương phản, vùng bấm, cuộn nội bộ và các trạng thái tải/trống/lỗi/thành công. Kiểm tra Tab/Enter/Space, Esc, focus, nhãn truy cập và `prefers-reduced-motion`.
+- Chạy build/test đúng phạm vi thay đổi. Với tài liệu thuần túy, kiểm tra định dạng, đường dẫn, số liệu và mâu thuẫn giữa hai tài liệu; không bắt buộc build/test gameplay khi code không đổi.
+- Báo ngắn phần đã sửa, nguồn Figma đã đối chiếu, kiểm tra đã chạy, phần chưa xác minh và trạng thái triển khai. Không tự commit/push/deploy khi yêu cầu chỉ sửa tài liệu.
 
-## 3. Màu sắc
+## Tự chọn công cụ
 
-- Cam: thương hiệu và hành động chính như “Vào học”. Xanh ngọc: hoạt động chơi. Nền trắng/trắng kem, chữ tối dễ đọc.
-- Đỏ chỉ cho lỗi hoặc xóa, không trang trí nút thông thường. Mỗi màu có vai trò nhất quán giữa các trang.
-- Bảo đảm tương phản: nếu chữ trắng trên cam khó đọc, đổi sắc độ nền hoặc dùng chữ tối. Trạng thái phải có chữ/biểu tượng, không chỉ khác màu.
-
-## 4. Chữ và biểu tượng
-
-- Một font chính nét tròn, vui nhưng dễ đọc, đủ dấu tiếng Việt; kiểm tra dấu trước khi áp dụng. Không dùng font trang trí cho nội dung/hướng dẫn.
-- Chữ nội dung học sinh khoảng 18–20 px, tiêu đề khoảng 28–36 px; điều chỉnh trên điện thoại. Dùng chữ theo câu (“Vào học”), không viết hoa các đoạn dài.
-- Dùng SVG từ thư viện Lucide hiện có, cùng phong cách và độ dày nét.
-
-## 5. Bố cục và phản hồi
-
-- Khoảng trắng rộng, thẻ bo tròn, phân cấp rõ; điện thoại ưu tiên một cột, nút dễ chạm.
-- Mỗi thẻ chỉ chứa thông tin cần thiết; đưa chi tiết sang trang riêng. Hướng dẫn ngắn, từ quen thuộc, mỗi câu một việc.
-- Luôn phản hồi rõ sau thao tác: đã nộp, đang tải, chưa có bài, hoặc cần thử lại.
-- Không cắt chữ, che dấu tiếng Việt hoặc tạo thanh cuộn ngang ngoài ý muốn.
-
-## 6. Triển khai thống nhất
-
-- Dùng token/biến CSS chung cho màu, font, khoảng cách, bo góc và bóng đổ; xem `src/styles/tipy-tokens.css`.
-- Tạo hoặc tái sử dụng component chung cho nút, thẻ, ô nhập và trạng thái; các trang gọi component, không sao chép CSS riêng.
-- Không thay hàng loạt màn hình ngoài phạm vi được yêu cầu. Bản thử đầu tiên chỉ áp dụng nút chung cho “Vào học” trên trang chủ và “Chơi” trong kho trò chơi.
-- Giữ các tối ưu hiện có: code splitting, cache theo tài khoản, phân trang bài viết, ảnh lazy và quyền Storage private. Không thêm animation lặp cho nút.
-
-## 7. Kiểm tra trước khi hoàn thành
-
-- Kiểm tra điện thoại và máy tính, chữ/dấu tiếng Việt, tương phản, kích thước vùng bấm và khoảng cách.
-- Kiểm tra Tab/Enter/Space và focus rõ; tôn trọng `prefers-reduced-motion`.
-- Kiểm tra bình thường, nhấn, disabled, loading; các màn hình có tải, trống, lỗi và thành công phải phản hồi đúng.
-- Chạy build và test liên quan. Báo ngắn gọn phần đã thay đổi, phần đã xác minh và phần chưa kiểm tra được.
-
-## Mở rộng nút học sinh
-
-TipyButton được dùng cho CTA trang chủ, kho game, bắt đầu/chơi lại/tiếp tục, đổi cài đặt, xác nhận âm thanh, lưu nhân vật và đăng nhập/đăng ký/đăng xuất. Giữ nguyên callback, điều kiện disabled và type submit của form. Nút quản trị, chọn phím, switch và bộ lọc không nằm trong đợt này.
-
-Component nhận icon là component Lucide (mặc định Rocket hoặc Gamepad2 theo variant) và emphasis="secondary" cho hành động phụ. Kiểu phụ dùng nền trắng/kem, chữ và viền theo màu vai trò hiện có; không thêm bảng màu. Loading vẫn chặn thao tác, aria-busy và nhãn rõ. Đặt khoảng cách tối thiểu 12 px giữa các CTA trong dialog và cho hàng bắt đầu game tự xuống dòng ở màn hẹp.
-
-## Phạm vi chuẩn hóa toàn website
-
-Bài kiểm tra dùng module `src/features/assessments`, SQL `db/assessments.sql` và tài khoản/lớp hiện có. Chỉ backend chấm và ghi kết quả riêng; adapter của hai engine không được gọi endpoint luyện tập, cộng sao hoặc bảng tuần. Đề đã gửi là snapshot không sửa; quyền lớp được kiểm tra lại ở mỗi lần đọc/ghi. Dùng database/tài khoản thử, không gửi đề thử cho lớp thật. Giao theo lớp dùng assessment_class_targets và thành viên hiện tại, kể cả bạn vào sau; không suy nguồn nhận từ tên hiển thị. Xóa bài là xóa vĩnh viễn bằng xác nhận accept ở cả UI/backend; chỉ xóa dữ liệu riêng bài, không tự xóa bài thật để thử.
-
-Đợt chuẩn hóa tiếp theo đã mở rộng ra toàn bộ website theo yêu cầu chủ dự án. Dùng `src/styles/tipy-ui.css` cùng token chung, giữ bố cục gameplay ở feature riêng. TipyButton dùng cả cho quản trị và các thao tác lớp/file; quản trị kế thừa bộ token nút gọn 48 px, học sinh giữ nút chính 64 px. Chi tiết và kiểm tra được ghi trong MASTER.md. Lịch sử chơi được đặt riêng trong quản trị; không thêm lại tab này vào Tài khoản/Nhân vật.
-
-## Vai trò và phạm vi lớp
-
-Có ba vai trò tin cậy từ profiles ở backend: student, teacher, admin. Chỉ Admin tạo/khóa giáo viên và phân công qua class_teachers. Giáo viên chỉ đọc lớp/học sinh được phân công, giao bài, xem kết quả, cộng/trừ sao và loại học sinh khỏi lớp đang quản lý; chỉ quản lý bài đăng/bài kiểm tra của mình trong phạm vi hiện tại. Reset và quản lý tài khoản/lớp/game là Admin. Loại chỉ bỏ membership lớp hiện tại bằng accept, giữ tài khoản và lịch sử. Không tự thêm điểm tặng: chủ dự án đã chọn chỉ tặng sao. Xem db/teacher_roles.sql, db/classroom_hub.sql và BACKEND.md; giữ kiểm tra API/RPC/RLS/Storage, không nâng giáo viên thành Admin để tái sử dụng chức năng.
-
-## Khu vực Lớp học
-
-Trang riêng lazy `/classroom?class=<id>&tab=members|notifications|tests|messages` dùng khung visualViewport, 100dvh và cuộn nội bộ. Chỉ tải tổng quan lớp (24 thành viên/trang, Top 3 sao trong lớp tuần này) rồi tải tab khi mở. Dùng cache theo tài khoản/lớp/tab/trang, chia sẻ request đang chạy và bỏ phản hồi phiên/lớp cũ. Xem MASTER.md và BACKEND.md; không đổi quy tắc tổng sao, trần thưởng bài hoặc điểm Chữ rơi khi sửa bố cục.
-
-## Tự chọn công cụ khi làm việc với code
-
-Áp dụng cả khi người dùng giao việc bằng tiếng Việt bình thường, không gọi tên skill. Yêu cầu trực tiếp của người dùng và hướng dẫn riêng của dự án được ưu tiên hơn skill.
+Áp dụng cả khi giao việc bằng tiếng Việt, không gọi tên skill. Yêu cầu trực tiếp và hướng dẫn riêng của dự án được ưu tiên hơn skill.
 
 ### Ponytail — mặc định full
 
-- Trước khi làm việc với code, đọc skill Ponytail của repository: `.agents/skills/ponytail/SKILL.md`; nếu thiếu, dùng `C:/Users/boof1/.agents/skills/ponytail/SKILL.md` ở cấp người dùng. Áp dụng mức **full**; nếu người dùng tắt hoặc đổi mức, làm theo trong phiên đó.
-- Chọn thay đổi nhỏ nhất giải quyết đầy đủ yêu cầu; tái sử dụng component, helper, API và quy ước hiện có. Xác định nơi sử dụng và ảnh hưởng trước khi sửa, xử lý nguyên nhân chung và kiểm tra đúng phạm vi thay đổi.
-- Giữ đầy đủ kiểm tra dữ liệu, phân quyền, xử lý lỗi và khả năng truy cập; viết code dễ đọc. Không thêm thư viện hoặc lớp trừu tượng khi không cần.
+- Đọc `.agents/skills/ponytail/SKILL.md`; nếu thiếu, dùng `C:/Users/boof1/.agents/skills/ponytail/SKILL.md`. Áp dụng **full**, trừ khi người dùng tắt hoặc đổi mức trong phiên.
+- Chọn thay đổi nhỏ nhất giải quyết đầy đủ yêu cầu. Xác định nơi sử dụng/ảnh hưởng, xử lý nguyên nhân chung, tái sử dụng component/helper/API/quy ước hiện có; giữ validation, quyền, xử lý lỗi và khả năng truy cập. Không thêm thư viện hoặc lớp trừu tượng không cần thiết.
 
 ### Graphify — khi cần hiểu nhiều file
 
-- Trước khi làm việc, kiểm tra Graphify bằng `npm run graphify -- setup`. Dùng launcher cục bộ `scripts/graphify.mjs`, môi trường `.tools/graphify` và phiên bản trong `scripts/graphify-requirements.txt`; không phụ thuộc lệnh `graphify` hoặc alias Python trong PATH. Nếu thiếu hoặc lỗi, thông báo nguyên nhân/cách khắc phục trước, rồi tự cài hoặc sửa trong phạm vi dự án theo ủy quyền của chủ dự án, không hỏi lại. Chỉ báo hoạt động sau khi chạy thử một truy vấn thành công.
-- Đọc `.codex/skills/graphify/SKILL.md` hiện có; nếu vị trí cài thay đổi, kiểm tra `.agents/skills/graphify/SKILL.md`. Tự dùng khi lần theo frontend → API → database, tìm request lặp, tìm nơi sử dụng hàm hoặc đánh giá ảnh hưởng qua nhiều file. Với việc nhỏ đã biết vị trí (ví dụ đổi nhãn nút), mở trực tiếp file liên quan.
-- Bắt đầu bằng `npm run graphify -- query "<từ khóa>" --budget 1500`; chuyển câu hỏi tiếng Việt thành từ khóa trong code (ví dụ bài kiểm tra → `assessment`). Nếu tên bị trùng, dùng `đường/dẫn/file::symbol` hoặc `--seed <node-id>` từ kết quả công cụ. Mở rộng khi cần; dùng các lệnh `path` hoặc `explain` qua cùng launcher để lần quan hệ. Đối chiếu kết quả với mã nguồn trước khi sửa; đồ thị không chứng minh được số request thực tế lúc chạy.
-- Dùng lại `graphify-out/` giữa các phiên. Trước khi dựa vào đồ thị, kiểm tra manifest/trạng thái build và các file liên quan đã đổi từ lần tạo gần nhất; không chỉ dựa vào thời gian của `graph.json`. Chạy `npm run graphify -- update .` khi tạo lần đầu hoặc khi file liên quan thay đổi, kể cả sau khi sửa code. Launcher đổi dấu chấm thành đường dẫn tuyệt đối để tránh lỗi Windows quét nhầm thư mục. Kiểm tra log và dữ liệu đầu ra, không coi mã thoát 0 là bằng chứng nếu quét 0 file. File đồ thị chưa commit không phải lý do bỏ qua công cụ.
-- Nếu sau khi sửa vẫn lỗi, ghi rõ tình trạng rồi tiếp tục bằng `rg` cùng mã nguồn để không dừng công việc. Dùng wiki nếu có để điều hướng rộng; chỉ đọc `graphify-out/GRAPH_REPORT.md` khi cần tổng quan hoặc truy vấn hẹp chưa đủ.
-- Sandbox Windows có thể in `Failed to find real location ... python.exe` dù truy vấn vẫn trả kết quả và mã thoát 0. Đã đối chiếu ngoài sandbox không có cảnh báo này; không lặp cài đặt chỉ vì dòng cảnh báo, vẫn kiểm tra kết quả truy vấn thực tế.
-- Graphify chỉ là công cụ phát triển: không thêm vào mã chạy website, dependency runtime hay build Vercel. Giữ đồ thị để tái sử dụng; không tạo lại toàn bộ nếu cập nhật tăng dần đủ dùng.
+- Kiểm tra trước bằng `npm run graphify -- setup`. Dùng launcher `scripts/graphify.mjs`, môi trường `.tools/graphify` và phiên bản trong `scripts/graphify-requirements.txt`, không phụ thuộc alias Python hoặc lệnh toàn cục. Nếu thiếu/lỗi, báo nguyên nhân và cách sửa trước, rồi tự cài/sửa trong phạm vi dự án theo ủy quyền hiện có; không hỏi lại. Chỉ xác nhận hoạt động sau một truy vấn thành công.
+- Đọc `.codex/skills/graphify/SKILL.md`; nếu vị trí đổi, kiểm tra `.agents/skills/graphify/SKILL.md`. Dùng khi lần frontend → API → database, tìm request lặp/nơi dùng hàm hoặc đánh giá ảnh hưởng nhiều file. Việc nhỏ đã biết vị trí thì mở file trực tiếp.
+- Bắt đầu `npm run graphify -- query "<từ khóa>" --budget 1500`; đổi câu hỏi tiếng Việt sang thuật ngữ code, ví dụ bài kiểm tra → `assessment`. Nếu trùng tên, dùng đường dẫn/symbol hoặc `--seed <node-id>`; thu hẹp trước, mở rộng khi cần, dùng `path`/`explain` qua launcher. Đối chiếu mã nguồn trước khi sửa; đồ thị không chứng minh số request thực tế.
+- Tái sử dụng `graphify-out/`. Trước khi dựa vào đồ thị, kiểm tra manifest/trạng thái build và file liên quan đã đổi, không chỉ mtime của `graph.json`. Chạy `npm run graphify -- update .` khi tạo lần đầu hoặc nguồn liên quan đã đổi; kiểm tra log/kết quả, không coi quét 0 file là thành công. Launcher chuẩn hóa đường dẫn Windows; đồ thị chưa commit không phải lý do bỏ qua công cụ.
+- Nếu vẫn lỗi sau sửa, nói rõ rồi dùng `rg`/mã nguồn để tiếp tục. Dùng wiki để điều hướng rộng; chỉ đọc `graphify-out/GRAPH_REPORT.md` khi cần tổng quan hoặc truy vấn hẹp chưa đủ. Cảnh báo sandbox Windows `Failed to find real location ... python.exe` không tự chứng minh lệnh hỏng: kiểm tra mã thoát và kết quả, không cài lại chỉ vì cảnh báo đó.
+- Graphify chỉ dùng khi phát triển; không thêm vào runtime website, dependency runtime hoặc build Vercel, không tạo lại toàn bộ khi cập nhật tăng dần đủ dùng.

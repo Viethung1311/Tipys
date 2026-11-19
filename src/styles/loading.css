@@ -7,14 +7,14 @@
   flex-direction: column;
   gap: 20px;
   padding: 28px;
-  color: #75432c;
-  background: #fff9ef;
-  border-radius: 20px;
+  color: var(--tipy-text);
+  background: var(--tipy-surface);
+  border-radius: var(--tipy-card-radius);
   box-sizing: border-box;
 }
 .tipy-loading p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--tipy-content-size);
 }
 .loading-fullscreen {
   position: fixed;
@@ -34,10 +34,10 @@
   width: 56px;
   height: 60px;
   border-radius: 15px;
-  background: #ffc86b;
-  color: #a5681c;
-  font: 900 34px/1 sans-serif;
-  box-shadow: 0 5px 0 #e6ab4b;
+  background: var(--tipy-gold);
+  color: var(--tipy-text);
+  font: 900 34px/1 var(--tipy-font-family);
+  box-shadow: 0 5px 0 var(--tipy-border);
   animation: tipy-a-spin 1.5s linear infinite;
 }
 .loading-key::after {

@@ -5,11 +5,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--tipy-space-3);
+  gap: var(--tipy-space-2);
   min-height: var(--tipy-button-height);
   min-width: 156px;
   max-width: 100%;
-  padding: 14px var(--tipy-space-5);
+  padding: 12px var(--tipy-space-4);
   border: 0;
   border-radius: var(--tipy-button-radius);
   color: var(--tipy-on-action);
@@ -34,18 +34,18 @@
   --button-base: var(--tipy-play-base);
 }
 .tipy-button--secondary {
-  color: var(--button-end);
+  color: var(--tipy-text);
   background: var(--tipy-surface-raised);
-  border: 2px solid currentColor;
+  border: 2px solid var(--button-start);
 }
 .tipy-button--secondary:hover:not(:disabled) {
   background: var(--tipy-surface);
   filter: none;
 }
 .tipy-button__icon {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
+  width: var(--tipy-button-icon-size);
+  height: var(--tipy-button-icon-size);
+  flex: 0 0 var(--tipy-button-icon-size);
 }
 .tipy-button__label {
   min-width: 0;
@@ -82,8 +82,8 @@
   gap: var(--tipy-space-4);
 }
 .start-row .tipy-button__icon {
-  width: 30px;
-  height: 30px;
+  width: var(--tipy-button-icon-size);
+  height: var(--tipy-button-icon-size);
 }
 /* Leave room for the depth and focus ring, including when cards stack on phones. */
 .welcome-class > .tipy-button {
@@ -113,4 +113,21 @@
   --tipy-learn: var(--tipy-danger);
   --tipy-learn-end: var(--tipy-danger);
   --tipy-learn-base: var(--tipy-danger);
+}
+/* Vocabulary retains its existing controls while the other screens adopt the design system. */
+.vocabulary-page {
+  --tipy-button-height: 64px;
+  --tipy-button-font-size: 22px;
+  --tipy-button-icon-size: 30px;
+}
+.vocabulary-page .tipy-button {
+  gap: 12px;
+  padding: 14px 24px;
+}
+.vocabulary-page .tipy-button--secondary {
+  color: var(--button-end);
+  border-color: currentColor;
+}
+.vocabulary-page .tipy-button__icon {
+  stroke-width: 2.4;
 }

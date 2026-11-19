@@ -18,9 +18,9 @@ body.classroom-active .notification-bell {
   z-index: 30;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
-    max(16px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  gap: var(--tipy-space-5);
+  padding: max(32px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right))
+    max(32px, env(safe-area-inset-bottom)) max(32px, env(safe-area-inset-left));
   background: var(--tipy-surface);
   color: var(--tipy-text);
   font-family: var(--tipy-font-family);
@@ -51,9 +51,12 @@ body.classroom-active .notification-bell {
   text-align: center;
 }
 .hub-class-picker {
-  max-width: min(40vw, 340px);
+  width: 260px;
+  max-width: 40vw;
 }
 .hub-class-picker > .tipy-button {
+  width: 100%;
+  border-radius: var(--tipy-input-radius);
   max-width: 100%;
 }
 .hub-class-picker .tipy-button > span {
@@ -72,16 +75,16 @@ body.classroom-active .notification-bell {
   min-height: 0;
   flex: 1;
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: var(--tipy-space-5);
 }
 .hub-body.is-overview {
   display: block;
 }
 .hub-overview {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(290px, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 420px);
+  gap: var(--tipy-space-5);
   height: 100%;
   min-height: 0;
 }
@@ -95,7 +98,7 @@ body.classroom-active .notification-bell {
 .hub-members {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: var(--tipy-space-5);
   min-height: 0;
 }
 .hub-panel-heading {
@@ -140,7 +143,7 @@ body.classroom-active .notification-bell {
 }
 .hub-member-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
   list-style: none;
   gap: 22px 12px;
@@ -154,7 +157,7 @@ body.classroom-active .notification-bell {
   gap: 6px;
   text-align: center;
   min-width: 0;
-  font-size: 20px;
+  font-size: 18px;
 }
 .hub-member-grid li > b {
   max-width: 100%;
@@ -166,12 +169,12 @@ body.classroom-active .notification-bell {
 }
 .classroom-hub .student-avatar {
   display: flex;
-  width: 88px;
-  height: 88px;
+  width: var(--tipy-avatar-size);
+  height: var(--tipy-avatar-size);
   aspect-ratio: 1;
   padding: 7px;
   border: 2px solid var(--tipy-border);
-  border-radius: 22px;
+  border-radius: var(--tipy-card-radius);
   background: var(--tipy-learn-soft);
   align-items: center;
   justify-content: center;
@@ -187,10 +190,10 @@ body.classroom-active .notification-bell {
 .classroom-hub .tipy-avatar-trigger {
   display: block;
   padding: 0 !important;
-  width: 88px;
-  min-width: 88px;
-  height: 88px;
-  min-height: 88px;
+  width: var(--tipy-avatar-size);
+  min-width: var(--tipy-avatar-size);
+  height: var(--tipy-avatar-size);
+  min-height: var(--tipy-avatar-size);
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -214,7 +217,7 @@ body.classroom-active .notification-bell {
   align-items: center;
   padding: 20px 12px 12px;
   min-height: 0;
-  flex: 1;
+  flex: 0 1 auto;
   overflow: auto;
   text-align: center;
 }
@@ -228,7 +231,8 @@ body.classroom-active .notification-bell {
   color: var(--tipy-text-muted);
 }
 .hub-podium-places {
-  flex: 1;
+  flex: 0 0 auto;
+  min-height: 252px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -244,7 +248,7 @@ body.classroom-active .notification-bell {
   min-width: 0;
 }
 .hub-place .student-avatar {
-  width: clamp(48px, 5vw, 76px);
+  width: 64px;
   height: auto;
   border-radius: 18px;
 }
@@ -258,6 +262,7 @@ body.classroom-active .notification-bell {
   gap: 4px;
   align-items: center;
   font-weight: 800;
+  color: var(--tipy-play);
 }
 .hub-place > strong {
   display: flex;
@@ -265,20 +270,18 @@ body.classroom-active .notification-bell {
   align-items: center;
   font-size: 34px;
   line-height: 1;
-  background: var(--tipy-learn-soft);
-  color: var(--tipy-learn-base);
+  background: var(--tipy-gold);
+  color: var(--tipy-text);
   width: 100%;
-  height: clamp(46px, 9vh, 100px);
-  border-top: 3px solid var(--tipy-learn);
+  height: 52px;
+  border-top: 0;
   border-radius: 10px 10px 0 0;
 }
 .hub-place.rank-1 > strong {
-  height: clamp(90px, 17vh, 170px);
-  background: var(--tipy-learn);
-  color: var(--tipy-on-action);
+  height: 104px;
 }
 .hub-place.rank-2 > strong {
-  height: clamp(66px, 12vh, 128px);
+  height: 78px;
 }
 .hub-overview-nav {
   display: grid;
@@ -302,12 +305,13 @@ body.classroom-active .notification-bell {
 .hub-tabs .tipy-button {
   width: 100%;
   padding-inline: 10px;
-  font-size: 19px;
+  font-size: 18px;
+  border-radius: var(--tipy-input-radius);
 }
 .hub-content {
   background: var(--tipy-surface-raised);
   border: 1px solid var(--tipy-border);
-  padding: clamp(16px, 3vw, 32px);
+  padding: var(--tipy-space-5);
   box-shadow: var(--tipy-card-shadow);
   border-radius: var(--tipy-card-radius);
 }
@@ -331,12 +335,13 @@ body.classroom-active .notification-bell {
   padding: 0;
 }
 .hub-content .notification-list li {
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: var(--tipy-card-radius);
+  border: 1px solid var(--tipy-border);
+  padding: var(--tipy-space-4);
   margin-bottom: 16px;
-  background: var(--tipy-learn-soft);
+  background: var(--tipy-surface-raised);
 }
-.hub-content .notification-list li[data-kind='assessment'] {
+.hub-content .notification-list li.is-new {
   background: var(--tipy-play-soft);
 }
 .hub-pages {
@@ -407,9 +412,18 @@ body.classroom-active .notification-bell {
   flex-wrap: wrap;
   margin-bottom: 20px;
 }
+@media (min-width: 721px) and (max-width: 1000px) {
+  .hub-overview {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+  .hub-member-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 @media (max-width: 720px) {
   .classroom-hub {
-    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     gap: 12px;
   }
   .hub-toolbar {
@@ -439,29 +453,29 @@ body.classroom-active .notification-bell {
     padding-bottom: 4px;
   }
   .hub-member-grid {
-    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px 6px;
     padding: 8px 4px;
   }
   .classroom-hub .student-avatar,
   .classroom-hub .tipy-avatar-trigger {
-    width: 68px;
-    height: 68px;
-    min-height: 68px;
-    min-width: 68px;
-    border-radius: 18px;
+    width: clamp(60px, 20vw, 80px);
+    height: clamp(60px, 20vw, 80px);
+    min-height: 0;
+    min-width: 0;
+    border-radius: var(--tipy-card-radius);
   }
   .hub-member-grid li {
     font-size: 18px;
   }
   .hub-aside {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 106px;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
   .hub-podium {
-    padding: 6px;
-    max-height: 220px;
+    padding: 12px;
+    height: min(278px, 34dvh);
   }
   .hub-podium h2 {
     font-size: 20px;
@@ -478,15 +492,17 @@ body.classroom-active .notification-bell {
   }
   .hub-podium-places {
     padding-top: 6px;
+    min-height: 0;
+    flex: 1;
   }
   .hub-place {
     gap: 2px;
   }
   .hub-place .student-avatar {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     padding: 3px;
     border-radius: 12px;
   }
@@ -499,23 +515,23 @@ body.classroom-active .notification-bell {
     line-height: 1.2;
   }
   .hub-place > strong {
-    height: 28px;
+    height: 36px;
     font-size: 24px;
   }
   .hub-place.rank-1 > strong {
-    height: 44px;
+    height: 64px;
   }
   .hub-place.rank-2 > strong {
-    height: 32px;
+    height: 50px;
   }
   .hub-overview-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
     justify-content: center;
   }
   .hub-overview-nav .tipy-button {
-    --tipy-button-height: 52px;
+    --tipy-button-height: 64px;
     --tipy-button-font-size: 16px;
     flex-direction: row;
     padding: 8px 5px;
@@ -557,6 +573,30 @@ body.classroom-active .notification-bell {
   .hub-content {
     flex: 1;
     padding: 16px 12px;
+  }
+}
+@media (max-height: 700px) and (max-width: 720px) {
+  .hub-podium {
+    padding: 8px;
+    height: 204px;
+  }
+  .hub-podium h2 {
+    font-size: 18px;
+  }
+  .hub-place .student-avatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+  .hub-place > strong {
+    height: 26px;
+  }
+  .hub-place.rank-1 > strong {
+    height: 40px;
+  }
+  .hub-place.rank-2 > strong {
+    height: 30px;
   }
 }
 @media (max-height: 520px) and (min-width: 600px) {
@@ -607,6 +647,7 @@ body.classroom-active .notification-bell {
   }
   .hub-podium-places {
     padding-top: 5px;
+    min-height: 0;
   }
   .hub-place .student-avatar {
     width: 32px;

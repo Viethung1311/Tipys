@@ -86,6 +86,23 @@
 .panel {
   min-width: 0;
 }
+:is(.tipy-modal-body, .table-scroll, .report-scroll, .tipy-action-menu) {
+  scrollbar-color: var(--tipy-learn) var(--tipy-learn-soft);
+  scrollbar-gutter: stable;
+}
+:is(.tipy-modal-body, .table-scroll, .report-scroll, .tipy-action-menu)::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+:is(.tipy-modal-body, .table-scroll, .report-scroll, .tipy-action-menu)::-webkit-scrollbar-track {
+  background: var(--tipy-learn-soft);
+  border-radius: 14px;
+}
+:is(.tipy-modal-body, .table-scroll, .report-scroll, .tipy-action-menu)::-webkit-scrollbar-thumb {
+  background: var(--tipy-learn);
+  border: 3px solid var(--tipy-learn-soft);
+  border-radius: 14px;
+}
 .selection-info {
   flex-wrap: wrap;
   gap: 12px;
@@ -132,7 +149,7 @@ body {
   --tipy-small-size: 14px;
   --tipy-button-height: 48px;
   --tipy-button-font-size: 16px;
-  --tipy-button-radius: 16px;
+  --tipy-button-radius: 24px;
   --tipy-button-depth: 3px;
   --tipy-button-travel: 2px;
   --tipy-button-pressed-depth: 1px;
@@ -312,14 +329,18 @@ label.class-select {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  min-height: 48px;
-  padding: 12px 14px;
+  min-height: 52px;
+  padding: 12px 16px;
   border: 1px solid var(--tipy-border);
   border-radius: var(--tipy-input-radius);
   background: var(--tipy-surface-raised);
   color: var(--tipy-text);
   font: inherit;
   line-height: 1.5;
+}
+.quest-page.vocabulary-page select {
+  min-height: 48px;
+  padding: 12px 14px;
 }
 :is(.account-form, .class-create, .roster-filters, .history-filters, .speed-grid, .class-select)
   :is(input, textarea, select):focus-visible {
@@ -391,9 +412,9 @@ label.class-select {
   padding: 10px 16px;
 }
 .admin-shell .tipy-button__icon {
-  width: 22px;
-  height: 22px;
-  flex-basis: 22px;
+  width: var(--tipy-button-icon-size);
+  height: var(--tipy-button-icon-size);
+  flex-basis: var(--tipy-button-icon-size);
 }
 .class-attachment .tipy-button {
   min-width: 0;
@@ -588,8 +609,11 @@ label.class-select {
   flex-basis: 44px;
 }
 .class-post .post-body {
-  font-size: 19px;
-  line-height: 1.7;
+  font-size: 20px;
+  line-height: 1.6;
+}
+.class-post h2 {
+  font-size: var(--tipy-section-size);
 }
 .class-feed-title {
   font-size: 28px;
@@ -632,7 +656,7 @@ label.class-select {
   color: var(--tipy-text);
 }
 .dialog-viewport .modal h2 {
-  font-size: var(--tipy-heading-size);
+  font-size: var(--tipy-section-size);
 }
 .dialog-viewport .modal p,
 .dialog-viewport .account-form label {

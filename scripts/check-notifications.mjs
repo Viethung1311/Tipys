@@ -1,4 +1,4 @@
-/** Real HTTP/SSE + API + isolated PGlite. Only Realtime delivery is a local event bus. */
+/** Real notifications HTTP/SSE + isolated PGlite; class overview is a fixture. */
 import { createServer } from 'node:http';
 import { EventEmitter } from 'node:events';
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -47,6 +47,11 @@ const backend = {
         [profile.user_id],
       )
     ).rows,
+  async classroomHub(profile, { classId }) {
+    const classroom = (await this.classes(profile)).find((c) => c.class_id === classId);
+    if (!classroom) throw new ApiError(403, 'Bạn không thuộc lớp này.');
+    return { classroom, members: [], top: [], total: 0, page: 1, pages: 1, canManage: false };
+  },
   avatar: async () => ({ animal: 'icon_01' }),
   start: async () => ({ play_id: id(999) }),
   progress: async () => ({ saved: true }),
@@ -141,7 +146,8 @@ try {
     await context.addInitScript(() => {
       window.__speech = [];
       window.addEventListener('tipy-companion-speech', (e) => {
-        if (e.detail.startsWith('notification_')) window.__speech.push(e.detail);
+        const group = typeof e.detail === 'string' ? e.detail : e.detail?.group;
+        if (group?.startsWith('notification_')) window.__speech.push(group);
       });
     });
     const page = await context.newPage(),
@@ -222,7 +228,9 @@ try {
     await page.locator('.assessment-summary').waitFor();
     assert.match(await page.locator('.assessment-summary').innerText(), /Chưa đến giờ/);
     assert.match(await page.locator('.assessment-summary').innerText(), /Thầy Hùng/);
-    await page.getByRole('button', { name: 'Trang chủ', exact: true }).click();
+    await page.locator('.hub-toolbar').getByRole('button', { name: 'Trở về', exact: true }).click();
+    await page.locator('.hub-member-grid').waitFor();
+    await page.locator('.hub-toolbar').getByRole('button', { name: 'Trở về', exact: true }).click();
     await page.waitForTimeout(300);
     // Hide the companion before delivery, then show it again: old history must not speak.
     await page.evaluate(
@@ -233,7 +241,13 @@ try {
         ),
       id(1),
     );
-    await page.reload();
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url().includes('/api/notification-events') && response.status() === 200,
+      ),
+      page.reload(),
+    ]);
     await bell().waitFor();
     assert.equal(await page.locator('.tipy-companion').count(), 0);
     await f.gift(id(2000 + width), 3);
@@ -273,10 +287,14 @@ try {
     await page.waitForTimeout(3500);
     await f.gift(id(3000 + width), 2);
     notify();
-    await page.getByRole('button', { name: 'Thông báo, 1 chưa xem', exact: true }).waitFor();
+    await page.waitForFunction(
+      () => document.querySelector('.notification-count')?.textContent === '1',
+    );
     assert.equal(await dialog.count(), 0);
     assert.equal(await page.evaluate(() => window.__speech.length), 0);
-    await page.getByRole('button', { name: 'Trang chủ', exact: true }).click();
+    await page.getByRole('button', { name: 'Tạm dừng', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Quay lại', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Quay lại', exact: true }).click();
     await dialog.waitFor();
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.__speech.length === 1);

@@ -85,7 +85,11 @@ export default function ClassNotifications({ user, classId, cache, active, onVie
         <>
           <ul className="notification-list">
             {data.items.map((n) => (
-              <li key={n.notification_id} data-kind={n.kind}>
+              <li
+                key={n.notification_id}
+                data-kind={n.kind}
+                className={n.presented_at ? undefined : 'is-new'}
+              >
                 <small>
                   {n.presented_at ? 'Đã xem' : 'Mới'} ·{' '}
                   {new Date(n.created_at).toLocaleString('vi-VN')}
