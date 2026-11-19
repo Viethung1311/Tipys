@@ -71,6 +71,10 @@ Bài kiểm tra dùng module `src/features/assessments`, SQL `db/assessments.sql
 
 Đợt chuẩn hóa tiếp theo đã mở rộng ra toàn bộ website theo yêu cầu chủ dự án. Dùng `src/styles/tipy-ui.css` cùng token chung, giữ bố cục gameplay ở feature riêng. TipyButton dùng cả cho quản trị và các thao tác lớp/file; quản trị kế thừa bộ token nút gọn 48 px, học sinh giữ nút chính 64 px. Chi tiết và kiểm tra được ghi trong MASTER.md. Lịch sử chơi được đặt riêng trong quản trị; không thêm lại tab này vào Tài khoản/Nhân vật.
 
+## Vai trò và phạm vi lớp
+
+Có ba vai trò tin cậy từ profiles ở backend: student, teacher, admin. Chỉ Admin tạo/khóa giáo viên và phân công qua class_teachers. Giáo viên chỉ đọc lớp/học sinh được phân công, giao bài, xem kết quả và tặng sao; chỉ quản lý bài đăng/bài kiểm tra của mình trong phạm vi hiện tại. Reset, trừ sao, quản lý tài khoản/lớp/game là Admin. Không tự thêm điểm tặng: chủ dự án đã chọn chỉ tặng sao. Xem db/teacher_roles.sql và BACKEND.md; giữ kiểm tra API/RPC/RLS/Storage, không nâng giáo viên thành Admin để tái sử dụng chức năng.
+
 ## Tự chọn công cụ khi làm việc với code
 
 Áp dụng cả khi người dùng giao việc bằng tiếng Việt bình thường, không gọi tên skill. Yêu cầu trực tiếp của người dùng và hướng dẫn riêng của dự án được ưu tiên hơn skill.

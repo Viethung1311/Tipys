@@ -102,6 +102,7 @@ function Recipients({ draft, setDraft, classes, busy }) {
               </label>
             ))}
           </div>
+          {data && !data.students.length && <p>Không có học sinh phù hợp.</p>}
           {data && <Pagination {...data} onPage={setPage} disabled={busy} />}
         </>
       )}
@@ -229,7 +230,7 @@ export default function AdminAssessments({ classes = [] }) {
               <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
                 Danh sách
               </TipyButton>
-              {preview.status === 'draft' ? (
+              {preview.status === 'draft' && preview.can_manage !== false ? (
                 <>
                   <TipyButton
                     icon={Save}
@@ -290,15 +291,17 @@ export default function AdminAssessments({ classes = [] }) {
                   Xem kết quả
                 </TipyButton>
               )}
-              <TipyButton
-                icon={Trash2}
-                variant="danger"
-                emphasis="secondary"
-                disabled={busy}
-                onClick={() => requestDelete(preview)}
-              >
-                Xóa vĩnh viễn
-              </TipyButton>
+              {preview.can_manage !== false && (
+                <TipyButton
+                  icon={Trash2}
+                  variant="danger"
+                  emphasis="secondary"
+                  disabled={busy}
+                  onClick={() => requestDelete(preview)}
+                >
+                  Xóa vĩnh viễn
+                </TipyButton>
+              )}
             </div>
           </AssessmentSummary>
         </>
@@ -576,7 +579,7 @@ export default function AdminAssessments({ classes = [] }) {
                     Xem kết quả
                   </TipyButton>
                 )}
-                {
+                {exam.can_manage !== false && (
                   <TipyButton
                     icon={Trash2}
                     variant="danger"
@@ -586,7 +589,7 @@ export default function AdminAssessments({ classes = [] }) {
                   >
                     Xóa vĩnh viễn
                   </TipyButton>
-                }
+                )}
               </div>
             </article>
           ))}

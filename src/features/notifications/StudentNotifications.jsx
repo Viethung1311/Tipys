@@ -126,12 +126,24 @@ export default function StudentNotifications({
     )
       return;
     const kinds = new Set(claimed.map((n) => n.kind));
+    const teachers = [
+      ...new Set(
+        claimed.filter((n) => n.kind === 'star_gift').map((n) => n.payload.teacher || TEACHER_NAME),
+      ),
+    ];
     companionSay(
       kinds.size > 1
         ? 'notification_batch'
         : kinds.has('assessment')
           ? 'notification_assessment'
           : 'notification_gift',
+      !teachers.length
+        ? undefined
+        : teachers.length === 1
+          ? teachers[0] === TEACHER_NAME
+            ? undefined
+            : teachers[0]
+          : 'thầy cô',
     );
   };
   return (
@@ -187,7 +199,7 @@ export default function StudentNotifications({
                 <h3>
                   {n.kind === 'assessment'
                     ? n.payload.title
-                    : `${TEACHER_NAME} tặng em ${n.payload.amount} sao!`}
+                    : `${n.payload.teacher || TEACHER_NAME} tặng em ${n.payload.amount} sao!`}
                 </h3>
                 {n.kind === 'star_gift' && n.payload.message && <p>{n.payload.message}</p>}
                 {n.kind === 'assessment' && (

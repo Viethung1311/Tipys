@@ -24,6 +24,14 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
     [error, setError] = useState(''),
     [saving, setSaving] = useState(false),
     [hasMore, setHasMore] = useState(false);
+  const allowedKey = classes.map((c) => c.class_id).join(',');
+  useEffect(() => {
+    if (!classes.some((c) => c.class_id === classId)) {
+      setDetail(null);
+      setStarTarget(null);
+      setClassId(classes[0]?.class_id || '');
+    }
+  }, [allowedKey, classId]);
   const latestClassId = useRef(classId);
   latestClassId.current = classId;
   useEffect(() => {
@@ -107,7 +115,8 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
         <div className="page-title">
           <span className="eyebrow">GÓC LỚP HỌC Zunimo</span>
           <h1>
-            Lớp học của mình<span>.</span>
+            {user.role === 'teacher' ? 'Lớp của tôi' : 'Lớp học của mình'}
+            <span>.</span>
           </h1>
           <p>Cùng học, cùng khám phá và nhận bài từ thầy cô.</p>
         </div>
@@ -123,7 +132,11 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
       ) : !classes.length ? (
         <section className="panel">
           <h2>Chưa có lớp học</h2>
-          <p>Giáo viên sẽ thêm tài khoản của bạn vào lớp. Bạn vẫn có thể luyện gõ chữ nhé!</p>
+          <p>
+            {user.role === 'teacher'
+              ? 'Bạn chưa được phân công lớp.'
+              : 'Giáo viên sẽ thêm tài khoản của bạn vào lớp. Bạn vẫn có thể luyện gõ chữ nhé!'}
+          </p>
         </section>
       ) : (
         <>
@@ -140,159 +153,177 @@ export default function ClassroomPage({ user, classes: availableClasses, cache, 
               ))}
             </select>
           </label>
-          {detail && detail.classroom.class_id === classId && (
-            <>
-              <Reveal key={`roster-${classId}`}>
-                <div className="classroom-layout">
-                  <section className="panel classroom-board" aria-labelledby="class-roster-heading">
-                    <div className="classroom-board-heading">
-                      <div>
-                        <span className="eyebrow">LỚP HỌC CỦA CHÚNG MÌNH</span>
-                        <h2 id="class-roster-heading">{detail.classroom.name}</h2>
+          {detail &&
+            detail.classroom.class_id === classId &&
+            classes.some((c) => c.class_id === classId) && (
+              <>
+                <Reveal key={`roster-${classId}`}>
+                  <div className="classroom-layout">
+                    <section
+                      className="panel classroom-board"
+                      aria-labelledby="class-roster-heading"
+                    >
+                      <div className="classroom-board-heading">
+                        <div>
+                          <span className="eyebrow">LỚP HỌC CỦA CHÚNG MÌNH</span>
+                          <h2 id="class-roster-heading">{detail.classroom.name}</h2>
+                        </div>
+                        <span className="class-count">{detail.members.length} học sinh</span>
                       </div>
-                      <span className="class-count">{detail.members.length} học sinh</span>
-                    </div>
-                    <ul className="class-desks" aria-label="Các học sinh trong lớp">
-                      {detail.members.map((member, index) => (
-                        <li
-                          className={`student-desk ${member.user_id === user.user_id ? 'own-desk' : ''}`}
-                          key={member.user_id}
-                          title={member.name}
-                        >
-                          <span className="seat-number">{String(index + 1).padStart(2, '0')}</span>
-                          {user.role === 'admin' && detail.canManage && member.username ? (
-                            <ActionMenu
-                              label="Thao tác sao"
-                              description={member.name}
-                              items={[
-                                {
-                                  label: 'Tặng sao',
-                                  icon: Star,
-                                  onClick: () =>
-                                    setStarTarget({
-                                      kind: 'gift',
-                                      student: { ...member, full_name: member.name },
-                                    }),
-                                },
-                                {
-                                  label: 'Trừ sao',
-                                  icon: StarOff,
-                                  onClick: () =>
-                                    setStarTarget({
-                                      kind: 'deduct',
-                                      student: { ...member, full_name: member.name },
-                                    }),
-                                },
-                              ]}
-                            >
-                              <Avatar value={member.avatar} name={member.name} />
-                            </ActionMenu>
-                          ) : (
-                            <Avatar
-                              value={
-                                member.user_id === user.user_id
-                                  ? avatarOverride || member.avatar
-                                  : member.avatar
-                              }
-                              name={member.name}
-                            />
-                          )}
-                          <b>{member.name}</b>
-                          {member.user_id === user.user_id && (
-                            <span className="own-seat-label">Bạn</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                    {!detail.members.length && (
-                      <p className="empty-desks">Giáo viên đang chuẩn bị chỗ ngồi cho lớp.</p>
-                    )}
-                  </section>
-                  <ClassAchievements
-                    classId={classId}
-                    user={user}
-                    avatarOverride={avatarOverride}
-                  />
-                </div>
-              </Reveal>
-              {user.role === 'admin' && (
-                <Suspense fallback={<Loading label="Đang mở báo cáo…" />}>
-                  <ClassQuestReport key={`quest-report-${classId}`} classId={classId} />
-                </Suspense>
-              )}
-              {user.role === 'admin' && (
-                <PostComposer key={`composer-${classId}`} classId={classId} onPosted={refresh} />
-              )}
-              <h2 className="class-feed-title">📚 Bảng tin & bài học</h2>
-              {!detail.posts.length && (
-                <section className="panel">
-                  <p>Chưa có bài đăng. Bài của giáo viên sẽ xuất hiện ở đây.</p>
-                </section>
-              )}
-              {detail.posts.map((post) => (
-                <Reveal key={post.post_id}>
-                  <article className="panel class-post">
-                    <small>
-                      👩‍🏫 {TEACHER_NAME} · {new Date(post.created_at).toLocaleString('vi-VN')}
-                    </small>
-                    <h2>{post.title}</h2>
-                    <p className="post-body">{post.body}</p>
-                    {post.link && (
-                      <a
-                        className="lesson-link"
-                        href={post.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        🔗 Mở link bài học ↗
-                      </a>
-                    )}
-                    {post.class_attachments.map((file) => (
-                      <Attachment key={file.attachment_id} file={file} />
-                    ))}
-                    {user.role === 'admin' && (
-                      <button
-                        className="text-button"
-                        disabled={saving}
-                        onClick={() =>
-                          run(async () => {
-                            await api('post_archive', { postId: post.post_id });
-                            await refresh();
-                          })
-                        }
-                      >
-                        Gỡ bài khỏi bảng tin
-                      </button>
-                    )}
-                  </article>
+                      <ul className="class-desks" aria-label="Các học sinh trong lớp">
+                        {detail.members.map((member, index) => (
+                          <li
+                            className={`student-desk ${member.user_id === user.user_id ? 'own-desk' : ''}`}
+                            key={member.user_id}
+                            title={member.name}
+                          >
+                            <span className="seat-number">
+                              {String(index + 1).padStart(2, '0')}
+                            </span>
+                            {['admin', 'teacher'].includes(user.role) &&
+                            detail.canManage &&
+                            member.username ? (
+                              <ActionMenu
+                                label="Thao tác sao"
+                                description={member.name}
+                                items={[
+                                  {
+                                    label: 'Tặng sao',
+                                    icon: Star,
+                                    onClick: () =>
+                                      setStarTarget({
+                                        kind: 'gift',
+                                        student: { ...member, full_name: member.name },
+                                      }),
+                                  },
+                                  {
+                                    label: 'Trừ sao',
+                                    icon: StarOff,
+                                    onClick: () =>
+                                      setStarTarget({
+                                        kind: 'deduct',
+                                        student: { ...member, full_name: member.name },
+                                      }),
+                                  },
+                                ].filter(
+                                  (item) => user.role === 'admin' || item.label === 'Tặng sao',
+                                )}
+                              >
+                                <Avatar value={member.avatar} name={member.name} />
+                              </ActionMenu>
+                            ) : (
+                              <Avatar
+                                value={
+                                  member.user_id === user.user_id
+                                    ? avatarOverride || member.avatar
+                                    : member.avatar
+                                }
+                                name={member.name}
+                              />
+                            )}
+                            <b>{member.name}</b>
+                            {member.user_id === user.user_id && (
+                              <span className="own-seat-label">Bạn</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      {!detail.members.length && (
+                        <p className="empty-desks">Giáo viên đang chuẩn bị chỗ ngồi cho lớp.</p>
+                      )}
+                    </section>
+                    <ClassAchievements
+                      classId={classId}
+                      user={user}
+                      avatarOverride={avatarOverride}
+                    />
+                  </div>
                 </Reveal>
-              ))}
-              {hasMore && (
-                <TipyButton
-                  emphasis="secondary"
-                  icon={BookOpen}
-                  disabled={saving}
-                  onClick={() =>
-                    run(async () => {
-                      cache.delete(user.user_id + ':' + classId);
-                      const next = await api('class_posts', undefined, {
-                        classId,
-                        offset: detail.posts.length,
-                      });
-                      if (latestClassId.current !== classId) return;
-                      setDetail((previous) => ({
-                        ...previous,
-                        posts: [...previous.posts, ...next.posts],
-                      }));
-                      setHasMore(next.posts.length === 20);
-                    })
-                  }
-                >
-                  Xem bài cũ hơn
-                </TipyButton>
-              )}
-            </>
-          )}
+                {['admin', 'teacher'].includes(user.role) && (
+                  <Suspense fallback={<Loading label="Đang mở báo cáo…" />}>
+                    <ClassQuestReport key={`quest-report-${classId}`} classId={classId} />
+                  </Suspense>
+                )}
+                {['admin', 'teacher'].includes(user.role) && (
+                  <PostComposer
+                    key={`composer-${classId}`}
+                    classId={classId}
+                    onPosted={refresh}
+                    authorName={user.role === 'admin' ? TEACHER_NAME : user.full_name}
+                  />
+                )}
+                <h2 className="class-feed-title">📚 Bảng tin & bài học</h2>
+                {!detail.posts.length && (
+                  <section className="panel">
+                    <p>Chưa có bài đăng. Bài của giáo viên sẽ xuất hiện ở đây.</p>
+                  </section>
+                )}
+                {detail.posts.map((post) => (
+                  <Reveal key={post.post_id}>
+                    <article className="panel class-post">
+                      <small>
+                        👩‍🏫 {post.author?.role === 'teacher' ? post.author.full_name : TEACHER_NAME}{' '}
+                        · {new Date(post.created_at).toLocaleString('vi-VN')}
+                      </small>
+                      <h2>{post.title}</h2>
+                      <p className="post-body">{post.body}</p>
+                      {post.link && (
+                        <a
+                          className="lesson-link"
+                          href={post.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          🔗 Mở link bài học ↗
+                        </a>
+                      )}
+                      {post.class_attachments.map((file) => (
+                        <Attachment key={file.attachment_id} file={file} />
+                      ))}
+                      {(user.role === 'admin' ||
+                        (user.role === 'teacher' && post.author_id === user.user_id)) && (
+                        <button
+                          className="text-button"
+                          disabled={saving}
+                          onClick={() =>
+                            run(async () => {
+                              await api('post_archive', { postId: post.post_id });
+                              await refresh();
+                            })
+                          }
+                        >
+                          Gỡ bài khỏi bảng tin
+                        </button>
+                      )}
+                    </article>
+                  </Reveal>
+                ))}
+                {hasMore && (
+                  <TipyButton
+                    emphasis="secondary"
+                    icon={BookOpen}
+                    disabled={saving}
+                    onClick={() =>
+                      run(async () => {
+                        cache.delete(user.user_id + ':' + classId);
+                        const next = await api('class_posts', undefined, {
+                          classId,
+                          offset: detail.posts.length,
+                        });
+                        if (latestClassId.current !== classId) return;
+                        setDetail((previous) => ({
+                          ...previous,
+                          posts: [...previous.posts, ...next.posts],
+                        }));
+                        setHasMore(next.posts.length === 20);
+                      })
+                    }
+                  >
+                    Xem bài cũ hơn
+                  </TipyButton>
+                )}
+              </>
+            )}
         </>
       )}
       {saving && <Loading label="Đang lưu thay đổi…" />}

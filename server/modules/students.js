@@ -1,10 +1,10 @@
-import { ApiError, requireAdmin, fail } from '../errors.js';
+import { ApiError, requireAdmin, requireEducator, fail } from '../errors.js';
 import { uuid } from './classrooms.js';
 
 export function createStudents(db) {
   return {
     async studentsPage(profile, input = {}) {
-      requireAdmin(profile);
+      requireEducator(profile);
       const page = Number(input.page ?? 1),
         search = String(input.search ?? '').trim(),
         classFilter = input.classFilter ?? 'all',
@@ -22,6 +22,18 @@ export function createStudents(db) {
       if (!['all', 'none'].includes(classFilter)) uuid(classFilter);
       if (input.rosterClass) uuid(input.rosterClass);
       if (!input.rosterClass && membership !== 'all') throw new ApiError(400, 'Chọn lớp trước.');
+      if (profile.role === 'teacher') {
+        if (classFilter === 'none' || membership !== 'all' || input.rosterClass)
+          throw new ApiError(403, 'Chỉ xem học sinh trong lớp được phân công.');
+        const result = await db.rpc('tipy_teacher_students', {
+          p_actor: profile.user_id,
+          p_page: page,
+          p_search: search,
+          p_class: classFilter,
+        });
+        if (result.error) throw new ApiError(403, 'Không có quyền xem danh sách học sinh này.');
+        return result.data;
+      }
       const result = await db.rpc('tipy_students_page', {
         p_page: page,
         p_search: search,

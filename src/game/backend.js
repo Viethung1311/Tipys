@@ -5,6 +5,7 @@ let identity = null,
   readVersion = 0;
 const adminReads = new Set([
   'students_page',
+  'teachers',
   'history',
   'assessment_results',
   'assessment_attempts',
@@ -31,6 +32,11 @@ if (typeof window !== 'undefined') {
     if (event.key === 'tipy-session-changed' && event.newValue) {
       setApiIdentity(null);
       window.dispatchEvent(new window.Event('tipy-session-changed'));
+      return;
+    }
+    if (event.key === 'tipy-teachers-changed') {
+      clearApiCache();
+      window.dispatchEvent(new window.Event('tipy-class-access-changed'));
       return;
     }
     if (event.key !== 'tipy-stars-changed' || !event.newValue) return;
@@ -93,8 +99,32 @@ async function request(action, body, params) {
   if (!response.ok) {
     if (
       typeof window !== 'undefined' &&
+      [401, 403].includes(response.status) &&
+      action === 'classes'
+    )
+      window.dispatchEvent(new window.Event('tipy-session-changed'));
+    if (
+      typeof window !== 'undefined' &&
       [401, 403, 404].includes(response.status) &&
-      ['classroom', 'class_posts', 'class_file', 'class_stars'].includes(action)
+      [
+        'classroom',
+        'class_posts',
+        'class_file',
+        'class_stars',
+        'class_upload',
+        'class_post',
+        'post_archive',
+        'quest_class_report',
+        'star_gift',
+        'assessment',
+        'assessment_results',
+        'assessment_save',
+        'assessment_publish',
+        'assessment_attempts',
+        'assessment_delete',
+        'assessment_retake',
+        'students_page',
+      ].includes(action)
     )
       window.dispatchEvent(new window.Event('tipy-class-access-changed'));
     throw Error(data.error || 'Chưa xử lý được yêu cầu.');

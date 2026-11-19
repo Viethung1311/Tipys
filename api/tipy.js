@@ -95,6 +95,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         });
       }
       const { profile, access } = await current();
+      if (req.method === 'GET' && action === 'teachers')
+        return res.status(200).json(await backend.teachers(profile, req.query));
       if (req.method === 'GET' && action === 'notifications')
         return res.status(200).json(await backend.notifications(profile, req.query));
       if (req.method === 'GET' && action === 'stars')
@@ -176,6 +178,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
       if (req.method === 'GET' && assessmentReads[action])
         return res.status(200).json(await backend[assessmentReads[action]](profile, req.query));
       const actions = {
+        teacher_create: 'teacherCreate',
+        teacher_save: 'teacherSave',
         assessment_save: 'assessmentSave',
         assessment_publish: 'assessmentPublish',
         assessment_start: 'assessmentStart',

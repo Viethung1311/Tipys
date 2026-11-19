@@ -6,8 +6,11 @@ export class ApiError extends Error {
   }
 }
 export function requireAdmin(profile) {
-  if (profile.role !== 'admin')
-    throw new ApiError(403, 'Chỉ giáo viên quản trị được dùng chức năng này.');
+  if (profile.role !== 'admin') throw new ApiError(403, 'Chỉ Admin được dùng chức năng này.');
+}
+export function requireEducator(profile) {
+  if (!['admin', 'teacher'].includes(profile.role))
+    throw new ApiError(403, 'Chỉ giáo viên được dùng chức năng này.');
 }
 export const fail = (error, message = 'Chưa xử lý được yêu cầu. Bạn thử lại nhé.') => {
   if (error) throw new ApiError(400, message);

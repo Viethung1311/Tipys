@@ -384,7 +384,8 @@ export default function TeacherResults({ exam, classes, onBack }) {
                         <TipyButton icon={Eye} emphasis="secondary" onClick={() => setStudent(row)}>
                           Chi tiết
                         </TipyButton>
-                        {row.latest?.submitted_at &&
+                        {exam.can_manage !== false &&
+                          row.latest?.submitted_at &&
                           (row.allowed_attempts > row.latest.attempt_number ? (
                             <span>Đã cho làm lại</span>
                           ) : (

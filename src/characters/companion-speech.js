@@ -65,9 +65,11 @@ const PRIORITY = {
   record: 7,
 };
 export const SPEECH_EVENT = 'tipy-companion-speech';
-export function companionSay(group) {
+export function companionSay(group, teacher) {
   if (typeof window !== 'undefined')
-    window.dispatchEvent(new CustomEvent(SPEECH_EVENT, { detail: group }));
+    window.dispatchEvent(
+      new CustomEvent(SPEECH_EVENT, { detail: teacher ? { group, teacher } : group }),
+    );
 }
 /** Drop stale events instead of queueing; important events may replace a minor reaction. */
 export function createSpeechGate(random = Math.random) {

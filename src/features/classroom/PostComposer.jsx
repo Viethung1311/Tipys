@@ -19,7 +19,7 @@ function previewLink(value) {
   }
 }
 /** Admin-only editor (parent + API enforce role). Preview stays local until Publish. */
-export default function PostComposer({ classId, onPosted }) {
+export default function PostComposer({ classId, onPosted, authorName = TEACHER_NAME }) {
   const [fields, setFields] = useState(EMPTY),
     [files, setFiles] = useState([]),
     [previews, setPreviews] = useState([]),
@@ -225,7 +225,7 @@ export default function PostComposer({ classId, onPosted }) {
         <aside className="composer-preview" aria-label="Xem trước bài đăng">
           <span className="preview-eyebrow">XEM TRƯỚC BÀI ĐĂNG</span>
           <article className="preview-paper">
-            <small>👩‍🏫 {TEACHER_NAME} · Bản nháp</small>
+            <small>👩‍🏫 {authorName} · Bản nháp</small>
             <h3>{fields.title || 'Tiêu đề bài học'}</h3>
             <p>{fields.body || 'Nội dung bài học sẽ hiện ở đây khi bạn nhập.'}</p>
             {fields.link &&

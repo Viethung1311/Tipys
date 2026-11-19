@@ -46,7 +46,7 @@ erDiagram
 - `classes.archived_at` dùng xóa mềm/khôi phục. Các liên kết, thành viên, bài và file được giữ nguyên. `class_members.is_active` bỏ/khôi phục thành viên.
 - `student_avatars` có một hàng/tài khoản; dùng mã icon_01–icon_36 từ src/characters/catalog.js; giữ cột animal và phụ kiện/màu cũ để không mất dữ liệu. API chỉ cập nhật tài khoản của phiên đăng nhập.
 - Bài viết lưu text thuần, link HTTP(S); React escape nội dung. Tệp lưu trong bucket riêng, metadata ở bảng liên kết; không lưu base64 trong database.
-- RPC `tipy_publish_post` kiểm tra admin, lớp, file đã có trong Storage và ghi bài + liên kết file trong một transaction.
+- RPC `tipy_publish_post` kiểm tra Admin hoặc giáo viên được phân công, lớp, file đã có trong Storage và ghi bài + liên kết file trong một transaction.
 
 ## Quyền truy cập
 
@@ -135,3 +135,17 @@ Vercel Functions được đặt tại Singapore (sin1) để gần Supabase và
 PlaySurface portal vào body để giữ header, chuông và giao diện website inert trong lượt chơi. CSS dùng visualViewport và container query, không đẩy kích thước vào state engine. Fullscreen API được gọi trước await từ nút bắt đầu; native Esc chỉ đổi chế độ trình duyệt. Focus/visibility không nạp lại dữ liệu tài khoản/lớp khi đang chơi; SSE thông báo vẫn xử lý dữ liệu mới và dọn khi ẩn/đăng xuất.
 
 Hai engine giữ nguyên session/recorder và adapter kiểm tra. Pause là UI; checkpoint vẫn theo tiến độ/thời gian hiện có. Kết quả kiểm tra dùng CompletionScreen sau response submitted_at, giữ toàn bộ điểm và kết quả từng phần ở backend/ResultViews. Không đổi schema, quyền, thưởng hoặc giới hạn lượt.
+
+## Ba vai trò và phạm vi giáo viên
+
+server/modules/teachers.js chỉ phục vụ Admin, tái sử dụng identity username/credential/emailFor để tạo Auth và RPC phân công. class_teachers tách giáo viên khỏi class_members của học sinh. Không đổi tài khoản Admin để tái sử dụng màn soạn bài: requireEducator chỉ mở luồng được phép, SQL kiểm tra lại tác giả/lớp/người nhận. Nguồn SQL cuối cùng của quyền mới là db/teacher_roles.sql và migration cùng tên.
+
+| Quyền                                      | Admin  | Giáo viên                        | Học sinh                         |
+| ------------------------------------------ | ------ | -------------------------------- | -------------------------------- |
+| Tạo/khóa giáo viên, phân công lớp          | Có     | Không                            | Không                            |
+| Quản trị tài khoản/lớp/game, reset/trừ sao | Có     | Không                            | Không                            |
+| Xem lớp, tiến độ, kết quả                  | Tất cả | Lớp được giao, học sinh hiện tại | Lớp được tham gia, kết quả riêng |
+| Giao bài, tặng sao, đăng bài               | Tất cả | Lớp được giao                    | Không                            |
+| Quản lý bài đăng/bài kiểm tra              | Tất cả | Bài của mình, còn trong phạm vi  | Không                            |
+
+Chưa có điểm tặng riêng; không quy đổi sang sao/điểm game. Mọi thông báo tên tác giả/người tặng lấy từ backend, Admin hiển thị Thầy Hùng. Bộ chọn lớp và học sinh không suy quyền bằng tên hoặc metadata từ trình duyệt. Cache đổi tài khoản/thu hồi quyền được xóa; Storage đọc vẫn qua API xác minh.

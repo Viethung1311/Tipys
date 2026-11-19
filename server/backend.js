@@ -9,6 +9,7 @@ import { createStudents } from './modules/students.js';
 import { createStars } from './modules/stars.js';
 import { createAssessments } from './modules/assessments.js';
 import { createNotifications } from './modules/notifications.js';
+import { createTeachers } from './modules/teachers.js';
 export { ApiError, requireAdmin } from './errors.js';
 export { username, credential, emailFor } from './modules/identity.js';
 export { validateLevels, validateProgress } from './modules/game-validation.js';
@@ -31,5 +32,6 @@ export function createBackend(env, clientFactory = createClient) {
     ...createStars(db),
     ...createAssessments(db),
     ...createNotifications(db),
+    ...createTeachers(db, env),
   };
 }

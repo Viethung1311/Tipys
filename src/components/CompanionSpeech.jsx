@@ -9,10 +9,16 @@ export default function CompanionSpeech({ anchor, position, size, interaction })
     timer = useRef(null),
     speak = useRef(null);
   useEffect(() => {
-    const say = (group) => {
+    const say = (event) => {
       if (document.hidden) return;
+      const group = typeof event === 'string' ? event : event?.group;
       const next = gate.current(group, Date.now());
       if (!next) return;
+      if (typeof event?.teacher === 'string' && event.teacher.length <= 100) {
+        if (group === 'notification_gift') next.text = `Bạn đã nhận được sao từ ${event.teacher}!`;
+        if (group === 'notification_batch')
+          next.text = `Bạn có bài kiểm tra mới và sao từ ${event.teacher}!`;
+      }
       clearTimeout(timer.current);
       setSpeech(next);
       timer.current = setTimeout(() => setSpeech(null), 2500);

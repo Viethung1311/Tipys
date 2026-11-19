@@ -1,8 +1,11 @@
-import { ApiError, fail, requireAdmin } from '../errors.js';
+import { ApiError, fail, requireAdmin, requireEducator } from '../errors.js';
 import { uuid } from './classrooms.js';
 export function createStars(db) {
   const adjust = async (profile, input, deduct = false) => {
-    requireAdmin(profile);
+    if (deduct) requireAdmin(profile);
+    else requireEducator(profile);
+    if (profile.role === 'teacher' && !input.classId)
+      throw new ApiError(400, 'Chọn lớp đang được phân công.');
     uuid(input.userId);
     uuid(input.requestId);
     if (input.classId !== undefined) uuid(input.classId);

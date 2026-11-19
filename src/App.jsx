@@ -65,30 +65,37 @@ export default function App() {
     [accountOpen, setAccountOpen] = useState(false),
     [gamePlaying, setGamePlaying] = useState(false);
   const canClassroom = Boolean(
-    user && (user.role === 'admin' || classes.some((c) => !c.archived_at)),
+    user && (['admin', 'teacher'].includes(user.role) || classes.some((c) => !c.archived_at)),
   );
   const [classCheck, setClassCheck] = useState(null);
-  const currentUser = useRef(user?.user_id);
-  currentUser.current = user?.user_id;
+  const currentUser = useRef(null),
+    classFlight = useRef(null);
+  currentUser.current = user ? `${user.user_id}:${user.role}` : null;
   const checkClasses = useCallback(async () => {
     const owner = user?.user_id;
+    const scope = owner ? `${owner}:${user.role}` : null;
     classroomCache.current.clear();
-    if (user?.role !== 'admin') setClassCheck(null);
+    if (!['admin', 'teacher'].includes(user?.role)) setClassCheck(null);
     if (!owner) return;
+    const pending =
+      classFlight.current?.scope === scope ? classFlight.current.promise : api('classes');
+    classFlight.current = { scope, promise: pending };
     try {
-      const data = await api('classes');
-      if (currentUser.current !== owner) return;
+      const data = await pending;
+      if (currentUser.current !== scope) return;
       setClasses(data.classes || []);
       setClassCheck(owner);
     } catch {
-      if (currentUser.current === owner) {
+      if (currentUser.current === scope) {
         setClasses([]);
         setClassCheck(owner);
       }
+    } finally {
+      if (classFlight.current?.promise === pending) classFlight.current = null;
     }
   }, [user?.user_id, user?.role]);
   useEffect(() => {
-    if (screen === 'classroom') checkClasses();
+    if (screen === 'classroom' && user?.role !== 'teacher') checkClasses();
   }, [screen, checkClasses]);
   useEffect(() => {
     // Teachers keep their editor mounted when a native file picker returns focus.
@@ -102,7 +109,7 @@ export default function App() {
       if (!document.hidden) checkClasses();
       else {
         classroomCache.current.clear();
-        setClassCheck(null);
+        if (user?.role !== 'teacher') setClassCheck(null);
       }
     };
     window.addEventListener('focus', focused);
@@ -141,6 +148,9 @@ export default function App() {
       !accountOpen &&
       !notificationsOpen,
   );
+  useEffect(() => {
+    if (user?.role === 'teacher' && !['classroom', 'tests'].includes(screen)) navigate('classroom');
+  }, [user?.role, screen]);
   useEffect(() => save('tipy-settings', settings), [settings]);
   const start = (ranked = false) => {
     enterPlayFullscreen();
@@ -163,7 +173,11 @@ export default function App() {
       {sessionChecking && <Loading label="Đang kiểm tra tài khoản…" />}
       <div style={{ display: sessionChecking ? 'none' : 'contents' }} inert={sessionChecking}>
         <header className="site-header">
-          <button className="brand" onClick={() => navigate('home')} aria-label="Zunimo trang chủ">
+          <button
+            className="brand"
+            onClick={() => navigate(user?.role === 'teacher' ? 'classroom' : 'home')}
+            aria-label="Zunimo trang chủ"
+          >
             <span className="brand-icon">
               <Keyboard size={23} />
             </span>
@@ -189,27 +203,31 @@ export default function App() {
           </div>
         </header>
         <nav className="main-nav" aria-label="Điều hướng chính">
-          <button
-            aria-current={screen === 'home' ? 'page' : undefined}
-            onClick={() => navigate('home')}
-          >
-            Trang chủ
-          </button>
-          <button
-            aria-current={
-              ['library', 'setup', 'game', 'quest'].includes(screen) ? 'page' : undefined
-            }
-            onClick={() => navigate('library')}
-          >
-            Gõ chữ
-          </button>
+          {user?.role !== 'teacher' && (
+            <button
+              aria-current={screen === 'home' ? 'page' : undefined}
+              onClick={() => navigate('home')}
+            >
+              Trang chủ
+            </button>
+          )}
+          {user?.role !== 'teacher' && (
+            <button
+              aria-current={
+                ['library', 'setup', 'game', 'quest'].includes(screen) ? 'page' : undefined
+              }
+              onClick={() => navigate('library')}
+            >
+              Gõ chữ
+            </button>
+          )}
           {canClassroom && (
             <button
               title="Mở lớp học"
               aria-current={screen === 'classroom' ? 'page' : undefined}
               onClick={() => navigate('classroom')}
             >
-              Lớp học
+              {user?.role === 'teacher' ? 'Lớp của tôi' : 'Lớp học'}
             </button>
           )}
           <button
@@ -242,10 +260,11 @@ export default function App() {
         <Suspense fallback={<Loading label="Đang mở trang…" />}>
           {screen === 'classroom' ? (
             <Reveal key={user?.user_id || 'guest'}>
-              {user && classCheck !== user.user_id ? (
+              {user && user.role !== 'teacher' && classCheck !== user.user_id ? (
                 <Loading label="Đang kiểm tra lớp học…" />
               ) : canClassroom ? (
                 <ClassroomPage
+                  key={`${user.user_id}:${user.role}`}
                   user={user}
                   classes={classes}
                   cache={classroomCache.current}

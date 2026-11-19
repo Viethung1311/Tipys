@@ -227,11 +227,18 @@ export default function AssessmentsPage({
     check();
     return () => clearTimeout(timer);
   }, [detail?.assessment.assessment_id, detail?.serverNow]);
-  if (user?.role === 'admin')
+  if (['admin', 'teacher'].includes(user?.role))
     return (
       <main className="assessments-page">
         <Suspense fallback={<Loading label="Đang mở công cụ tạo bài…" />}>
-          <AdminAssessments classes={classes} />
+          {user.role === 'teacher' && !classes.length ? (
+            <p>Bạn chưa được phân công lớp.</p>
+          ) : (
+            <AdminAssessments
+              key={user.user_id + ':' + classes.map((c) => c.class_id).join(',')}
+              classes={classes}
+            />
+          )}
         </Suspense>
       </main>
     );

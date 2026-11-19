@@ -13,6 +13,7 @@ import AccountPoints from '../components/AccountPoints.jsx';
 import Companion from '../components/Companion.jsx';
 import useCompanion from '../hooks/useCompanion.js';
 const AdminAssessments = lazy(() => import('../features/assessments/AdminAssessments.jsx'));
+const Teachers = lazy(() => import('../features/admin/Teachers.jsx'));
 const fields = [
   ['fall', 'Thời gian rơi ban đầu (giây)', 1, 30, 0.1],
   ['minFall', 'Thời gian rơi nhanh nhất (giây)', 1, 30, 0.1],
@@ -249,6 +250,7 @@ export default function AdminPage() {
             <nav className="admin-tabs" aria-label="Quản trị">
               {[
                 ['classes', 'Lớp học'],
+                ['teachers', 'Giáo viên'],
                 ['students', 'Học sinh & thời gian'],
                 ['results', 'Lịch sử chơi'],
                 ['games', 'Tốc độ & độ khó'],
@@ -273,6 +275,11 @@ export default function AdminPage() {
                 onChanged={setClasses}
                 onMembersChanged={patchMembers}
               />
+            )}
+            {tab === 'teachers' && (
+              <Suspense fallback={<Loading label="Đang mở giáo viên…" />}>
+                <Teachers classes={classes} />
+              </Suspense>
             )}
             {tab === 'students' && (
               <StudentsTable

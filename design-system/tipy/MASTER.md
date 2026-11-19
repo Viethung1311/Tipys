@@ -18,7 +18,7 @@
 
 Thương hiệu hiển thị duy nhất: **Zunimo**, gồm header, footer, metadata và thông báo mặc định. Giữ định danh kỹ thuật cũ (TipyButton, font `TIPY Nunito`, token, API, cookie, bucket, đường dẫn); không thay chuỗi hàng loạt vào dữ liệu người dùng. Logo là chữ/SVG dựng bằng code, không có bitmap thương hiệu cũ trong bộ ảnh đang sử dụng. Bỏ khối địa chỉ và khoảng trống của nó.
 
-Điều hướng Lớp học chỉ hiện với admin hoặc học sinh có lớp đang hoạt động do backend xác nhận. Người chưa có lớp dùng CTA **Luyện bàn phím** → Gõ chữ; thành viên dùng **Vào học** → các lớp được tham gia. Mỗi lần vào/quay lại lớp hoặc lấy tệp phải kiểm tra lại quyền; không hiển thị cache trước xác minh. Khi tab trở lại/focus hoặc API báo mất quyền, xóa nội dung và nạp lại danh sách lớp. Tệp dùng endpoint cùng origin kiểm tra phiên/quyền mỗi lần tải, không phát link Storage đã ký ra trình duyệt.
+Điều hướng Lớp học hiện với Admin, giáo viên và học sinh có lớp đang hoạt động do backend xác nhận. Giáo viên dùng nhãn Lớp của tôi, kể cả khi chưa được phân công. Người chưa có lớp dùng CTA **Luyện bàn phím** → Gõ chữ; thành viên dùng **Vào học** → các lớp được tham gia. Mỗi lần vào/quay lại lớp hoặc lấy tệp phải kiểm tra lại quyền; không hiển thị cache trước xác minh. Khi tab trở lại/focus hoặc API báo mất quyền, xóa nội dung và nạp lại danh sách lớp. Tệp dùng endpoint cùng origin kiểm tra phiên/quyền mỗi lần tải, không phát link Storage đã ký ra trình duyệt.
 
 Nguồn yêu cầu: Custom instructions của Project “Web game Tipy”, do chủ dự án cung cấp trong chat. Đọc cùng `AGENTS.md` trước mọi thay đổi UI. Giữ nguyên các hướng dẫn kỹ thuật ở `ARCHITECTURE.md` và `BACKEND.md`; đây là chuẩn thiết kế, không thay đổi quyền hoặc dữ liệu.
 
@@ -198,7 +198,7 @@ Modal chọn nhân vật dùng header cố định trong khung với nút X 48 �
 - Mục Bài kiểm tra ở sau Lớp học nếu có, nếu không thì sau Gõ chữ. Nhóm tài khoản/avatar/sao luôn ở cột cuối bên phải; dưới 1000 px xuống hàng riêng, dưới 680 px các mục điều hướng chia hai cột, giữ vị trí ổn định dù ẩn Lớp học.
 - Học sinh dùng danh sách → giới thiệu → Bắt đầu/Tiếp tục → các phần → Nộp bài. Hiện Chưa làm/Đang làm/Đã nộp; bài chưa hoàn thành có modal xác nhận nộp. Không có bảng điểm chung khác đơn vị hoặc sao luyện tập trong kết quả kiểm tra.
 - Công cụ giáo viên dùng cùng TipyButton, Modal, token và form hiện có, nút gọn 48 px. Kho nội dung đọc 327 mục từ 39 bài/chủ đề thực, sắp theo Màn → Bài → Nội dung; không sửa Từ vựng. Chọn bằng Set mã mục, giữ qua tìm kiếm/thu gọn/trang chọn người nhận; nút chọn tất cả ghi rõ phạm vi (cả kết quả lọc đang thu gọn hoặc toàn màn).
-- Xem trước lưu nháp và mở bản tổng hợp; Chỉnh sửa giữ lựa chọn; Gửi bài riêng chỉ khi có phần và người nhận. Đề đã gửi có Tạo bản mới, không chỉnh trực tiếp. Nơi nhận là các thành viên tại thời điểm gửi và các học sinh chọn riêng; học sinh nhận qua lớp cần còn là thành viên lớp đang hoạt động. Quyền quản lý hiện tại là role admin dùng chung với giáo viên.
+- Xem trước lưu nháp và mở bản tổng hợp; Chỉnh sửa giữ lựa chọn; Gửi bài riêng chỉ khi có phần và người nhận. Đề đã gửi có Tạo bản mới, không chỉnh trực tiếp. Nơi nhận là các thành viên tại thời điểm gửi và các học sinh chọn riêng; học sinh nhận qua lớp cần còn là thành viên lớp đang hoạt động. Admin quản trị hệ thống; role teacher chỉ quản lý bài do mình tạo trong lớp được phân công, đọc kết quả trong phạm vi lớp và tặng sao. Quyền được kiểm tra lại tại backend.
 - Mỗi lượt có checkpoint riêng; hiện Đang lưu/Đã lưu/lỗi rõ, lỗi không được báo thành danh sách trống. Lỗi ghi tạm dừng engine, cho thử lại hoặc mở dữ liệu mới. Tái sử dụng LessonPlayer và TypingGame bằng adapter; không gọi start/progress/quest_finish luyện tập trong chế độ này. Bàn phím, IME, pause và cấu hình được giữ; sao/điểm tuần không thay đổi.
 - Kiểm tra trọn luồng qua `scripts/check-assessments.mjs` bằng API thật và SQL trên PGlite riêng, ở 320/768/1440. Không tạo đề hoặc gửi đề thử vào Supabase thật. Giọng đọc/thiết bị thật và tải lớp đông cần kiểm chứng riêng.
 
@@ -227,3 +227,12 @@ Chỉ lớp đã lưu trữ có nút Xóa vĩnh viễn cạnh Khôi phục lớp
 - CompletionScreen dùng ảnh /quest-art/smiling-star.png và nền chủ đề sẵn có. Kết quả kiểm tra chỉ có hình, Hoàn thành tốt/Chưa hoàn thành, động viên khi chưa đạt và Làm lại/Quay lại theo quyền backend. Không có số điểm hoặc chi tiết từng phần trên màn cuối. Lịch sử ở danh sách bài và bảng giáo viên giữ đầy đủ dữ liệu.
 - Chỉ hiện màn cuối sau xác nhận nộp của backend; tất cả phần cần đạt quy tắc riêng mới là Hoàn thành tốt. Hiệu ứng một lần cho lượt đạt, tôn trọng âm thanh và reduced motion; hình sao không cấp thưởng. Luyện tập giữ thống kê gọn, Luyện lại và Bài tiếp theo tiến trình.
 - Kiểm tra: node scripts/check-play-surface.mjs và node scripts/check-assessments.mjs sau build; dùng fixture cục bộ, không ghi tài khoản thật.
+
+## Giáo viên riêng
+
+- Admin có mục Giáo viên: tạo bằng họ tên/tên đăng nhập/PIN hiện có, phân công một hoặc nhiều lớp, khóa/mở. Danh sách tìm kiếm và phân trang backend 7 tài khoản/trang; dùng ValidatedForm, Modal, TipyButton và Pagination hiện có. Lỗi giữ form để thử lại cùng yêu cầu.
+- Checkbox phân công và trạng thái dùng lớp chung tipy-choice trong tipy-ui.css: nhãn chạm 48 px, checkbox 22 px, focus/token hiện có. Tìm kiếm dùng account-form, bảng cuộn riêng ở điện thoại.
+- Giáo viên chỉ có Lớp của tôi và Bài kiểm tra; lớp rỗng hiện Bạn chưa được phân công lớp. Ảnh học sinh chỉ có Tặng sao; không hiện trừ/reset/quản trị hệ thống. Bài đăng và bản xem trước dùng đúng tên giáo viên; Admin vẫn là Thầy Hùng.
+- Chỉ sửa/xóa/cho làm lại bài kiểm tra do mình tạo khi còn được giao toàn bộ phạm vi liên quan. Bài của người khác trong lớp chỉ xem nội dung/kết quả được phép. Bộ chọn người nhận chỉ có học sinh/lớp được backend cho phép.
+- Tên người tặng trong thông báo và bong bóng lấy từ payload backend; quà Admin giữ Thầy Hùng. Chỉ tặng sao, chưa tạo loại điểm tặng.
+- Quay lại cửa sổ/đóng hộp chọn file giữ nguyên form; xác minh lớp trong nền, chỉ dọn khi đổi tài khoản hoặc thực sự mất quyền. Không polling. Kiểm tra bằng node scripts/check-teacher-roles.mjs sau build, chỉ dùng fixture cục bộ.

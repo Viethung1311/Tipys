@@ -159,7 +159,7 @@ export default function Account({
           <Avatar value={avatar} name={user?.full_name || 'bạn'} eager />
         </button>
       </div>
-      <AccountPoints key={user?.user_id || 'guest'} user={user} />
+      {user?.role !== 'teacher' && <AccountPoints key={user?.user_id || 'guest'} user={user} />}
       <Dialog.Root open={open} onOpenChange={show}>
         <Dialog.Portal>
           <Dialog.Overlay className="overlay" />

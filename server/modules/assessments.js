@@ -1,5 +1,4 @@
-import { ApiError, requireAdmin } from '../errors.js';
-import { TEACHER_NAME } from '../../src/game/teacher.js';
+import { ApiError, requireEducator } from '../errors.js';
 import { uuid, text } from './classrooms.js';
 import { validateLevels, validateProgress } from './game-validation.js';
 import { TEST_CONTENT } from '../../src/features/assessments/content.js';
@@ -323,7 +322,7 @@ export function createAssessments(db) {
       if (/Assessment deleted/.test(message)) throw new ApiError(410, 'Bài kiểm tra đã được xóa');
       if (/Confirmation required/.test(message))
         throw new ApiError(400, 'Nhập chính xác accept để xóa vĩnh viễn.');
-      if (/Access denied|Admin required|Student assignment/.test(message))
+      if (/Access denied|Class access denied|Admin required|Student assignment/.test(message))
         throw new ApiError(403, 'Bạn không có quyền mở bài kiểm tra này.');
       if (/Conflict/.test(message))
         throw new ApiError(409, 'Bài đã thay đổi ở nơi khác. Tải lại trước khi tiếp tục.');
@@ -351,18 +350,14 @@ export function createAssessments(db) {
       const page = Number(input.page || 1);
       if (!Number.isInteger(page) || page < 1 || page > 100000) invalid();
       const data = await rpc(profile, 'list', { page });
-      return profile.role === 'student'
-        ? { ...data, items: data.items.map((item) => ({ ...item, teacher: TEACHER_NAME })) }
-        : data;
+      return data;
     },
     async assessment(profile, input) {
       const data = await rpc(profile, 'detail', scope(input));
-      return profile.role === 'student'
-        ? { ...data, assessment: { ...data.assessment, teacher: TEACHER_NAME } }
-        : data;
+      return data;
     },
     async assessmentSave(profile, input) {
-      requireAdmin(profile);
+      requireEducator(profile);
       scope(input);
       uuid(input.requestId);
       if (!Number.isInteger(input.version) || input.version < 0) invalid();
@@ -385,13 +380,13 @@ export function createAssessments(db) {
       });
     },
     async assessmentPublish(profile, input) {
-      requireAdmin(profile);
+      requireEducator(profile);
       scope(input);
       if (!Number.isInteger(input.version) || input.version < 1) invalid();
       return rpc(profile, 'publish', input);
     },
     async assessmentResults(profile, input) {
-      requireAdmin(profile);
+      requireEducator(profile);
       scope(input);
       const page = Number(input.page || 1);
       if (!Number.isInteger(page) || page < 1 || page > 100000) invalid();
@@ -424,15 +419,21 @@ export function createAssessments(db) {
     },
     async assessmentAttempts(profile, input) {
       scope(input);
-      if (profile.role !== 'admin' && input.userId && input.userId !== profile.user_id)
+      if (
+        !['admin', 'teacher'].includes(profile.role) &&
+        input.userId &&
+        input.userId !== profile.user_id
+      )
         throw new ApiError(403, 'Bạn chỉ được xem kết quả của mình.');
-      const userId = profile.role === 'admin' ? uuid(input.userId) : profile.user_id;
+      const userId = ['admin', 'teacher'].includes(profile.role)
+        ? uuid(input.userId)
+        : profile.user_id;
       const page = Number(input.page || 1);
       if (!Number.isInteger(page) || page < 1 || page > 100000) invalid();
       return rpc(profile, 'attempts', { assessmentId: input.assessmentId, userId, page });
     },
     async assessmentDelete(profile, input) {
-      requireAdmin(profile);
+      requireEducator(profile);
       scope(input);
       if (input.confirm !== 'accept')
         throw new ApiError(400, 'Nhập chính xác accept để xóa vĩnh viễn.');
@@ -443,7 +444,7 @@ export function createAssessments(db) {
       });
     },
     async assessmentRetake(profile, input) {
-      requireAdmin(profile);
+      requireEducator(profile);
       scope(input);
       uuid(input.userId);
       uuid(input.attemptId);

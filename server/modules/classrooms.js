@@ -1,7 +1,7 @@
 import { CHARACTERS, normalizeAvatar } from '../../src/characters/catalog.js';
 /** Classroom service: server-side authorization precedes every read/write/sign. */
 import { randomUUID } from 'node:crypto';
-import { ApiError, requireAdmin, fail } from '../errors.js';
+import { ApiError, requireAdmin, requireEducator, fail } from '../errors.js';
 import { QUEST_CODE, findLesson } from '../../src/features/keyboard-quest/curriculum.js';
 import { learningSummary } from '../../src/features/keyboard-quest/progress.js';
 import {
@@ -71,7 +71,15 @@ export function classMembersView(rows) {
 export function createClassrooms(db) {
   const access = async (profile, classId, adminOnly = false) => {
     uuid(classId);
-    if (adminOnly) requireAdmin(profile);
+    if (adminOnly) requireEducator(profile);
+    if (profile.role === 'teacher') {
+      const result = await db.rpc('tipy_class_access', {
+        p_actor: profile.user_id,
+        p_class: classId,
+      });
+      if (result.error) throw new ApiError(403, 'Bạn không được phân công lớp này.');
+      return result.data;
+    }
     const result = await db
       .from('classes')
       .select('*')
@@ -109,7 +117,7 @@ export function createClassrooms(db) {
     db
       .from('class_posts')
       .select(
-        'post_id,title,body,link,created_at,class_attachments(attachment_id,name,mime_type,size_bytes)',
+        'post_id,author_id,author:profiles!class_posts_author_id_fkey(full_name,role),title,body,link,created_at,class_attachments(attachment_id,name,mime_type,size_bytes)',
       )
       .eq('class_id', input.classId)
       .is('archived_at', null)
@@ -185,6 +193,17 @@ export function createClassrooms(db) {
       };
     },
     async classes(profile) {
+      if (profile.role === 'teacher') {
+        const { data, error } = await db
+          .from('class_teachers')
+          .select('classes!inner(*)')
+          .eq('teacher_id', profile.user_id)
+          .is('classes.archived_at', null)
+          .order('assigned_at', { ascending: false })
+          .limit(200);
+        fail(error);
+        return data.map((row) => row.classes);
+      }
       if (profile.role === 'admin') {
         const { data, error } = await db
           .from('classes')
@@ -281,6 +300,7 @@ export function createClassrooms(db) {
       return data.map((row) => row.user_id);
     },
     async classMember(profile, input) {
+      requireAdmin(profile);
       await access(profile, input.classId, true);
       uuid(input.userId);
       if (typeof input.active !== 'boolean') throw new ApiError(400, 'Trạng thái chưa hợp lệ.');
@@ -367,7 +387,7 @@ export function createClassrooms(db) {
           .order('joined_at')
           .limit(300),
         postsQuery(input),
-        profile.role === 'admin'
+        ['admin', 'teacher'].includes(profile.role)
           ? db.rpc('tipy_class_member_balances', {
               p_actor: profile.user_id,
               p_class: input.classId,
@@ -381,7 +401,7 @@ export function createClassrooms(db) {
       const balanceByUser = new Map((balances.data || []).map((row) => [row.user_id, row]));
       return {
         classroom,
-        canManage: profile.role === 'admin',
+        canManage: ['admin', 'teacher'].includes(profile.role),
         members: visibleMembers.map((member) => ({
           ...member,
           ...(balanceByUser.get(member.user_id) || {}),
@@ -459,6 +479,15 @@ export function createClassrooms(db) {
       return { post_id: data };
     },
     async postArchive(profile, input) {
+      if (profile.role === 'teacher') {
+        const result = await db.rpc('tipy_archive_post', {
+          p_actor: profile.user_id,
+          p_post: uuid(input.postId),
+        });
+        if (result.error)
+          throw new ApiError(403, 'Chỉ gỡ bài của bạn trong lớp đang được phân công.');
+        return { post_id: input.postId };
+      }
       requireAdmin(profile);
       const { data, error } = await db
         .from('class_posts')

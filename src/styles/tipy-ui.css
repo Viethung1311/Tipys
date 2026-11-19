@@ -1,4 +1,16 @@
 /* Shared UI primitives. Arena, falling letters, canvas and keyboard geometry stay feature-owned. */
+.account-form label.tipy-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+}
+.account-form .tipy-choice input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  flex: 0 0 22px;
+}
 .checkbox-target {
   display: inline-grid;
   place-items: center;

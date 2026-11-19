@@ -70,7 +70,7 @@ begin
   page=least(page,greatest(1,ceil(amount/20.0)::integer));
   select coalesce(jsonb_agg(r order by r.created_at desc,r.assessment_id),'[]') into items from (
    select x.assessment_id,x.status,x.version,x.created_at,x.published_at,x.definition->>'title' as title,
-   x.definition->>'description' as description,x.definition->'schedule' as schedule,clock_timestamp() as server_now,coalesce(p.full_name,'Thầy cô') as teacher,
+   x.definition->>'description' as description,x.definition->'schedule' as schedule,clock_timestamp() as server_now,case when p.role='admin' then 'Thầy Hùng' else coalesce(p.full_name,'Thầy cô') end as teacher,
    case when latest.submitted_at is not null then 'submitted' when latest.attempt_id is not null then 'in_progress' else 'not_started' end as attempt_status
    from public.assessments x left join public.profiles p on p.user_id=x.created_by
    left join lateral(select attempt_id,submitted_at from public.assessment_attempts z where z.assessment_id=x.assessment_id and z.user_id=p_actor order by z.attempt_number desc limit 1) latest on true
@@ -122,7 +122,7 @@ begin
   limit_attempts=case when e.definition->'repeats'->>'mode'='unlimited' then null else assigned.allowed_attempts end;
   return jsonb_build_object('assessment',jsonb_build_object('assessment_id',exam,'status',e.status,'definition',
    (case when t.attempt_id is not null and t.submitted_at is null then t.definition else e.definition end)-'targets'-'selection'-'targetNames',
-   'teacher',coalesce((select full_name from public.profiles where user_id=e.created_by),'Thầy cô')),
+   'teacher',coalesce((select case when role='admin' then 'Thầy Hùng' else full_name end from public.profiles where user_id=e.created_by),'Thầy cô')),
    'attempt',case when t.attempt_id is null then null else (to_jsonb(t)||jsonb_build_object('server_now',clock_timestamp(),'definition',t.definition-'targets'-'selection'-'targetNames')) end,'allowedAttempts',limit_attempts,
    'remainingAttempts',case when limit_attempts is null then null else greatest(0,limit_attempts-coalesce(t.attempt_number,0)) end,'serverNow',clock_timestamp());
  end if;
