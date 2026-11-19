@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, BookOpen, Star } from 'lucide-react';
+import { Bell, BookOpen, Star, MessageCircle } from 'lucide-react';
 import Modal from '../../components/Modal.jsx';
 import TipyButton from '../../components/TipyButton.jsx';
 import { companionSay } from '../../characters/companion-speech.js';
@@ -21,6 +21,8 @@ export default function StudentNotifications({
   companionVisible,
   onOpenChange,
   onView,
+  hidden = false,
+  onPost,
 }) {
   const { data, loading, error, page, present, retry } = useNotifications(user.user_id, initial);
   const [open, setOpen] = useState(false),
@@ -125,7 +127,8 @@ export default function StudentNotifications({
       !document.querySelector('.tipy-companion')?.getBoundingClientRect().width
     )
       return;
-    const kinds = new Set(claimed.map((n) => n.kind));
+    const kinds = new Set(claimed.filter((n) => n.kind !== 'post').map((n) => n.kind));
+    if (!kinds.size) return;
     const teachers = [
       ...new Set(
         claimed.filter((n) => n.kind === 'star_gift').map((n) => n.payload.teacher || TEACHER_NAME),
@@ -151,6 +154,7 @@ export default function StudentNotifications({
       <button
         type="button"
         className="notification-bell"
+        hidden={hidden}
         style={dock || { visibility: 'hidden' }}
         disabled={playing || blocked}
         aria-label={`Thông báo${data?.unread ? `, ${data.unread} chưa xem` : ''}`}
@@ -174,7 +178,7 @@ export default function StudentNotifications({
           className="notification-dialog"
           title="Thông báo của em"
           description={
-            data?.unread ? `Em có ${data.unread} thông báo mới.` : 'Xem lại thông báo từ thầy Hùng.'
+            data?.unread ? `Em có ${data.unread} thông báo mới.` : 'Xem lại thông báo từ thầy cô.'
           }
           onClose={close}
         >
@@ -191,17 +195,34 @@ export default function StudentNotifications({
                 <span className="notification-type">
                   {n.kind === 'assessment' ? (
                     <BookOpen aria-hidden="true" />
+                  ) : n.kind === 'post' ? (
+                    <MessageCircle aria-hidden="true" />
                   ) : (
                     <Star aria-hidden="true" />
                   )}
                   {n.presented_at ? 'Đã xem' : 'Mới'}
                 </span>
                 <h3>
-                  {n.kind === 'assessment'
+                  {n.kind === 'post'
                     ? n.payload.title
-                    : `${n.payload.teacher || TEACHER_NAME} tặng em ${n.payload.amount} sao!`}
+                    : n.kind === 'assessment'
+                      ? n.payload.title
+                      : `${n.payload.teacher || TEACHER_NAME} tặng em ${n.payload.amount} sao!`}
                 </h3>
                 {n.kind === 'star_gift' && n.payload.message && <p>{n.payload.message}</p>}
+                {n.kind === 'post' && (
+                  <>
+                    <p>Có tin nhắn từ {n.payload.teacher || TEACHER_NAME}.</p>
+                    <TipyButton
+                      onClick={() => {
+                        close();
+                        onPost?.(n.payload);
+                      }}
+                    >
+                      Xem tin nhắn
+                    </TipyButton>
+                  </>
+                )}
                 {n.kind === 'assessment' && (
                   <>
                     <p>
@@ -214,7 +235,7 @@ export default function StudentNotifications({
                       disabled={!n.assessment_id}
                       onClick={() => {
                         close();
-                        onView(n.assessment_id);
+                        onView(n.assessment_id, n.payload.classId);
                       }}
                     >
                       Xem bài

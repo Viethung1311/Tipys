@@ -5,7 +5,8 @@ import PlaySurface, {
   isPlaySurfaceActive,
 } from './components/PlaySurface.jsx';
 import { rankedSettings } from './game/ranked.js';
-import { Keyboard, Volume2, VolumeX } from 'lucide-react';
+import { Keyboard, Volume2, VolumeX, Users, BookOpen } from 'lucide-react';
+import TipyButton from './components/TipyButton.jsx';
 import Account from './components/Account.jsx';
 import AudioSettings from './components/AudioSettings.jsx';
 import Companion from './components/Companion.jsx';
@@ -28,17 +29,19 @@ import { LEVELS, load, save, readSettings, recordKey } from './game/config.js';
 /** App shell owns navigation and identity. Each feature owns its own data and UI. */
 export default function App() {
   const [screen, setScreen] = useState(() =>
-    location.hash === '#typing'
-      ? 'library'
-      : location.hash === '#typing/setup'
-        ? 'setup'
-        : location.hash === '#typing/quest'
-          ? 'quest'
-          : location.hash === '#classroom'
-            ? 'classroom'
-            : location.hash === '#tests'
-              ? 'tests'
-              : 'home',
+    location.pathname === '/classroom'
+      ? 'classroom'
+      : location.hash === '#typing'
+        ? 'library'
+        : location.hash === '#typing/setup'
+          ? 'setup'
+          : location.hash === '#typing/quest'
+            ? 'quest'
+            : location.hash === '#classroom'
+              ? 'classroom'
+              : location.hash === '#tests'
+                ? 'classroom'
+                : 'home',
   );
   const [settings, setSettings] = useState(readSettings),
     [runSettings, setRunSettings] = useState(settings);
@@ -46,12 +49,22 @@ export default function App() {
     [catalog, setCatalog] = useState(null),
     [classes, setClasses] = useState([]);
   const classroomCache = useRef(new Map());
-  useEffect(() => classroomCache.current.clear(), [user?.user_id]);
+  useEffect(() => classroomCache.current.clear(), [user?.user_id, user?.role]);
   useEffect(() => {
-    const clear = () => classroomCache.current.clear();
+    const clear = ({ detail }) => {
+      if (!detail?.classIds) return classroomCache.current.clear();
+      for (const key of classroomCache.current.keys())
+        if (detail.classIds.some((id) => key.includes(`:${id}:members:`)))
+          classroomCache.current.delete(key);
+      if (user?.user_id && detail.overview)
+        classroomCache.current.set(
+          `${user.user_id}:${detail.overview.classroom.class_id}:members:1`,
+          { data: detail.overview, time: Date.now(), receivedAt: performance.now() },
+        );
+    };
     window.addEventListener('tipy-points-changed', clear);
     return () => window.removeEventListener('tipy-points-changed', clear);
-  }, []);
+  }, [user?.user_id]);
   const [myAvatar, setMyAvatar] = useState(null);
   const [companion, changeCompanion, companionPreview, previewCompanion] = useCompanion(
     user?.user_id,
@@ -61,6 +74,21 @@ export default function App() {
   const [notificationSeed, setNotificationSeed] = useState(null),
     [notificationsOpen, setNotificationsOpen] = useState(false),
     [requestedAssessment, setRequestedAssessment] = useState(null);
+  const [classroomTab, setClassroomTab] = useState(() =>
+      location.hash === '#tests'
+        ? 'tests'
+        : new URLSearchParams(location.search).get('tab') || 'members',
+    ),
+    [requestedPost, setRequestedPost] = useState(null);
+  useEffect(() => {
+    const open = ({ detail }) => {
+      setRequestedAssessment({ assessmentId: detail, requestId: crypto.randomUUID() });
+      setClassroomTab('tests');
+      setScreen('classroom');
+    };
+    window.addEventListener('tipy-open-assessment', open);
+    return () => window.removeEventListener('tipy-open-assessment', open);
+  }, []);
   const [audioOpen, setAudioOpen] = useState(false),
     [accountOpen, setAccountOpen] = useState(false),
     [gamePlaying, setGamePlaying] = useState(false);
@@ -95,7 +123,8 @@ export default function App() {
     }
   }, [user?.user_id, user?.role]);
   useEffect(() => {
-    if (screen === 'classroom' && user?.role !== 'teacher') checkClasses();
+    // Bootstrap already contains the permitted classes; focus and access events revalidate them.
+    if (screen === 'classroom' && user) setClassCheck(user.user_id);
   }, [screen, checkClasses]);
   useEffect(() => {
     // Teachers keep their editor mounted when a native file picker returns focus.
@@ -122,27 +151,33 @@ export default function App() {
     };
   }, [checkClasses, user?.role]);
   const navigate = (next) => {
-    if (next === 'classroom') {
-      setClassCheck(null);
-      if (screen === next) checkClasses();
+    if (next === 'tests') {
+      setClassroomTab('tests');
+      next = 'classroom';
+    } else if (next === 'classroom') {
+      setClassroomTab('members');
+      setRequestedAssessment(null);
+      setRequestedPost(null);
     }
     setScreen(next);
     history.replaceState(
       null,
       '',
-      next === 'home'
-        ? '#home'
-        : next === 'library'
-          ? '#typing'
-          : next === 'quest'
-            ? '#typing/quest'
-            : next === 'setup'
-              ? '#typing/setup'
-              : `#${next}`,
+      next === 'classroom'
+        ? '/classroom'
+        : next === 'home'
+          ? '/#home'
+          : next === 'library'
+            ? '/#typing'
+            : next === 'quest'
+              ? '/#typing/quest'
+              : next === 'setup'
+                ? '/#typing/setup'
+                : `/#${next}`,
     );
   };
   const { preferences, setPreferences, play } = useGameAudio(
-    ['game', 'quest', 'tests'].includes(screen) &&
+    ['game', 'quest', 'tests', 'classroom'].includes(screen) &&
       gamePlaying &&
       !audioOpen &&
       !accountOpen &&
@@ -150,7 +185,7 @@ export default function App() {
   );
   useEffect(() => {
     if (user?.role === 'teacher' && !['classroom', 'tests'].includes(screen)) navigate('classroom');
-  }, [user?.role, screen]);
+  }, [user?.role]);
   useEffect(() => save('tipy-settings', settings), [settings]);
   const start = (ranked = false) => {
     enterPlayFullscreen();
@@ -259,15 +294,22 @@ export default function App() {
         </nav>
         <Suspense fallback={<Loading label="Đang mở trang…" />}>
           {screen === 'classroom' ? (
-            <Reveal key={user?.user_id || 'guest'}>
+            <div key={user?.user_id || 'guest'}>
               {user && user.role !== 'teacher' && classCheck !== user.user_id ? (
                 <Loading label="Đang kiểm tra lớp học…" />
-              ) : canClassroom ? (
+              ) : user ? (
                 <ClassroomPage
                   key={`${user.user_id}:${user.role}`}
                   user={user}
                   classes={classes}
                   cache={classroomCache.current}
+                  initialTab={classroomTab}
+                  requestedAssessment={requestedAssessment}
+                  requestedPost={requestedPost}
+                  sound={play}
+                  blocked={audioOpen || accountOpen || notificationsOpen}
+                  onPlayingChange={setGamePlaying}
+                  onBack={() => navigate('home')}
                   avatarOverride={myAvatar?.userId === user.user_id ? myAvatar.value : null}
                 />
               ) : (
@@ -278,15 +320,36 @@ export default function App() {
                   </section>
                 </main>
               )}
-            </Reveal>
+            </div>
           ) : screen === 'home' ? (
             <Reveal key="home">
-              <HomePage
-                ready={bootstrapReady}
-                onPlay={() => navigate('library')}
-                onClassroom={() => navigate('classroom')}
-                canClassroom={canClassroom}
-              />
+              {user?.role === 'teacher' ? (
+                <main className="classroom-page">
+                  <section className="panel">
+                    <h1>Góc giáo viên</h1>
+                    <p>Chọn lớp để gửi bài, tặng sao và xem kết quả học sinh.</p>
+                    <div className="start-row">
+                      <TipyButton icon={Users} onClick={() => navigate('classroom')}>
+                        Lớp của tôi
+                      </TipyButton>
+                      <TipyButton
+                        icon={BookOpen}
+                        emphasis="secondary"
+                        onClick={() => navigate('tests')}
+                      >
+                        Bài kiểm tra
+                      </TipyButton>
+                    </div>
+                  </section>
+                </main>
+              ) : (
+                <HomePage
+                  ready={bootstrapReady}
+                  onPlay={() => navigate('library')}
+                  onClassroom={() => navigate('classroom')}
+                  canClassroom={canClassroom}
+                />
+              )}
             </Reveal>
           ) : screen === 'library' ? (
             <Reveal key="library">
@@ -351,9 +414,15 @@ export default function App() {
               blocked={audioOpen || accountOpen}
               companionVisible={companion.visible && myAvatar?.userId === user.user_id}
               onOpenChange={setNotificationsOpen}
-              onView={(assessmentId) => {
-                setRequestedAssessment({ assessmentId, requestId: crypto.randomUUID() });
+              onView={(assessmentId, classId) => {
+                setRequestedAssessment({ assessmentId, classId, requestId: crypto.randomUUID() });
                 navigate('tests');
+              }}
+              hidden={screen === 'classroom'}
+              onPost={(post) => {
+                setRequestedPost(post);
+                setClassroomTab('messages');
+                setScreen('classroom');
               }}
             />
           </Suspense>

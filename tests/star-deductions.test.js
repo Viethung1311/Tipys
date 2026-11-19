@@ -68,7 +68,7 @@ test('deductions atomically consume current balance, preserve award ceilings and
   }
 });
 
-test('gift/deduct validate session role and payload before RPC; scoped writes use one RPC', async () => {
+test('gift/deduct validate session role and payload before RPC; scoped writes return a refreshed podium in the same HTTP response', async () => {
   const calls = [];
   const api = createStars({
     rpc: async (...args) => {
@@ -83,8 +83,10 @@ test('gift/deduct validate session role and payload before RPC; scoped writes us
   assert.equal(calls.length, 0);
   await api.starDeduct({ user_id: id(99), role: 'admin' }, input);
   await api.starGift({ user_id: id(99), role: 'admin' }, input);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 4);
   assert.equal(calls[0][0], 'tipy_deduct_stars');
-  assert.equal(calls[1][0], 'tipy_class_star_gift');
+  assert.equal(calls[1][0], 'tipy_classroom_hub');
+  assert.equal(calls[2][0], 'tipy_class_star_gift');
+  assert.equal(calls[3][0], 'tipy_classroom_hub');
   assert.equal(calls[0][1].p_class, id(50));
 });

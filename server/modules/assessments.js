@@ -349,12 +349,22 @@ export function createAssessments(db) {
     async assessments(profile, input) {
       const page = Number(input.page || 1);
       if (!Number.isInteger(page) || page < 1 || page > 100000) invalid();
-      const data = await rpc(profile, 'list', { page });
+      if (input.classId) uuid(input.classId);
+      const data = await rpc(profile, 'list', {
+        page,
+        ...(input.classId && { classId: input.classId }),
+      });
       return data;
     },
     async assessment(profile, input) {
       const data = await rpc(profile, 'detail', scope(input));
       return data;
+    },
+    async assessmentVisibility(profile, input) {
+      requireEducator(profile);
+      scope(input);
+      if (typeof input.hidden !== 'boolean') invalid();
+      return rpc(profile, 'visibility', { assessmentId: input.assessmentId, hidden: input.hidden });
     },
     async assessmentSave(profile, input) {
       requireEducator(profile);

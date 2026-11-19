@@ -40,7 +40,8 @@ try {
       }
       if (action === 'avatar') json = { avatar: { animal: 'icon_01' } };
       if (action === 'stars') json = { stars: 0 };
-      if (action === 'classroom') json = { classroom, members: [], posts };
+      if (action === 'classroom_hub')
+        json = { classroom, members: [], total: 0, page: 1, pages: 1, top: [], posts };
       if (action === 'class_posts') json = { posts };
       if (action === 'class_stars') json = { lessons: [], weekly: [], memberCount: 0 };
       if (action === 'quest_class_report') json = { students: [] };
@@ -87,6 +88,11 @@ try {
       await route.fulfill({ json });
     });
     await page.goto('http://127.0.0.1:4193/#classroom');
+    await page
+      .locator('.hub-overview-nav')
+      .getByRole('button', { name: 'Tin nhắn', exact: true })
+      .click();
+    await page.getByRole('button', { name: 'Gửi bài', exact: true }).click();
     const title = page.locator('.class-composer input[name=title]'),
       body = page.locator('.class-composer textarea'),
       link = page.locator('.class-composer input[name=link]'),
@@ -95,7 +101,7 @@ try {
     await body.fill('Nội dung cần giữ');
     await link.fill('https://example.com/lesson');
     const classReads = () =>
-      calls.filter((c) => ['classes', 'classroom'].includes(c.action)).length;
+      calls.filter((c) => ['classes', 'classroom_hub'].includes(c.action)).length;
     const initialClassReads = classReads();
     await page.evaluate(() => {
       window.originalTitle = document.querySelector('.class-composer input[name=title]');
@@ -149,6 +155,7 @@ try {
     assert.equal(await page.getByAltText('Xem trước anh.png').count(), 1);
     await input.setInputFiles(png);
     await page.getByRole('button', { name: 'Xóa file anh.png' }).click();
+    await page.getByAltText('Xem trước anh.png').waitFor({ state: 'detached' });
     assert.equal(await page.getByAltText('Xem trước anh.png').count(), 0);
     await input.setInputFiles([png, { ...png, name: 'hai.png' }]);
     await input.setInputFiles({ ...png, name: 'to.png', buffer: Buffer.alloc(5242881) });
@@ -163,7 +170,7 @@ try {
     assert.equal(await title.inputValue(), 'Bản nháp thử');
     assert.equal(await body.inputValue(), 'Nội dung cần giữ');
     assert.equal(await link.inputValue(), 'https://example.com/lesson');
-    assert.equal(await page.locator('.class-select select').inputValue(), classroom.class_id);
+    assert.ok(page.url().includes('class=' + classroom.class_id));
     failUpload = true;
     const submit = page.getByRole('button', { name: 'Đăng bài cho lớp', exact: true });
     await submit.click();
@@ -189,7 +196,7 @@ try {
     assert.equal(calls.filter((c) => c.action === 'class_post').length, 2);
     assert.equal(calls.filter((c) => c.action === 'upload').length, uploaded);
     await page.getByRole('heading', { name: 'Bản nháp thử', exact: true }).waitFor();
-    assert.equal(await page.locator('.class-post h2').textContent(), 'Bản nháp thử');
+    assert.equal(await page.locator('.class-post h3').textContent(), 'Bản nháp thử');
     await title.fill('Bản nháp riêng giáo viên');
     user = { user_id: 'student', username: 'student', role: 'student' };
     await page.evaluate(() => window.dispatchEvent(new Event('tipy-session-changed')));
@@ -202,6 +209,7 @@ try {
     });
     user = { user_id: 'teacher', username: 'teacher', role: 'admin' };
     await page.evaluate(() => window.dispatchEvent(new Event('tipy-session-changed')));
+    await page.getByRole('button', { name: 'Gửi bài', exact: true }).click();
     await title.waitFor();
     assert.equal(await title.inputValue(), '');
     assert.deepEqual(errors, []);

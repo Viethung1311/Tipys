@@ -124,6 +124,54 @@ export function createClassrooms(db) {
       .order('created_at', { ascending: false })
       .range(input.offset || 0, (input.offset || 0) + 19);
   return {
+    async classroomHub(profile, input) {
+      uuid(input.classId);
+      const page = Number(input.page || 1);
+      if (!Number.isInteger(page) || page < 1 || page > 100000)
+        throw new ApiError(400, 'Trang chưa hợp lệ.');
+      const { data, error } = await db.rpc('tipy_classroom_hub', {
+        p_actor: profile.user_id,
+        p_class: input.classId,
+        p_page: page,
+      });
+      if (error?.message === 'Class access denied')
+        throw new ApiError(403, 'Bạn không còn quyền vào lớp này.');
+      fail(error, 'Chưa tải được lớp học.');
+      return data;
+    },
+    async classNotifications(profile, input) {
+      uuid(input.classId);
+      const page = Number(input.page || 1);
+      if (!Number.isInteger(page) || page < 1 || page > 100000)
+        throw new ApiError(400, 'Trang chưa hợp lệ.');
+      const { data, error } = await db.rpc('tipy_class_notifications', {
+        p_actor: profile.user_id,
+        p_class: input.classId,
+        p_page: page,
+      });
+      if (error?.message === 'Class access denied')
+        throw new ApiError(403, 'Bạn không còn quyền vào lớp này.');
+      fail(error, 'Chưa tải được thông báo.');
+      return data;
+    },
+    async classRemoveMember(profile, input) {
+      requireEducator(profile);
+      uuid(input.classId);
+      uuid(input.userId);
+      uuid(input.requestId);
+      if (input.confirm !== 'accept') throw new ApiError(400, 'Nhập chính xác accept để xác nhận.');
+      const { data, error } = await db.rpc('tipy_remove_class_member', {
+        p_actor: profile.user_id,
+        p_class: input.classId,
+        p_user: input.userId,
+        p_request: input.requestId,
+        p_confirm: input.confirm,
+      });
+      if (error?.message === 'Class access denied')
+        throw new ApiError(403, 'Bạn không có quyền loại học sinh khỏi lớp này.');
+      fail(error, 'Chưa xác nhận được kết quả. Thử lại cùng yêu cầu để tránh ghi trùng.');
+      return data;
+    },
     async classDeletions(profile) {
       requireAdmin(profile);
       const { data, error } = await db
@@ -325,7 +373,9 @@ export function createClassrooms(db) {
     },
     async classPosts(profile, input) {
       await access(profile, input.classId);
-      const posts = await postsQuery(input);
+      const posts = await (input.postId
+        ? postsQuery(input).eq('post_id', uuid(input.postId))
+        : postsQuery(input));
       fail(posts.error);
       return { posts: posts.data };
     },

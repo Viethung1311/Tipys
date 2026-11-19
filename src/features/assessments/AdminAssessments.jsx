@@ -8,6 +8,8 @@ import ContentPicker from './ContentPicker.jsx';
 import AssessmentSummary from './AssessmentSummary.jsx';
 import TeacherResults from './ResultViews.jsx';
 import Modal from '../../components/Modal.jsx';
+import { availability } from './ResultViews.jsx';
+import { readHub } from '../classroom/hub-cache.js';
 import useStudentsPage from '../admin/useStudentsPage.js';
 import Pagination from '../admin/Pagination.jsx';
 import { LEVELS, PRESETS, SUPPORTED_KEYS } from '../../game/config.js';
@@ -109,7 +111,7 @@ function Recipients({ draft, setDraft, classes, busy }) {
     </fieldset>
   );
 }
-export default function AdminAssessments({ classes = [] }) {
+export default function AdminAssessments({ classes = [], classId, cache, ownerId }) {
   const [list, setList] = useState(null),
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0),
@@ -126,7 +128,12 @@ export default function AdminAssessments({ classes = [] }) {
   useEffect(() => {
     let live = true;
     setList(null);
-    api('assessments', undefined, { page })
+    (cache
+      ? readHub(cache, `${ownerId}:${classId}:tests:${page}:${revision}`, () =>
+          api('assessments', undefined, { page, ...(classId && { classId }) }),
+        )
+      : api('assessments', undefined, { page, ...(classId && { classId }) })
+    )
       .then((data) => {
         if (live) setList(data);
       })
@@ -136,7 +143,7 @@ export default function AdminAssessments({ classes = [] }) {
     return () => {
       live = false;
     };
-  }, [page, revision]);
+  }, [page, revision, classId]);
   const run = async (task) => {
     if (sending.current) return;
     sending.current = true;
@@ -198,7 +205,10 @@ export default function AdminAssessments({ classes = [] }) {
           <TipyButton
             icon={Plus}
             onClick={() => {
-              setDraft(empty());
+              setDraft({
+                ...empty(),
+                targets: { classIds: classId ? [classId] : [], userIds: [] },
+              });
               setError('');
             }}
           >
@@ -222,7 +232,7 @@ export default function AdminAssessments({ classes = [] }) {
       )}
       {notice && <p role="status">{notice}</p>}
       {resultExam ? (
-        <TeacherResults exam={resultExam} classes={classes} onBack={back} />
+        <TeacherResults exam={resultExam} classes={classes} classId={classId} onBack={back} />
       ) : preview ? (
         <>
           <AssessmentSummary definition={preview.definition}>
@@ -552,10 +562,12 @@ export default function AdminAssessments({ classes = [] }) {
               <h3>{exam.title}</h3>
               <p>
                 {exam.status === 'draft'
-                  ? 'Nháp'
+                  ? 'Bản nháp'
                   : exam.status === 'deleted'
                     ? 'Đã xóa / Ẩn'
-                    : 'Đã gửi'}{' '}
+                    : exam.hidden
+                      ? 'Đã ẩn'
+                      : availability(exam.schedule, exam.server_now)}{' '}
                 · {exam.teacher}
               </p>
               <p>{exam.description}</p>
@@ -577,6 +589,33 @@ export default function AdminAssessments({ classes = [] }) {
                     }}
                   >
                     Xem kết quả
+                  </TipyButton>
+                )}
+                {exam.status === 'published' && exam.can_manage !== false && (
+                  <TipyButton
+                    emphasis="secondary"
+                    disabled={busy}
+                    onClick={() =>
+                      run(async () => {
+                        const result = await api('assessment_visibility', {
+                          assessmentId: exam.assessment_id,
+                          hidden: !exam.hidden,
+                        });
+                        setList((old) => ({
+                          ...old,
+                          items: old.items.map((row) =>
+                            row.assessment_id === exam.assessment_id
+                              ? { ...row, hidden: result.data.hidden }
+                              : row,
+                          ),
+                        }));
+                        if (cache)
+                          for (const key of cache.keys())
+                            if (key.includes(':tests:')) cache.delete(key);
+                      })
+                    }
+                  >
+                    {exam.hidden ? 'Hiện' : 'Ẩn'}
                   </TipyButton>
                 )}
                 {exam.can_manage !== false && (

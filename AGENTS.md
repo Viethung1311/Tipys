@@ -73,7 +73,11 @@ Bài kiểm tra dùng module `src/features/assessments`, SQL `db/assessments.sql
 
 ## Vai trò và phạm vi lớp
 
-Có ba vai trò tin cậy từ profiles ở backend: student, teacher, admin. Chỉ Admin tạo/khóa giáo viên và phân công qua class_teachers. Giáo viên chỉ đọc lớp/học sinh được phân công, giao bài, xem kết quả và tặng sao; chỉ quản lý bài đăng/bài kiểm tra của mình trong phạm vi hiện tại. Reset, trừ sao, quản lý tài khoản/lớp/game là Admin. Không tự thêm điểm tặng: chủ dự án đã chọn chỉ tặng sao. Xem db/teacher_roles.sql và BACKEND.md; giữ kiểm tra API/RPC/RLS/Storage, không nâng giáo viên thành Admin để tái sử dụng chức năng.
+Có ba vai trò tin cậy từ profiles ở backend: student, teacher, admin. Chỉ Admin tạo/khóa giáo viên và phân công qua class_teachers. Giáo viên chỉ đọc lớp/học sinh được phân công, giao bài, xem kết quả, cộng/trừ sao và loại học sinh khỏi lớp đang quản lý; chỉ quản lý bài đăng/bài kiểm tra của mình trong phạm vi hiện tại. Reset và quản lý tài khoản/lớp/game là Admin. Loại chỉ bỏ membership lớp hiện tại bằng accept, giữ tài khoản và lịch sử. Không tự thêm điểm tặng: chủ dự án đã chọn chỉ tặng sao. Xem db/teacher_roles.sql, db/classroom_hub.sql và BACKEND.md; giữ kiểm tra API/RPC/RLS/Storage, không nâng giáo viên thành Admin để tái sử dụng chức năng.
+
+## Khu vực Lớp học
+
+Trang riêng lazy `/classroom?class=<id>&tab=members|notifications|tests|messages` dùng khung visualViewport, 100dvh và cuộn nội bộ. Chỉ tải tổng quan lớp (24 thành viên/trang, Top 3 sao trong lớp tuần này) rồi tải tab khi mở. Dùng cache theo tài khoản/lớp/tab/trang, chia sẻ request đang chạy và bỏ phản hồi phiên/lớp cũ. Xem MASTER.md và BACKEND.md; không đổi quy tắc tổng sao, trần thưởng bài hoặc điểm Chữ rơi khi sửa bố cục.
 
 ## Tự chọn công cụ khi làm việc với code
 

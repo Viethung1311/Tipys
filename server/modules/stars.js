@@ -2,8 +2,7 @@ import { ApiError, fail, requireAdmin, requireEducator } from '../errors.js';
 import { uuid } from './classrooms.js';
 export function createStars(db) {
   const adjust = async (profile, input, deduct = false) => {
-    if (deduct) requireAdmin(profile);
-    else requireEducator(profile);
+    requireEducator(profile);
     if (profile.role === 'teacher' && !input.classId)
       throw new ApiError(400, 'Chọn lớp đang được phân công.');
     uuid(input.userId);
@@ -23,9 +22,18 @@ export function createStars(db) {
       p_message: message,
       p_class: input.classId ?? null,
     });
-    if (result.error?.message === 'Class access denied')
+    if (['Class access denied', 'Admin required'].includes(result.error?.message))
       throw new ApiError(403, 'Bạn không có quyền thao tác học sinh trong lớp này.');
     fail(result.error, 'Chưa xác nhận được thay đổi sao. Thử lại cùng yêu cầu để tránh ghi trùng.');
+    // The same write request returns the affected podium; no roster/history reload is needed.
+    if (input.classId && result.data?.completed) {
+      const board = await db.rpc('tipy_classroom_hub', {
+        p_actor: profile.user_id,
+        p_class: input.classId,
+        p_page: 1,
+      });
+      if (!board.error) return { ...result.data, overview: board.data };
+    }
     return result.data;
   };
   return {

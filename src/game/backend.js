@@ -56,7 +56,11 @@ export function api(action, body, params = {}) {
       identity = null;
     }
     clearApiCache();
-    return request(action, body, params);
+    const owner = epoch;
+    return request(action, body, params).then((data) => {
+      if (owner !== epoch) throw Error('Tài khoản đã thay đổi. Hãy mở lại nội dung.');
+      return data;
+    });
   }
   const key = new URLSearchParams({ action, ...params }).toString();
   const cached = readCache.get(key);
@@ -108,6 +112,9 @@ async function request(action, body, params) {
       [401, 403, 404].includes(response.status) &&
       [
         'classroom',
+        'classroom_hub',
+        'class_notifications',
+        'class_remove_member',
         'class_posts',
         'class_file',
         'class_stars',
@@ -116,6 +123,8 @@ async function request(action, body, params) {
         'post_archive',
         'quest_class_report',
         'star_gift',
+        'star_deduct',
+        'assessment_visibility',
         'assessment',
         'assessment_results',
         'assessment_save',

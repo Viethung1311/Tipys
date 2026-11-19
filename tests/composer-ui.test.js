@@ -39,7 +39,17 @@ test('teacher sees side-by-side local draft preview; images are revoked and unsa
         classes: [c],
       },
       classes: { classes: [c] },
-      classroom: { classroom: c, members: [], achievements: [], posts: [] },
+      class_posts: { posts: [] },
+      classroom_hub: {
+        total: 0,
+        page: 1,
+        pages: 1,
+        top: [],
+        classroom: c,
+        members: [],
+        achievements: [],
+        posts: [],
+      },
     };
     return { ok: true, json: async () => values[action] };
   };
@@ -57,6 +67,12 @@ test('teacher sees side-by-side local draft preview; images are revoked and unsa
     input.dispatchEvent(new w.Event('input', { bubbles: true }));
   };
   try {
+    await until(() => d.querySelector('.hub-overview-nav'));
+    [...d.querySelectorAll('.hub-overview-nav button')]
+      .find((b) => b.textContent.includes('Tin nhắn'))
+      .click();
+    await until(() => [...d.querySelectorAll('button')].some((b) => b.textContent === 'Gửi bài'));
+    [...d.querySelectorAll('button')].find((b) => b.textContent === 'Gửi bài').click();
     await until(() => d.querySelector('.composer-layout'));
     assert.ok(d.querySelector('.composer-layout .composer-form'));
     assert.ok(d.querySelector('.composer-layout .composer-preview'));
@@ -124,7 +140,12 @@ test('switching teacher classes removes the old grid, top and draft instead of r
         classes,
       },
       classes: { classes },
-      classroom: {
+      class_posts: { posts: [] },
+      classroom_hub: {
+        total: 1,
+        page: 1,
+        pages: 1,
+        top: [],
         classroom: c,
         members: [
           {
@@ -144,18 +165,22 @@ test('switching teacher classes removes the old grid, top and draft instead of r
   );
   w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
   try {
-    await until(() => d.querySelector('.classroom-layout'));
+    await until(() => d.querySelector('.hub-member-grid li'));
     for (const id of ['b', 'a', 'b']) {
-      const select = d.querySelector('.classroom-page .class-select select');
-      select.value = id;
-      select.dispatchEvent(new w.Event('change', { bubbles: true }));
+      d.querySelector('.hub-class-picker button').click();
+      await until(() => d.querySelector('[role=menu]'));
+      [...d.querySelectorAll('[role=menuitem]')]
+        .find((b) => b.textContent === 'Lớp ' + id.toUpperCase())
+        .click();
       await until(
-        () => d.querySelector('#class-roster-heading')?.textContent === 'Lớp ' + id.toUpperCase(),
+        () =>
+          d.querySelector('.hub-toolbar h1')?.textContent === 'Lớp ' + id.toUpperCase() &&
+          d.querySelector('.hub-member-grid b')?.textContent === id,
       );
-      assert.equal(d.querySelectorAll('.classroom-layout').length, 1);
-      assert.equal(d.querySelectorAll('.student-desk').length, 1);
-      assert.equal(d.querySelectorAll('.class-composer').length, 1);
-      assert.equal(d.querySelectorAll('#class-top-heading').length, 1);
+      assert.equal(d.querySelectorAll('.hub-overview').length, 1);
+      assert.equal(d.querySelectorAll('.hub-member-grid li').length, 1);
+      assert.equal(d.querySelectorAll('#hub-top-title').length, 1);
+      assert.equal(d.querySelectorAll('.class-composer').length, 0);
     }
     assert.deepEqual(errors, []);
   } finally {

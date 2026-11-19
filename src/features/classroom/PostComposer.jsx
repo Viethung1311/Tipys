@@ -19,7 +19,7 @@ function previewLink(value) {
   }
 }
 /** Admin-only editor (parent + API enforce role). Preview stays local until Publish. */
-export default function PostComposer({ classId, onPosted, authorName = TEACHER_NAME }) {
+export default function PostComposer({ classId, onPosted, authorName = TEACHER_NAME, onDirty }) {
   const [fields, setFields] = useState(EMPTY),
     [files, setFiles] = useState([]),
     [previews, setPreviews] = useState([]),
@@ -28,6 +28,9 @@ export default function PostComposer({ classId, onPosted, authorName = TEACHER_N
     [error, setError] = useState('');
   const inFlight = useRef(false);
   const uploaded = useRef(new WeakMap());
+  useEffect(() => {
+    onDirty?.(Boolean(fields.title || fields.body || fields.link || files.length || pendingPost));
+  }, [fields, files, pendingPost, onDirty]);
   useEffect(() => {
     const images = files
       .filter((file) => file.type.startsWith('image/'))

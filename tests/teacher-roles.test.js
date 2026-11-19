@@ -81,7 +81,10 @@ test('teacher assignments scope gifts, recipients, tests, posts, files and RLS; 
       (e) => e.status === 403,
     );
     await assert.rejects(stars.starGift(student, gift), (e) => e.status === 403);
-    await assert.rejects(stars.starDeduct(a, gift), (e) => e.status === 403);
+    await assert.rejects(
+      stars.starDeduct(a, { ...gift, userId: id(8), classId: id(51), requestId: id(305) }),
+      (e) => e.status === 403,
+    );
     await assert.rejects(
       stars.starReset(a, { userId: id(1), requestId: id(302), confirm: 'accept' }),
       (e) => e.status === 403,

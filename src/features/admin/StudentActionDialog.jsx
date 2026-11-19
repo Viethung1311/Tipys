@@ -15,6 +15,7 @@ export default function StudentActionDialog({
   initialGameId,
   onClose,
   onDone,
+  compact = false,
 }) {
   const gift = kind === 'gift';
   const deduct = kind === 'deduct';
@@ -25,7 +26,9 @@ export default function StudentActionDialog({
   );
   const starsOnly = kind === 'stars';
   const actionLabel = gift
-    ? 'Tặng sao'
+    ? compact
+      ? 'Cộng sao'
+      : 'Tặng sao'
     : deduct
       ? 'Trừ sao'
       : starsOnly
@@ -81,6 +84,7 @@ export default function StudentActionDialog({
             userId: student.user_id,
             stars: result.data.stars,
             classIds: affectedClasses,
+            overview: result.data.overview,
           },
         }),
       );
@@ -154,7 +158,7 @@ export default function StudentActionDialog({
         {adjustment ? (
           <>
             <label>
-              Số sao
+              {compact ? 'Số lượng' : 'Số sao'}
               <input
                 type="number"
                 min="1"
@@ -167,7 +171,11 @@ export default function StudentActionDialog({
               />
             </label>
             <label>
-              {deduct ? 'Lý do (không bắt buộc)' : 'Lời nhắn (không bắt buộc)'}
+              {compact
+                ? 'Ghi chú (không bắt buộc)'
+                : deduct
+                  ? 'Lý do (không bắt buộc)'
+                  : 'Lời nhắn (không bắt buộc)'}
               <textarea
                 maxLength={240}
                 rows={3}

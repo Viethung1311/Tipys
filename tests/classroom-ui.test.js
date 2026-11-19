@@ -67,7 +67,7 @@ test('member sees square roster and class top, then changes avatar through accou
     const values = {
       bootstrap: { configured: true, user: child, games: [], classes: [classroom] },
       classes: { classes: [classroom] },
-      classroom: detail,
+      classroom_hub: { ...detail, top: [], total: 1, page: 1, pages: 1 },
       class_stars: {
         lessons: [],
         weekly: [],
@@ -75,7 +75,7 @@ test('member sees square roster and class top, then changes avatar through accou
         weekStart: '2026-11-09',
         currentWeek: '2026-11-09',
       },
-      class_posts: { posts: [{ ...detail.posts[0], post_id: 'older-post', title: 'Bài cũ hơn' }] },
+      class_posts: { posts: detail.posts },
       class_file: {
         url: 'https://files.test/original.jpg',
         previewUrl: 'https://files.test/preview.webp',
@@ -94,12 +94,18 @@ test('member sees square roster and class top, then changes avatar through accou
   try {
     await until(() => button('Lớp học') && !button('Lớp học').disabled);
     button('Lớp học').click();
-    await until(() => d.querySelector('.class-desks'));
-    assert.match(d.querySelector('.student-desk').textContent, /Bạn An/);
+    await until(() => d.querySelector('.hub-member-grid'));
+    assert.match(d.querySelector('.hub-member-grid li').textContent, /An/);
+    assert.equal(d.querySelector('.class-post'), null);
+    assert.match(d.querySelector('.hub-podium').textContent, /Top 3/);
+    [...d.querySelectorAll('.hub-overview-nav button')]
+      .find((b) => b.textContent.includes('Tin nhắn'))
+      .click();
+    await until(() => d.querySelector('.class-post'));
     assert.match(d.querySelector('.class-post').textContent, /Bài luyện số 1/);
     assert.equal(d.querySelector('.class-post a').href, 'https://example.com/lesson');
-    assert.equal(d.querySelectorAll('.class-desks > li').length, 1);
-    assert.match(d.querySelector('.class-achievements').textContent, /Top thành tích/);
+    assert.equal(d.querySelectorAll('.hub-member-grid > li').length, 1);
+
     assert.equal(d.querySelector('.avatar-editor'), null);
     assert.equal(
       requests.filter((r) => typeof r === 'string' && r.includes('action=classes&')).length,
@@ -114,25 +120,35 @@ test('member sees square roster and class top, then changes avatar through accou
       requests.filter((r) => typeof r === 'string' && r.includes('action=class_file')).length,
       2,
     );
-    button('Trang chủ').click();
+    button('Trở về').click();
+    await sleep(10);
+    button('Trở về').click();
     await until(() => d.querySelector('.welcome-hero'));
     button('Lớp học').click();
-    await until(() => d.querySelector('.class-desks'));
+    await until(() => d.querySelector('.hub-member-grid'));
     assert.equal(
       requests.filter((r) => typeof r === 'string' && r.includes('action=classroom')).length,
-      2,
+      1,
     );
-    button('Xem bài cũ hơn').click();
-    await until(() => d.querySelectorAll('.class-post').length === 21);
+    [...d.querySelectorAll('.hub-overview-nav button')]
+      .find((b) => b.textContent.includes('Tin nhắn'))
+      .click();
+    await until(() => d.querySelector('.class-post'));
+    button('Sau').click();
+    await until(() => requests.some((r) => typeof r === 'string' && r.includes('offset=20')));
     assert.equal(
       requests.filter((r) => typeof r === 'string' && r.includes('action=classroom')).length,
-      2,
+      1,
     );
     assert.ok(
       requests.some(
         (r) => typeof r === 'string' && r.includes('action=class_posts') && r.includes('offset=20'),
       ),
     );
+    button('Trở về').click();
+    await sleep(10);
+    button('Trở về').click();
+    await until(() => d.querySelector('.welcome-hero'));
     button('Tài khoản · Bạn An').click();
     await until(() => button('Nhân vật'));
     button('Nhân vật').click();
@@ -147,9 +163,11 @@ test('member sees square roster and class top, then changes avatar through accou
     assert.equal(requests.find((r) => r.action === 'avatar_save').classId, undefined);
     d.querySelector('[aria-label="Đóng chọn nhân vật"]').click();
     await until(() => !d.querySelector('[role=dialog]'));
+    button('Lớp học').click();
+    await until(() => d.querySelector('.hub-member-grid li .student-avatar > img'));
     assert.ok(
       d
-        .querySelector('.student-desk .student-avatar > img')
+        .querySelector('.hub-member-grid li .student-avatar > img')
         .src.endsWith('/characters/icon_29.png'),
     );
     assert.ok(d.querySelector('.avatar-button img').src.endsWith('/characters/icon_29.png'));
@@ -182,6 +200,54 @@ test('guest cannot activate classroom navigation', async () => {
       undefined,
     );
     assert.match(d.querySelector('.main-nav').textContent, /Trang chủ.*Gõ chữ.*Tài khoản/s);
+  } finally {
+    w.close();
+  }
+});
+
+test('student without a class can still open a personally assigned assessment', async () => {
+  const dom = new JSDOM('<div id="root"></div>', {
+    url: 'https://tipy.test/#tests',
+    pretendToBeVisual: true,
+    runScripts: 'outside-only',
+  });
+  const w = dom.window,
+    d = w.document,
+    requests = [];
+  w.fetch = async (url) => {
+    const action = new URL(url, 'https://tipy.test').searchParams.get('action');
+    requests.push(action);
+    const values = {
+      bootstrap: { configured: true, user: child, classes: [], games: [] },
+      avatar: { avatar: { animal: 'icon_01' } },
+      stars: { stars: 0 },
+      notifications: { items: [], unread: 0, page: 1, pages: 1 },
+      classes: { classes: [] },
+      assessments: {
+        items: [
+          {
+            assessment_id: 'personal',
+            title: 'Bài giao riêng cho em',
+            teacher: 'Cô Lan',
+            schedule: { mode: 'always' },
+            attempt_status: 'not_started',
+          },
+        ],
+        page: 1,
+        pages: 1,
+        total: 1,
+      },
+    };
+    return { ok: true, json: async () => values[action] };
+  };
+  const bundle = readdirSync(new URL('../.test-dist/assets/', import.meta.url)).find((n) =>
+    n.endsWith('.js'),
+  );
+  try {
+    w.eval(readFileSync(new URL('../.test-dist/assets/' + bundle, import.meta.url), 'utf8'));
+    await until(() => d.body.textContent.includes('Bài giao riêng cho em'));
+    assert.equal(requests.includes('classroom_hub'), false);
+    assert.ok(d.querySelector('.classroom-hub'));
   } finally {
     w.close();
   }

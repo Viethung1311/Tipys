@@ -4,7 +4,16 @@ import { Ellipsis } from 'lucide-react';
 import TipyButton from './TipyButton.jsx';
 import '../styles/action-menu.css';
 
-export default function ActionMenu({ label = 'Tùy chọn', description, disabled, items, children }) {
+export default function ActionMenu({
+  label = 'Tùy chọn',
+  description,
+  disabled,
+  items,
+  children,
+  header,
+  icon: TriggerIcon = Ellipsis,
+  className = '',
+}) {
   const [open, setOpen] = useState(false),
     [position, setPosition] = useState(null);
   const anchor = useRef(null),
@@ -54,10 +63,10 @@ export default function ActionMenu({ label = 'Tùy chọn', description, disable
   }, [disabled]);
   return (
     <>
-      <span ref={anchor} className={children ? 'tipy-avatar-menu' : undefined}>
+      <span ref={anchor} className={`${children ? 'tipy-avatar-menu' : ''} ${className}`}>
         <TipyButton
           emphasis="secondary"
-          icon={Ellipsis}
+          icon={TriggerIcon}
           className={children ? 'tipy-avatar-trigger' : ''}
           disabled={disabled}
           aria-label={description ? `${label}: ${description}` : label}
@@ -111,6 +120,11 @@ export default function ActionMenu({ label = 'Tùy chọn', description, disable
               }
             }}
           >
+            {header && (
+              <div role="presentation" className="tipy-menu-summary">
+                {header}
+              </div>
+            )}
             {items.map(({ label: text, icon, danger, onClick }) => (
               <TipyButton
                 key={text}

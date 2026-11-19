@@ -11,6 +11,7 @@ import { AttemptHistory, availability } from './ResultViews.jsx';
 import { assessmentSession } from './session.js';
 import { createAnswers } from '../keyboard-quest/engine.js';
 import { adventureWorld } from '../keyboard-quest/adventure.js';
+import { readHub } from '../classroom/hub-cache.js';
 import './assessments.css';
 const AdminAssessments = lazy(() => import('./AdminAssessments.jsx'));
 const LessonPlayer = lazy(() => import('../keyboard-quest/LessonPlayer.jsx'));
@@ -40,6 +41,8 @@ export default function AssessmentsPage({
   blocked,
   onPlayingChange,
   requestedAssessment,
+  classId,
+  cache,
 }) {
   const [list, setList] = useState(null),
     [page, setPage] = useState(1),
@@ -58,6 +61,24 @@ export default function AssessmentsPage({
   const sending = useRef(false),
     current = useRef({ detail, running });
   current.current = { detail, running, immersive };
+  useEffect(() => {
+    const updated = ({ detail: change }) => {
+      if (change.userId !== user?.user_id || current.current.detail || current.current.running)
+        return;
+      if (
+        change.added?.some(
+          (n) => n.kind === 'assessment' && (!classId || n.payload.classId === classId),
+        )
+      ) {
+        if (cache)
+          for (const key of cache.keys())
+            if (key.startsWith(`${user.user_id}:${classId}:tests:`)) cache.delete(key);
+        setRevision((n) => n + 1);
+      }
+    };
+    window.addEventListener('tipy-notifications-updated', updated);
+    return () => window.removeEventListener('tipy-notifications-updated', updated);
+  }, [user?.user_id, classId, cache]);
   const finished = (row, allowSound = true) => {
     const claim = `tipy-assessment-celebrated:${user?.user_id}:${row.attempt_id}`;
     let claimed = celebrated.current.has(row.attempt_id);
@@ -91,7 +112,12 @@ export default function AssessmentsPage({
       user?.role === 'student' &&
       (!requestedAssessment || openedRequest.current === requestedAssessment)
     )
-      api('assessments', undefined, { page })
+      (cache
+        ? readHub(cache, `${user.user_id}:${classId}:tests:${page}:${revision}`, () =>
+            api('assessments', undefined, { page, ...(classId && { classId }) }),
+          )
+        : api('assessments', undefined, { page, ...(classId && { classId }) })
+      )
         .then((data) => {
           if (live) setList(data);
         })
@@ -101,7 +127,7 @@ export default function AssessmentsPage({
     return () => {
       live = false;
     };
-  }, [user?.user_id, page, revision]);
+  }, [user?.user_id, classId, page, revision]);
   useEffect(() => {
     if (
       user?.role !== 'student' ||
@@ -160,7 +186,10 @@ export default function AssessmentsPage({
             setRunning(false);
           }
         } else {
-          const updated = await api('assessments', undefined, { page });
+          const updated = await api('assessments', undefined, {
+            page,
+            ...(classId && { classId }),
+          });
           if (live && !current.current.detail) setList(updated);
         }
       } catch (e) {
@@ -237,6 +266,9 @@ export default function AssessmentsPage({
             <AdminAssessments
               key={user.user_id + ':' + classes.map((c) => c.class_id).join(',')}
               classes={classes}
+              classId={classId}
+              cache={cache}
+              ownerId={user.user_id}
             />
           )}
         </Suspense>
@@ -280,6 +312,7 @@ export default function AssessmentsPage({
     detail?.attempt?.submitted_at &&
     !closedAtBoundary &&
     detail.assessment.status === 'published' &&
+    !detail.assessment.hidden &&
     availability(detail.assessment.definition.schedule, detail.serverNow) === 'Đang mở' &&
     (detail.allowedAttempts === null || detail.allowedAttempts > detail.attempt.attempt_number);
   return (
@@ -347,7 +380,9 @@ export default function AssessmentsPage({
               <p>Người giao: {detail.assessment.teacher}</p>
               <p>
                 <b>{availability(detail.assessment.definition.schedule, detail.serverNow)}</b>
-                {detail.assessment.status === 'deleted' ? ' · Bài đã ẩn, không mở lượt mới' : ''}
+                {detail.assessment.hidden || detail.assessment.status === 'deleted'
+                  ? ' · Đã ẩn, không mở lượt mới'
+                  : ''}
               </p>
               <p>
                 {remainingAttempts === null
@@ -369,7 +404,7 @@ export default function AssessmentsPage({
                   disabled={
                     availability(detail.assessment.definition.schedule, detail.serverNow) !==
                       'Đang mở' ||
-                    (detail.assessment.status === 'deleted' &&
+                    ((detail.assessment.hidden || detail.assessment.status === 'deleted') &&
                       (!detail.attempt || detail.attempt.submitted_at))
                   }
                   onClick={startAttempt}
@@ -394,7 +429,7 @@ export default function AssessmentsPage({
                 <p>{exam.description}</p>
                 <p>Người giao: {exam.teacher}</p>
                 <strong>{statusLabel[exam.attempt_status]}</strong>
-                <p>{availability(exam.schedule, exam.server_now)}</p>
+                <p>{exam.hidden ? 'Đã ẩn' : availability(exam.schedule, exam.server_now)}</p>
                 {exam.attempt_status === 'submitted' && (
                   <TipyButton emphasis="secondary" onClick={() => setHistory(exam.assessment_id)}>
                     Kết quả của em

@@ -1,0 +1,648 @@
+body.classroom-active {
+  overflow: hidden;
+}
+body.classroom-active .site-header,
+body.classroom-active .main-nav,
+body.classroom-active footer,
+body.classroom-active .tipy-companion,
+body.classroom-active .notification-bell {
+  display: none !important;
+}
+.classroom-hub {
+  position: fixed;
+  inset: auto;
+  top: var(--dialog-top, 0px);
+  left: var(--dialog-left, 0px);
+  width: var(--dialog-width, 100%);
+  height: var(--dialog-height, 100dvh);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  background: var(--tipy-surface);
+  color: var(--tipy-text);
+  font-family: var(--tipy-font-family);
+  box-sizing: border-box;
+}
+.classroom-hub *,
+.classroom-hub *::before,
+.classroom-hub *::after {
+  box-sizing: border-box;
+}
+.classroom-hub [hidden] {
+  display: none !important;
+}
+.hub-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 auto;
+}
+.hub-toolbar .tipy-button {
+  min-width: 0;
+}
+.hub-toolbar h1 {
+  font-size: clamp(22px, 3vw, 32px);
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.hub-class-picker {
+  max-width: min(40vw, 340px);
+}
+.hub-class-picker > .tipy-button {
+  max-width: 100%;
+}
+.hub-class-picker .tipy-button > span {
+  overflow-wrap: anywhere;
+}
+.hub-class-picker [aria-expanded='true'] > svg {
+  transform: rotate(180deg);
+}
+.hub-class-picker svg {
+  transform: rotate(-90deg);
+  fill: currentColor;
+  padding: 4px;
+  transition: transform 120ms;
+}
+.hub-body {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 16px;
+}
+.hub-body.is-overview {
+  display: block;
+}
+.hub-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(290px, 1fr);
+  gap: 20px;
+  height: 100%;
+  min-height: 0;
+}
+.classroom-hub .panel {
+  margin: 0;
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-card-radius);
+  box-shadow: var(--tipy-card-shadow);
+  background: var(--tipy-surface-raised);
+}
+.hub-members {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  min-height: 0;
+}
+.hub-panel-heading {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+.classroom-hub h2 {
+  font-size: clamp(22px, 3vw, 30px);
+  margin: 0;
+}
+.hub-scroll {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: var(--tipy-learn) var(--tipy-learn-soft);
+  min-height: 0;
+  min-width: 0;
+  border-radius: 16px;
+}
+.hub-scroll::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+.hub-scroll::-webkit-scrollbar-track {
+  background: var(--tipy-learn-soft);
+  border-radius: 20px;
+}
+.hub-scroll::-webkit-scrollbar-thumb {
+  background: var(--tipy-learn);
+  border: 3px solid var(--tipy-learn-soft);
+  border-radius: 20px;
+  min-height: 36px;
+}
+.hub-scroll:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: -3px;
+}
+.hub-member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  align-items: start;
+  list-style: none;
+  gap: 22px 12px;
+  margin: 0;
+  padding: 12px 10px;
+}
+.hub-member-grid li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  min-width: 0;
+  font-size: 20px;
+}
+.hub-member-grid li > b {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.hub-member-grid small {
+  font-size: 14px;
+  color: var(--tipy-play);
+}
+.classroom-hub .student-avatar {
+  display: flex;
+  width: 88px;
+  height: 88px;
+  aspect-ratio: 1;
+  padding: 7px;
+  border: 2px solid var(--tipy-border);
+  border-radius: 22px;
+  background: var(--tipy-learn-soft);
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 var(--tipy-border);
+  flex: 0 0 auto;
+}
+.classroom-hub .student-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.classroom-hub .tipy-avatar-trigger {
+  display: block;
+  padding: 0 !important;
+  width: 88px;
+  min-width: 88px;
+  height: 88px;
+  min-height: 88px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  transform: none;
+}
+.classroom-hub .tipy-avatar-trigger > svg {
+  display: none;
+}
+.classroom-hub .tipy-avatar-trigger > span {
+  display: contents;
+}
+.hub-aside {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.hub-podium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 12px 12px;
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  text-align: center;
+}
+.hub-podium p {
+  margin: 6px 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.hub-podium small {
+  font-size: 14px;
+  color: var(--tipy-text-muted);
+}
+.hub-podium-places {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  padding-top: 20px;
+}
+.hub-place {
+  width: 33.33%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.hub-place .student-avatar {
+  width: clamp(48px, 5vw, 76px);
+  height: auto;
+  border-radius: 18px;
+}
+.hub-place b {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 19px;
+}
+.hub-place > span {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-weight: 800;
+}
+.hub-place > strong {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 34px;
+  line-height: 1;
+  background: var(--tipy-learn-soft);
+  color: var(--tipy-learn-base);
+  width: 100%;
+  height: clamp(46px, 9vh, 100px);
+  border-top: 3px solid var(--tipy-learn);
+  border-radius: 10px 10px 0 0;
+}
+.hub-place.rank-1 > strong {
+  height: clamp(90px, 17vh, 170px);
+  background: var(--tipy-learn);
+  color: var(--tipy-on-action);
+}
+.hub-place.rank-2 > strong {
+  height: clamp(66px, 12vh, 128px);
+}
+.hub-overview-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.hub-overview-nav .tipy-button {
+  width: 100%;
+  padding: 12px 5px;
+  flex-direction: column;
+  font-size: 18px;
+  min-width: 0;
+}
+.hub-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+  padding-bottom: 8px;
+}
+.hub-tabs .tipy-button {
+  width: 100%;
+  padding-inline: 10px;
+  font-size: 19px;
+}
+.hub-content {
+  background: var(--tipy-surface-raised);
+  border: 1px solid var(--tipy-border);
+  padding: clamp(16px, 3vw, 32px);
+  box-shadow: var(--tipy-card-shadow);
+  border-radius: var(--tipy-card-radius);
+}
+.hub-content > .assessments-page {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+.hub-content .panel {
+  margin-bottom: 16px;
+  padding: 20px;
+}
+.hub-content .post-composer {
+  margin-top: 16px;
+}
+.hub-content .class-post {
+  margin-top: 16px;
+}
+.hub-content .notification-list {
+  list-style: none;
+  padding: 0;
+}
+.hub-content .notification-list li {
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: var(--tipy-learn-soft);
+}
+.hub-content .notification-list li[data-kind='assessment'] {
+  background: var(--tipy-play-soft);
+}
+.hub-pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 0;
+}
+.hub-pages .tipy-button {
+  --tipy-button-height: 48px;
+  --tipy-button-font-size: 18px;
+}
+.hub-status {
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 16px;
+  background: var(--tipy-play-soft);
+  flex: 0 0 auto;
+}
+.hub-empty {
+  padding: 24px;
+  text-align: center;
+  overflow: auto;
+}
+.tipy-menu-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.tipy-menu-summary .student-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  padding: 6px;
+  background: var(--tipy-learn-soft);
+  border: 2px solid var(--tipy-border);
+  border-radius: 18px;
+}
+.tipy-menu-summary .student-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.tipy-menu-summary > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hub-remove form {
+  display: grid;
+  gap: 20px;
+}
+.hub-remove label {
+  display: grid;
+  gap: 10px;
+}
+.hub-compose-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+@media (max-width: 720px) {
+  .classroom-hub {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    gap: 12px;
+  }
+  .hub-toolbar {
+    gap: 8px;
+  }
+  .hub-toolbar h1 {
+    display: none;
+  }
+  .hub-class-picker {
+    max-width: calc(100% - 125px);
+    min-width: 0;
+  }
+  .hub-toolbar .tipy-button {
+    --tipy-button-height: 48px;
+    --tipy-button-font-size: 17px;
+    padding: 8px 12px;
+  }
+  .hub-overview {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(150px, 1fr) auto;
+    gap: 12px;
+  }
+  .hub-members {
+    padding: 12px;
+  }
+  .hub-panel-heading {
+    padding-bottom: 4px;
+  }
+  .hub-member-grid {
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 14px 6px;
+    padding: 8px 4px;
+  }
+  .classroom-hub .student-avatar,
+  .classroom-hub .tipy-avatar-trigger {
+    width: 68px;
+    height: 68px;
+    min-height: 68px;
+    min-width: 68px;
+    border-radius: 18px;
+  }
+  .hub-member-grid li {
+    font-size: 18px;
+  }
+  .hub-aside {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 106px;
+    gap: 10px;
+  }
+  .hub-podium {
+    padding: 6px;
+    max-height: 220px;
+  }
+  .hub-podium h2 {
+    font-size: 20px;
+    line-height: 1.2;
+  }
+  .hub-podium p {
+    font-size: 14px;
+    line-height: 1.3;
+    margin: 2px 0;
+  }
+  .hub-podium small {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  .hub-podium-places {
+    padding-top: 6px;
+  }
+  .hub-place {
+    gap: 2px;
+  }
+  .hub-place .student-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 3px;
+    border-radius: 12px;
+  }
+  .hub-place b {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .hub-place > span {
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .hub-place > strong {
+    height: 28px;
+    font-size: 24px;
+  }
+  .hub-place.rank-1 > strong {
+    height: 44px;
+  }
+  .hub-place.rank-2 > strong {
+    height: 32px;
+  }
+  .hub-overview-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+  }
+  .hub-overview-nav .tipy-button {
+    --tipy-button-height: 52px;
+    --tipy-button-font-size: 16px;
+    flex-direction: row;
+    padding: 8px 5px;
+    font-size: 16px;
+    gap: 4px;
+  }
+  .hub-overview-nav .tipy-button__icon {
+    flex-basis: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  .hub-overview-nav svg {
+    width: 18px;
+  }
+  .hub-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .hub-body.is-overview {
+    display: block;
+  }
+  .hub-tabs {
+    flex-direction: row;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 0 0 6px;
+  }
+  .hub-tabs .tipy-button {
+    --tipy-button-height: 48px;
+    font-size: 16px;
+    padding: 8px 10px;
+    width: auto;
+    flex: 0 0 auto;
+  }
+  .hub-tabs svg {
+    width: 18px;
+  }
+  .hub-content {
+    flex: 1;
+    padding: 16px 12px;
+  }
+}
+@media (max-height: 520px) and (min-width: 600px) {
+  .classroom-hub {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .hub-toolbar .tipy-button {
+    --tipy-button-height: 48px;
+    --tipy-button-font-size: 17px;
+    padding: 6px 12px;
+  }
+  .hub-overview {
+    grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+    grid-template-rows: 1fr;
+  }
+  .hub-aside {
+    display: flex;
+    gap: 10px;
+  }
+  .hub-podium {
+    max-height: none;
+    padding: 8px;
+  }
+  .hub-podium h2 {
+    font-size: 20px;
+    line-height: 1.1;
+  }
+  .hub-podium p {
+    font-size: 14px;
+    line-height: 1.2;
+    margin: 2px 0;
+  }
+  .hub-podium small {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+  .hub-place {
+    gap: 2px;
+  }
+  .hub-place b {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .hub-place > span {
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .hub-podium-places {
+    padding-top: 5px;
+  }
+  .hub-place .student-avatar {
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    min-width: 32px;
+  }
+  .hub-place > strong {
+    height: 26px;
+    font-size: 22px;
+  }
+  .hub-place.rank-1 > strong {
+    height: 36px;
+  }
+  .hub-place.rank-2 > strong {
+    height: 26px;
+  }
+  .hub-overview-nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .hub-overview-nav .tipy-button {
+    --tipy-button-height: 48px;
+    padding: 6px;
+    font-size: 16px;
+    flex-direction: row;
+    gap: 4px;
+  }
+  .hub-overview-nav .tipy-button__icon {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hub-class-picker svg {
+    transition: none;
+  }
+}

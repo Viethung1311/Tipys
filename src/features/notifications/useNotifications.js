@@ -18,6 +18,7 @@ export default function useNotifications(userId, initial) {
     active = useRef(true),
     generation = useRef(0);
   const revision = useRef(initial?.revision || '');
+  const knownIds = useRef(new Set(initial?.items?.map((n) => n.notification_id) || []));
   const pending = useRef(new Set(loadPending(userId))),
     currentPage = useRef(1),
     source = useRef(null),
@@ -56,6 +57,15 @@ export default function useNotifications(userId, initial) {
       return;
     }
     if (value.revision) revision.current = value.revision;
+    const added = value.items.filter((n) => !knownIds.current.has(n.notification_id));
+    value.items.forEach((n) => knownIds.current.add(n.notification_id));
+    if (knownIds.current.size > 1000)
+      knownIds.current = new Set(value.items.map((n) => n.notification_id));
+    window.dispatchEvent(
+      new CustomEvent('tipy-notifications-updated', {
+        detail: { userId, revision: value.revision, added },
+      }),
+    );
     pages.current.set(value.page, value);
     if (pages.current.size > 10) pages.current.delete(pages.current.keys().next().value);
     if (show) {
@@ -201,6 +211,7 @@ export default function useNotifications(userId, initial) {
     if (typeof EventSource !== 'undefined') connect();
     else if (!initial) page();
     window.addEventListener('focus', refresh);
+    window.addEventListener('tipy-notifications-refresh', refresh);
     window.addEventListener('tipy-play-ended', refresh);
     window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', refresh);
@@ -213,6 +224,7 @@ export default function useNotifications(userId, initial) {
       source.current = null;
       reconnect.current = null;
       window.removeEventListener('focus', refresh);
+      window.removeEventListener('tipy-notifications-refresh', refresh);
       window.removeEventListener('tipy-play-ended', refresh);
       window.removeEventListener('online', refresh);
       document.removeEventListener('visibilitychange', refresh);

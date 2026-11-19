@@ -118,6 +118,15 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
         return res.status(200).json({ deletions: await backend.classDeletions(profile) });
       if (req.method === 'GET' && action === 'classes')
         return res.status(200).json({ classes: await backend.classes(profile) });
+      if (req.method === 'GET' && ['classroom_hub', 'class_notifications'].includes(action))
+        return res
+          .status(200)
+          .json(
+            await backend[action === 'classroom_hub' ? 'classroomHub' : 'classNotifications'](
+              profile,
+              req.query,
+            ),
+          );
       if (req.method === 'GET' && action === 'class_roster')
         return res
           .status(200)
@@ -130,6 +139,7 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
           await backend[action === 'class_posts' ? 'classPosts' : 'classroom'](profile, {
             classId: req.query?.classId,
             offset,
+            ...(req.query?.postId && { postId: req.query.postId }),
           }),
         );
       }
@@ -178,6 +188,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
       if (req.method === 'GET' && assessmentReads[action])
         return res.status(200).json(await backend[assessmentReads[action]](profile, req.query));
       const actions = {
+        class_remove_member: 'classRemoveMember',
+        assessment_visibility: 'assessmentVisibility',
         teacher_create: 'teacherCreate',
         teacher_save: 'teacherSave',
         assessment_save: 'assessmentSave',

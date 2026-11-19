@@ -3,13 +3,14 @@ import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
-import { teacherFixture, id } from '../tests/teacher-fixture.js';
+import { id } from '../tests/teacher-fixture.js';
+import { hubFixture } from '../tests/hub-fixture.js';
 import { createHandler } from '../api/tipy.js';
 import { ApiError } from '../server/errors.js';
 import { createStars } from '../server/modules/stars.js';
 import { createStudents } from '../server/modules/students.js';
 import { createClassrooms } from '../server/modules/classrooms.js';
-const f = await teacherFixture(),
+const f = await hubFixture(),
   origin = 'http://127.0.0.1:4196';
 const server = spawn(
   process.execPath,
@@ -44,6 +45,7 @@ const backend = {
   ...f.assessments,
   ...f.teachers,
   ...createStars(f.dbClient),
+  classroomHub: createClassrooms(f.dbClient).classroomHub,
   ...createStudents(f.dbClient),
   session: async () => {
     const profile = await f.people(actor);
@@ -160,32 +162,39 @@ try {
   actor = 30;
   await page.goto(origin + '/#classroom');
   await page.reload();
-  await page.locator('.class-desks').waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Lớp của tôi', exact: true }).count(), 1);
+  await page.locator('.hub-member-grid').waitFor();
+  assert.equal(await page.locator('.classroom-hub').count(), 1);
   assert.equal(
     await page.locator('.main-nav').getByRole('button', { name: 'Gõ chữ', exact: true }).count(),
     0,
   );
-  assert.equal(await page.locator('.class-select option').count(), 1);
+  await page.locator('.hub-class-picker button').click();
+  assert.equal(await page.getByRole('menuitem').count(), 1);
+  await page.keyboard.press('Escape');
   const menuCount = calls.length;
-  await page.getByRole('button', { name: 'Thao tác sao: Học sinh thử 1', exact: true }).click();
+  await page.getByRole('button', { name: /Tùy chọn: Học sinh thử 1/ }).click();
   assert.equal(calls.length, menuCount, 'cached avatar menu sends zero requests');
-  assert.equal(await page.getByRole('menuitem', { name: 'Trừ sao', exact: true }).count(), 0);
-  await page.getByRole('menuitem', { name: 'Tặng sao', exact: true }).click();
-  await page.getByRole('dialog').getByLabel('Số sao', { exact: false }).fill('5');
+  assert.equal(await page.getByRole('menuitem', { name: 'Trừ sao', exact: true }).count(), 1);
+  await page.getByRole('menuitem', { name: 'Cộng sao', exact: true }).click();
+  await page.getByRole('dialog').getByLabel('Số lượng', { exact: true }).fill('5');
   const giftCount = calls.filter((r) => r.action === 'star_gift').length;
   await page
     .getByRole('dialog')
-    .getByRole('button', { name: 'Tặng sao', exact: true })
+    .getByRole('button', { name: 'Cộng sao', exact: true })
     .evaluate((e) => {
       e.click();
       e.click();
     });
   await page.getByRole('dialog').waitFor({ state: 'hidden' });
   assert.equal(calls.filter((r) => r.action === 'star_gift').length, giftCount + 1);
+  await page
+    .locator('.hub-overview-nav')
+    .getByRole('button', { name: 'Tin nhắn', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'Gửi bài', exact: true }).click();
   await page.getByLabel('Tiêu đề', { exact: true }).fill('Bài của giáo viên A');
   await page.getByLabel('Nội dung', { exact: true }).fill('Cùng học vui!');
-  const editorReads = calls.filter((c) => c.action === 'classroom').length;
+  const editorReads = calls.filter((c) => c.action === 'classroom_hub').length;
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await page.waitForTimeout(200);
   assert.equal(
@@ -193,13 +202,13 @@ try {
     'Bài của giáo viên A',
   );
   assert.equal(
-    calls.filter((c) => c.action === 'classroom').length,
+    calls.filter((c) => c.action === 'classroom_hub').length,
     editorReads,
     'teacher focus keeps editor mounted',
   );
   await page.getByRole('button', { name: 'Đăng bài cho lớp', exact: true }).click();
   await page.getByRole('heading', { name: 'Bài của giáo viên A', exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Bài kiểm tra', exact: true }).click();
+  await page.locator('.hub-tabs').getByRole('button', { name: 'Kiểm tra', exact: true }).click();
   await page.getByRole('button', { name: 'Tạo mới', exact: true }).click();
   await page.getByLabel('Tên bài kiểm tra', { exact: true }).fill('Bài cô A thử');
   await page.getByRole('checkbox', { name: 'Lớp thử', exact: true }).check();
@@ -208,7 +217,7 @@ try {
   await page.screenshot({ path: 'test-results/teachers/teacher-tests.png', fullPage: true });
   await page.goto(origin + '/#classroom');
   await page.reload();
-  await page.locator('.class-desks').waitFor();
+  await page.locator('.hub-member-grid').waitFor();
   const denied = await page.evaluate(
     async ({ classId, userId }) => {
       const get = await fetch('/api/tipy?' + new URLSearchParams({ action: 'classroom', classId }));
@@ -231,18 +240,18 @@ try {
   await f.adminRpc('save', { userId: id(30), classIds: [], active: true });
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await page.getByText('Bạn chưa được phân công lớp.', { exact: true }).waitFor();
-  assert.equal(await page.locator('.class-desks').count(), 0);
+  assert.equal(await page.locator('.hub-member-grid').count(), 0);
   actor = 31;
   await page.evaluate(() => window.dispatchEvent(new Event('tipy-session-changed')));
-  await page.locator('.class-desks').waitFor();
-  assert.equal(await page.locator('.class-select option').textContent(), 'Lớp B');
+  await page.locator('.hub-member-grid').waitFor();
+  assert.match(await page.locator('.hub-class-picker').textContent(), /Lớp B/);
   assert.equal(await page.getByText('Bài của giáo viên A', { exact: true }).count(), 0);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: 'test-results/teachers/teacher-mobile.png', fullPage: true });
   await f.adminRpc('save', { userId: id(31), classIds: [id(51)], active: false });
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await page.getByRole('button', { name: 'Tài khoản · Đăng nhập', exact: true }).waitFor();
-  assert.equal(await page.locator('.class-desks').count(), 0);
+  assert.equal(await page.locator('.hub-member-grid').count(), 0);
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({

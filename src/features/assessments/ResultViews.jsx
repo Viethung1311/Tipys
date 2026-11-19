@@ -187,10 +187,10 @@ export function ResultPages({ data, onPage, disabled }) {
     </nav>
   );
 }
-export default function TeacherResults({ exam, classes, onBack }) {
+export default function TeacherResults({ exam, classes, onBack, classId }) {
   const [filters, setFilters] = useState({
       search: '',
-      classId: 'all',
+      classId: classId || 'all',
       status: 'all',
       sort: 'name',
       page: 1,
