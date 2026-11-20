@@ -261,6 +261,7 @@ export default function Game({
           onClose={() => setLeaving(false)}
         >
           <TipyButton
+            variant="play"
             emphasis="secondary"
             icon={Play}
             onClick={() => {
@@ -270,7 +271,11 @@ export default function Game({
           >
             Làm tiếp
           </TipyButton>
-          <TipyButton icon={ArrowLeft} onClick={assessment ? assessment.onBack : onHome}>
+          <TipyButton
+            variant="back"
+            icon={ArrowLeft}
+            onClick={assessment ? assessment.onBack : onHome}
+          >
             Quay lại
           </TipyButton>
         </Modal>

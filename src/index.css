@@ -1124,17 +1124,6 @@ footer i {
   bottom: -2px;
   font-size: 13px;
 }
-.key.selected {
-  background: #fdeade;
-  border-color: #f6b896;
-  color: #d66e3b;
-  box-shadow: 0 3px #f0bc9d;
-}
-.key.lit.selected {
-  background: #f66b32;
-  color: white;
-  box-shadow: 0 3px #ce4b1c;
-}
 .selection-info {
   display: flex;
   justify-content: space-between;

@@ -187,7 +187,7 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
           </TipyButton>
           {current.archived_at && (
             <TipyButton
-              className="tipy-button--danger"
+              variant="danger"
               icon={Trash2}
               disabled={busy || deleting}
               onClick={() => openDelete(current)}
@@ -261,8 +261,8 @@ export default function AdminClasses({ initialClasses, onChanged, onMembersChang
               </p>
             )}
             <TipyButton
+              variant="danger"
               type="submit"
-              className="tipy-button--danger"
               icon={Trash2}
               loading={deleting}
               loadingLabel="Đang xóa…"

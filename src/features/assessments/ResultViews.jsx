@@ -239,7 +239,7 @@ export default function TeacherResults({ exam, classes, onBack, classId }) {
   };
   return (
     <section>
-      <TipyButton icon={ArrowLeft} emphasis="secondary" onClick={onBack}>
+      <TipyButton variant="back" icon={ArrowLeft} emphasis="secondary" onClick={onBack}>
         Danh sách
       </TipyButton>
       <h3>Kết quả: {exam.title || exam.definition?.title}</h3>

@@ -263,13 +263,13 @@ export default function StudentActionDialog({
           </p>
         )}
         <div className="student-row-actions">
-          <TipyButton emphasis="secondary" disabled={busy} onClick={onClose}>
+          <TipyButton variant="back" emphasis="secondary" disabled={busy} onClick={onClose}>
             Hủy
           </TipyButton>
           <TipyButton
             type="submit"
+            variant={gift ? 'reward' : deduct ? 'deduct' : 'danger'}
             icon={gift ? Star : deduct ? StarOff : RotateCcw}
-            className={adjustment ? '' : 'tipy-button--danger'}
             disabled={!valid}
             loading={busy}
             loadingLabel="Đang xử lý…"

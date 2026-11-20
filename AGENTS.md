@@ -7,6 +7,7 @@ Zunimo là website học tập cho học sinh từ lớp 1. Giữ các định d
 - Trước khi sửa, đọc `design-system/tipy/MASTER.md`, component/CSS liên quan, `ARCHITECTURE.md`, `BACKEND.md` và hướng dẫn thư mục con nếu có. MASTER là quy chuẩn giao diện chung; màu, chữ, kích thước, bố cục và ánh xạ code nằm ở đó, không lặp tại đây.
 - [Figma Zunimo](https://www.figma.com/design/DOldfpt6VKk7O77fkXM1QN) là nguồn tham chiếu thiết kế. Trước khi sửa một phần, đọc đúng màn, component và trạng thái bằng dữ liệu thiết kế cùng ảnh chụp; không coi mockup là quy tắc backend.
 - Giữ nguyên font hiện tại của website. Giao diện sáng, phối màu theo chức năng nhưng thống nhất; khung nội dung lớn, rõ, có khoảng thở; chữ tiếng Việt dễ đọc và hành động cụ thể, ít chữ thừa.
+- Bộ nút lấy 33 ảnh Sources ngày 20/11/2026 làm tham chiếu trực quan mới; xem ánh xạ tại mục 3.1 của MASTER. Chọn `variant` theo hành động tại caller, không suy màu từ nhãn lúc chạy. `TipyButton`, `tipy-button.css`, `tipy-controls.css` và token là nguồn chung cho nút/nút icon/điều khiển chuyên dụng; giữ nguyên ngữ nghĩa và xử lý hiện có.
 - Dùng token/component chung. Khi cần kiểu mới, cập nhật MASTER và primitive dùng chung trong cùng thay đổi triển khai, rồi để các trang tái sử dụng. Không chép màu/kích thước/nút riêng rải rác, không thêm thư viện lớn chỉ để chỉnh giao diện. Nếu có `ui-ux-pro-max`, có thể dùng hỗ trợ; quy tắc Zunimo được ưu tiên.
 - Khi Figma bị chặn hoặc thiếu trạng thái, báo rõ giới hạn trước khi suy ra chuẩn. Chỉ ghi giá trị có nguồn; tách thông số Figma đã kiểm chứng, hiện trạng code và đề xuất kế thừa. Không tuyên bố đã xem màn chưa đọc được hoặc tự lấy kích thước từ ảnh co nhỏ làm số đo thiết kế.
 - Yêu cầu trực tiếp của chủ dự án được ưu tiên. Sửa tài liệu chuẩn không đồng nghĩa tự đổi giao diện, nghiệp vụ hoặc triển khai production. Không mở rộng sang các màn ngoài phạm vi được giao.
@@ -30,6 +31,7 @@ Zunimo là website học tập cho học sinh từ lớp 1. Giữ các định d
 
 - Với UI: kiểm tra máy tính/điện thoại, xoay màn hình, vùng nhìn khi bàn phím mở, dấu tiếng Việt, tương phản, vùng bấm, cuộn nội bộ và các trạng thái tải/trống/lỗi/thành công. Kiểm tra Tab/Enter/Space, Esc, focus, nhãn truy cập và `prefers-reduced-motion`.
 - Chạy build/test đúng phạm vi thay đổi. Với tài liệu thuần túy, kiểm tra định dạng, đường dẫn, số liệu và mâu thuẫn giữa hai tài liệu; không bắt buộc build/test gameplay khi code không đổi.
+- Bản duyệt nút ở `/dev/buttons` chỉ có trong Vite development, không mount App hoặc gọi API nghiệp vụ. Khi được yêu cầu duyệt thiết kế, mở bản local trước; chỉ triển khai khi người dùng yêu cầu triển khai riêng. Kiểm tra bằng `node scripts/check-button-preview.mjs`.
 - Báo ngắn phần đã sửa, nguồn Figma đã đối chiếu, kiểm tra đã chạy, phần chưa xác minh và trạng thái triển khai. Không tự commit/push/deploy khi yêu cầu chỉ sửa tài liệu.
 
 ## Tự chọn công cụ

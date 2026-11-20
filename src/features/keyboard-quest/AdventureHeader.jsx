@@ -17,7 +17,13 @@ export default function AdventureHeader({
         <p>{completed}/30 bài hoàn thành</p>
       </div>
       <nav aria-label="Đường đi hành trình" className="adventure-breadcrumbs">
-        <TipyButton emphasis="secondary" icon={ArrowLeft} disabled={busy} onClick={onBack}>
+        <TipyButton
+          variant="back"
+          emphasis="secondary"
+          icon={ArrowLeft}
+          disabled={busy}
+          onClick={onBack}
+        >
           Gõ chữ
         </TipyButton>
         {worldId && (

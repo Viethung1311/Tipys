@@ -1,0 +1,275 @@
+/* Native controls share the button tokens without changing form or keyboard semantics. */
+:is(
+    .main-nav,
+    .account-tabs,
+    .admin-tabs,
+    .assessment-pagination,
+    .admin-pagination,
+    .history-pagination,
+    .presets,
+    .selection-info,
+    .assessment-picker,
+    .roster-actions
+  )
+  > button,
+.account-tabs > a,
+.admin-pagination > span > button,
+.text-button,
+button.account-button,
+button.audio-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tipy-space-2);
+  min-width: 48px;
+  min-height: var(--tipy-button-compact-height);
+  padding: 10px 16px;
+  border: var(--tipy-button-border-width) solid var(--tipy-border);
+  border-radius: var(--tipy-button-tab-radius);
+  background: var(--tipy-surface-raised);
+  color: var(--tipy-text);
+  font-family: var(--tipy-font-family);
+  font-size: var(--tipy-button-compact-size);
+  font-weight: 800;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: normal;
+  box-shadow: 0 2px 0 var(--tipy-border);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+:is(
+    .main-nav,
+    .account-tabs,
+    .admin-tabs,
+    .assessment-pagination,
+    .admin-pagination,
+    .history-pagination,
+    .presets,
+    .selection-info,
+    .assessment-picker,
+    .roster-actions
+  )
+  > button:is(.active, [aria-current='page'], [aria-pressed='true']),
+button.difficulty.active {
+  background: var(--tipy-play-soft);
+  color: var(--tipy-play);
+  border-color: var(--tipy-play);
+}
+.admin-pagination > span > button[aria-current='page'],
+.hub-tabs > .tipy-button[aria-current='page'] {
+  --button-start: var(--tipy-play);
+  --button-end: var(--tipy-play-end);
+  --button-base: var(--tipy-play-base);
+  --button-soft: var(--tipy-play-soft);
+  background: var(--tipy-play-soft);
+  color: var(--tipy-play);
+  border-color: var(--tipy-play);
+}
+:is(
+    .main-nav,
+    .account-tabs,
+    .admin-tabs,
+    .assessment-pagination,
+    .admin-pagination,
+    .history-pagination,
+    .presets,
+    .selection-info,
+    .assessment-picker,
+    .roster-actions
+  )
+  > button:hover:not(:disabled),
+.text-button:hover:not(:disabled),
+button.account-button:hover:not(:disabled),
+button.audio-trigger:hover:not(:disabled) {
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+  color: var(--tipy-play);
+  filter: none;
+}
+button:is(
+  .text-button,
+  .icon-button,
+  .tipy-modal-close,
+  .character-modal-close,
+  .notification-bell
+),
+:is(.account-error, .hub-status, [role='alert']) > button {
+  border: 1px solid var(--tipy-learn);
+  border-radius: var(--tipy-input-radius);
+  background: var(--tipy-surface-raised);
+  color: var(--tipy-text);
+  min-width: 48px;
+  min-height: 48px;
+  box-shadow: 0 2px 0 var(--tipy-border);
+  cursor: pointer;
+}
+button.notification-bell {
+  border-radius: 50%;
+  border-color: var(--tipy-play);
+  color: var(--tipy-play);
+  background: var(--tipy-play-soft);
+}
+button.avatar-button {
+  border-color: var(--tipy-border);
+  background: var(--tipy-learn-soft);
+}
+button:is(
+    .icon-button,
+    .tipy-modal-close,
+    .character-modal-close,
+    .notification-bell,
+    .avatar-button
+  ):hover:not(:disabled) {
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+  color: var(--tipy-play);
+  filter: none;
+}
+.admin-pagination > span > button:hover:not(:disabled) {
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+  color: var(--tipy-play);
+}
+.admin-pagination > span > button:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 3px;
+}
+.admin-pagination > span > button:disabled {
+  background: var(--tipy-disabled);
+  color: var(--tipy-disabled-text);
+  border-color: var(--tipy-disabled-base);
+  cursor: not-allowed;
+}
+button.audio-switch {
+  background: var(--tipy-disabled);
+  border-color: var(--tipy-border);
+}
+button.audio-switch.on {
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+}
+button.audio-switch.on::before {
+  background: var(--tipy-play);
+}
+:is(
+    .main-nav,
+    .account-tabs,
+    .admin-tabs,
+    .assessment-pagination,
+    .admin-pagination,
+    .history-pagination,
+    .presets,
+    .selection-info,
+    .assessment-picker,
+    .roster-actions
+  )
+  > button:disabled,
+button:is(
+    .text-button,
+    .icon-button,
+    .tipy-modal-close,
+    .character-modal-close,
+    .audio-trigger
+  ):disabled {
+  opacity: 1;
+  color: var(--tipy-disabled-text);
+  border-color: var(--tipy-disabled-base);
+  background: var(--tipy-disabled);
+  box-shadow: 0 1px 0 var(--tipy-disabled-base);
+  cursor: not-allowed;
+}
+:is(
+    .main-nav,
+    .account-tabs,
+    .admin-tabs,
+    .assessment-pagination,
+    .admin-pagination,
+    .history-pagination,
+    .presets,
+    .selection-info,
+    .assessment-picker,
+    .roster-actions
+  )
+  > button:active:not(:disabled),
+button:is(
+    .text-button,
+    .icon-button,
+    .tipy-modal-close,
+    .character-modal-close,
+    .audio-trigger
+  ):active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+:is(
+    .main-nav,
+    .account-tabs,
+    .admin-tabs,
+    .assessment-pagination,
+    .admin-pagination,
+    .history-pagination,
+    .presets,
+    .selection-info,
+    .assessment-picker,
+    .roster-actions
+  )
+  > button:focus-visible,
+button:is(
+    .text-button,
+    .icon-button,
+    .tipy-modal-close,
+    .character-modal-close,
+    .audio-trigger,
+    .audio-switch,
+    .avatar-button
+  ):focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 3px;
+}
+.keyboard .key {
+  color: var(--tipy-text);
+  background: var(--tipy-surface-raised);
+  font-size: 18px;
+  border-radius: 8px;
+  font-family: var(--tipy-font-family);
+  border-color: var(--tipy-border);
+  box-shadow: 0 2px 0 var(--tipy-border);
+}
+.keyboard .key.selected {
+  color: var(--tipy-text);
+  background: var(--tipy-surface-raised);
+  border-color: var(--tipy-border);
+}
+.keyboard .key.quest-target-key {
+  color: var(--tipy-play);
+  background: var(--tipy-play-soft);
+  border-color: var(--tipy-play);
+}
+.keyboard .key.lit.selected {
+  color: var(--tipy-on-action);
+  background: var(--tipy-play);
+  border-color: var(--tipy-play);
+}
+.keyboard .key:disabled {
+  opacity: 1;
+  color: var(--tipy-disabled-text);
+  background: var(--tipy-disabled);
+  border-color: var(--tipy-disabled-base);
+}
+.keyboard .key:focus-visible {
+  outline: 3px solid var(--tipy-focus);
+  outline-offset: 2px;
+}
+input[type='file']::file-selector-button {
+  padding: 10px 14px;
+  min-height: 48px;
+  margin-right: 12px;
+  border: 1px solid var(--tipy-learn);
+  border-radius: var(--tipy-input-radius);
+  background: var(--tipy-surface);
+  color: var(--tipy-text);
+  font-family: var(--tipy-font-family);
+  font-weight: 800;
+  cursor: pointer;
+}

@@ -316,7 +316,7 @@ export default function LessonPlayer({
       <section className="panel quest-state">
         <h2>Chưa mở được bài</h2>
         <p role="alert">{saveError}</p>
-        <TipyButton icon={ArrowLeft} onClick={onBack}>
+        <TipyButton variant="back" icon={ArrowLeft} onClick={onBack}>
           Quay lại
         </TipyButton>
       </section>
@@ -465,6 +465,7 @@ export default function LessonPlayer({
             Luyện lại
           </TipyButton>
           <TipyButton
+            variant="back"
             emphasis="secondary"
             icon={ArrowLeft}
             disabled={saving}
@@ -697,7 +698,7 @@ export default function LessonPlayer({
         </TipyButton>
       )}
       {!world && (
-        <TipyButton emphasis="secondary" icon={ArrowLeft} onClick={leave}>
+        <TipyButton variant="back" emphasis="secondary" icon={ArrowLeft} onClick={leave}>
           Bản đồ
         </TipyButton>
       )}
@@ -715,7 +716,13 @@ export default function LessonPlayer({
           >
             Tiếp tục
           </TipyButton>
-          <TipyButton emphasis="secondary" icon={ArrowLeft} className="full" onClick={requestLeave}>
+          <TipyButton
+            variant="back"
+            emphasis="secondary"
+            icon={ArrowLeft}
+            className="full"
+            onClick={requestLeave}
+          >
             {immersive ? 'Quay lại' : 'Bản đồ'}
           </TipyButton>
         </Modal>
@@ -731,6 +738,7 @@ export default function LessonPlayer({
           onClose={() => setLeaving(false)}
         >
           <TipyButton
+            variant="play"
             emphasis="secondary"
             icon={Play}
             onClick={() => {
@@ -740,7 +748,7 @@ export default function LessonPlayer({
           >
             Làm tiếp
           </TipyButton>
-          <TipyButton icon={ArrowLeft} onClick={() => leave()}>
+          <TipyButton variant="back" icon={ArrowLeft} onClick={() => leave()}>
             Quay lại
           </TipyButton>
         </Modal>

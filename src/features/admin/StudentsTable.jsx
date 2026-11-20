@@ -136,8 +136,18 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
                     disabled={loading || busy || !!error}
                     items={[
                       { label: 'Xem kết quả', icon: History, onClick: () => onResults(s) },
-                      { label: 'Tặng sao', icon: Star, onClick: () => setGiftTarget(s) },
-                      { label: 'Trừ sao', icon: StarOff, onClick: () => setDeductTarget(s) },
+                      {
+                        label: 'Tặng sao',
+                        variant: 'reward',
+                        icon: Star,
+                        onClick: () => setGiftTarget(s),
+                      },
+                      {
+                        label: 'Trừ sao',
+                        variant: 'deduct',
+                        icon: StarOff,
+                        onClick: () => setDeductTarget(s),
+                      },
                       { label: 'Reset sao', icon: RotateCcw, onClick: () => setResetTarget(s) },
                       {
                         label: s.is_active ? 'Khóa tài khoản' : 'Mở tài khoản',
@@ -211,10 +221,16 @@ export default function StudentsTable({ classes, onResults, onChanged, onData })
               </p>
             )}
             <div className="student-row-actions">
-              <TipyButton emphasis="secondary" disabled={busy} onClick={() => setTarget(null)}>
+              <TipyButton
+                variant="back"
+                emphasis="secondary"
+                disabled={busy}
+                onClick={() => setTarget(null)}
+              >
                 Hủy
               </TipyButton>
               <TipyButton
+                variant="danger"
                 className="student-delete"
                 icon={Trash2}
                 disabled={confirmation !== target.username}

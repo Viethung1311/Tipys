@@ -57,3 +57,37 @@ test('busy button blocks duplicate actions and announces a readable processing l
     dom.window.close();
   }
 });
+test('semantic button roles keep compact and icon controls accessible without leaking styling props', () => {
+  for (const variant of [
+    'play',
+    'assessment',
+    'message',
+    'notification',
+    'reward',
+    'deduct',
+    'back',
+    'danger',
+  ]) {
+    const { dom, button: b } = button({
+      variant,
+      size: 'compact',
+      iconOnly: true,
+      'aria-label': 'Đóng mẫu',
+    });
+    try {
+      assert.equal(b.type, 'button');
+      assert.ok(b.classList.contains(`tipy-button--${variant}`));
+      assert.ok(b.classList.contains('tipy-button--compact'));
+      assert.ok(b.classList.contains('tipy-button--icon-only'));
+      assert.equal(b.getAttribute('aria-label'), 'Đóng mẫu');
+      assert.equal(b.hasAttribute('iconOnly'), false);
+      assert.equal(b.hasAttribute('size'), false);
+      assert.equal(
+        b.classList.contains('tipy-button--secondary'),
+        ['deduct', 'back', 'danger'].includes(variant),
+      );
+    } finally {
+      dom.window.close();
+    }
+  }
+});

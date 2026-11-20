@@ -199,6 +199,7 @@ export default function PostComposer({ classId, onPosted, authorName = TEACHER_N
               <div key={index} className="preview-file">
                 <span>{file.name}</span>
                 <TipyButton
+                  variant="danger"
                   emphasis="secondary"
                   icon={Trash2}
                   disabled={Boolean(pendingPost)}

@@ -50,11 +50,6 @@
   min-width: 0;
   margin: 0;
 }
-.student-row-actions .student-delete {
-  --tipy-learn: var(--tipy-danger);
-  --tipy-learn-end: var(--tipy-danger);
-  --tipy-learn-base: var(--tipy-danger);
-}
 .admin-delete-dialog label {
   display: grid;
   gap: 8px;

@@ -284,6 +284,15 @@ export default function ClassroomPage({
         .map(([key, label, Icon]) => (
           <TipyButton
             key={key}
+            variant={
+              key === 'notifications'
+                ? 'notification'
+                : key === 'tests'
+                  ? 'assessment'
+                  : key === 'messages'
+                    ? 'message'
+                    : 'back'
+            }
             icon={Icon}
             emphasis={key === tab ? undefined : 'secondary'}
             aria-current={key === tab ? 'page' : undefined}
@@ -297,7 +306,7 @@ export default function ClassroomPage({
   return (
     <main className="classroom-hub" style={style} aria-label="Lớp học Zunimo">
       <header className="hub-toolbar">
-        <TipyButton icon={ArrowLeft} emphasis="secondary" onClick={back}>
+        <TipyButton variant="back" icon={ArrowLeft} emphasis="secondary" onClick={back}>
           Trở về
         </TipyButton>
         <h1>{room?.name || 'Lớp học'}</h1>
@@ -385,6 +394,7 @@ export default function ClassroomPage({
                               items={[
                                 {
                                   label: 'Cộng sao',
+                                  variant: 'reward',
                                   icon: Star,
                                   onClick: () =>
                                     setTarget({
@@ -394,6 +404,7 @@ export default function ClassroomPage({
                                 },
                                 {
                                   label: 'Trừ sao',
+                                  variant: 'deduct',
                                   icon: StarOff,
                                   onClick: () =>
                                     setTarget({

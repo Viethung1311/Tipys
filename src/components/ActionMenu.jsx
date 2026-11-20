@@ -125,13 +125,13 @@ export default function ActionMenu({
                 {header}
               </div>
             )}
-            {items.map(({ label: text, icon, danger, onClick }) => (
+            {items.map(({ label: text, icon, danger, variant, onClick }) => (
               <TipyButton
                 key={text}
                 role="menuitem"
-                emphasis="secondary"
+                variant={danger ? 'danger' : variant || 'back'}
+                emphasis={variant === 'reward' ? 'primary' : 'secondary'}
                 icon={icon}
-                className={danger ? 'tipy-button--danger' : ''}
                 onClick={() => {
                   close(true);
                   onClick();

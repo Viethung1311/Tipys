@@ -443,6 +443,11 @@ export default function App() {
           />
         )}
         <footer>
+          {import.meta.env.DEV && (
+            <a href="/dev/buttons" className="text-button">
+              Thử bộ nút
+            </a>
+          )}
           <span>
             Zunimo <i>✦</i> Khơi mở tiềm năng từ những điều nhỏ
           </span>

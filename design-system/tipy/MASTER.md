@@ -7,6 +7,7 @@
 - **F — Figma đã xác minh trước đây:** giá trị đã ghi thành công vào file và/hoặc đối chiếu qua ảnh trả về trong phiên dựng ngày **19/11/2026**. Đây là bằng chứng lịch sử, không xác nhận file hiện tại chưa đổi.
 - **W — Website đã đọc:** giá trị/hành vi đang có trong token, component, CSS; không tự gắn nhãn Figma.
 - **K — Kế thừa/đề xuất:** cách triển khai cho khoảng trống thiết kế, chờ đối chiếu Figma trước khi coi là số đã chốt.
+- **S — Ảnh Sources đã mở:** 33 ảnh `Ảnh chụp màn hình 2026-11-20 073506.png` đến `073721.png` trong `C:/Users/boof1/Documents/Codex/Sources`, đã xem từng ảnh ngày 20/11/2026. Đây là thư mục tham khảo, repository vẫn là Viethung1311/Tipys. Với bộ nút, S và yêu cầu mới của chủ dự án ưu tiên hơn các chi tiết F/W cũ; không tự coi ảnh chụp là dữ liệu Figma mới nhất.
 
 **Giới hạn ngày 20/11/2026:** đọc lại metadata bị chặn bởi hạn mức MCP Starter/View; chưa đọc lại từng màn, component, trạng thái hoặc ảnh mới. Lần cập nhật này không suy ra dữ liệu thiết kế mới. Để xác minh mới nhất cần hạn mức được làm mới, Professional với Full seat, hoặc bản xuất thông số/component và ảnh tương ứng do chủ dự án cung cấp.
 
@@ -63,6 +64,38 @@ Các màu đã được tạo trong collection **Zunimo · Giao diện**, alias 
 
 Focus `#2448A6`; gradient cam cuối/đế `#BC4100/#8C3100`; gradient xanh cuối/đế `#00735F/#005344`; disabled-base `#C9BDAE` là giá trị W. Giữ tương thích tới khi đồng bộ primitive, không buộc thêm gradient/đế nổi vào mọi mẫu F.
 
+### 3.1. Bộ nút theo ảnh Sources — bản duyệt local ngày 20/11/2026
+
+**Đã xem đủ 33 ảnh S:** tổng quan/chọn lớp `073506/073511/073515`; học sinh/cộng/trừ/lỗi/loại `073521/073524/073529/073535/073538/073541`; thành công `073546/073550`; bài đăng/form `073554/073603/073606`; kiểm tra giáo viên `073609/073613`; học sinh `073616`; thông báo/trống `073620/073627/073632`; luyện tập/kiểm tra gõ `073635/073638/073642/073645`; tạm dừng/lưu/lỗi `073650/073653/073656`; kết quả `073702/073707/073711/073714`; soạn/xóa bài `073718/073721`. Mỗi mã là phần giờ trong tên file nguồn đầy đủ trên.
+
+**Màu S đã đối chiếu bằng pixel raster:** `#C84C00` trong ảnh cộng sao, `#007F6A` trong nút bắt đầu, `#E4F4EF` ở thông báo/chọn, `#FFF0ED` ở xóa, `#E8E0D5` ở disabled, nền `#FFFFFF/#FFFAF2`, chữ nâu `#402B20` khớp token hiện có. Đỏ `#B42318`, nền cam nhạt `#FFF0DF`, màu đế/hover/focus tiếp tục kế thừa W; không tuyên bố tất cả là pixel đã đo mới. Viền xanh chọn layer `#0C8CE9`, đường chấm và nhãn số màn trên ảnh là giao diện biên tập, không đưa vào website. Mảng nâu tối của ảnh dialog không phải nền trang chế độ tối.
+
+| Nhóm hành động                      | `TipyButton variant`               | Mẫu trực quan / nguồn S                                         | Áp dụng                                                                                |
+| ----------------------------------- | ---------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Vào học, lưu, gửi, thử lại, làm lại | `learn` mặc định                   | Cam/chữ trắng; `073603/073606/073656/073711/073718`             | CTA chủ đạo, đăng nhập, lưu nhân vật/cấu hình, xuất bản                                |
+| Chơi, bắt đầu, tiếp tục             | `play`                             | Xanh ngọc/chữ trắng; `073616/073650`                            | Kho game, bắt đầu/tiếp tục luyện tập và tạm dừng                                       |
+| Kiểm tra                            | `assessment`                       | Cùng xanh ngọc; `073616`                                        | Nút làm bài; soạn/giao đề vẫn cam theo `073718`                                        |
+| Tin nhắn                            | `message`                          | S dùng trắng/viền và cam cho Gửi bài, chọn xanh nhạt ở `073603` | K bổ sung tint cam nhạt cho điểm vào khu tin nhắn; không gọi tint này là phép đo nút S |
+| Thông báo                           | `notification`                     | Xanh nhạt/chữ xanh, `073620`                                    | Điểm vào thông báo; chuông tròn cùng bảng màu                                          |
+| Cộng sao                            | `reward`                           | Cam và icon sao, `073521/073524`                                | Menu học sinh và xác nhận tặng sao                                                     |
+| Trừ sao                             | `deduct`                           | Trắng/chữ tối/viền cam, `073529/073535`                         | Điều chỉnh sao, không dùng đỏ nguy hiểm cho phép trừ hợp lệ                            |
+| Quay lại, hủy, thao tác phụ         | `back` hoặc `emphasis="secondary"` | Trắng/viền cam; `073635/073650/073711`                          | Điều hướng và hủy; secondary theo màu vai trò được chỉ định                            |
+| Xóa, loại, reset nguy hiểm          | `danger`                           | Nền đỏ nhạt/viền và chữ đỏ; `073541/073721`                     | Giữ đầy đủ xác nhận và khóa gửi đang có                                                |
+
+**Kích thước và chiều sâu W/K:** giữ font TIPY Nunito; mặc định cao 56/chữ 18/weight 800/icon 20/stroke 2, `size="compact"` cao 48/chữ 16. `iconOnly` là nút 48 × 48 với nhãn chữ ẩn truy cập hoặc `aria-label`, không bỏ tên hành động. Nút không còn min-width 156 cứng; tự rộng theo nội dung, tên dài xuống dòng, hàng nút flex-wrap và gap tối thiểu 12. Radius nút 24, tab/input/icon 14, phím 8. Không lấy chiều cao ảnh chụp đã thu nhỏ làm số đo CSS.
+
+S thể hiện nút gần phẳng/viền mảnh; hover, focus và bóng nhấn không có đủ trạng thái trong ảnh. Bộ nút kế thừa W với đế nhẹ **3 px**, nhấn dịch **2 px**, đế còn **1 px**, viền **1 px**, transition **120 ms**; đây là giá trị triển khai, không phải số đo S. Token tương ứng: `--tipy-button-height`, `--tipy-button-font-size`, `--tipy-button-icon-size`, `--tipy-button-radius`, `--tipy-button-depth`, `--tipy-button-travel`, `--tipy-button-pressed-depth`, `--tipy-button-border-width`, `--tipy-button-compact-height`, `--tipy-button-compact-size`, `--tipy-button-tab-radius`, `--tipy-button-shadow`. Màu nằm ở `--tipy-learn*`, `--tipy-play*`, `--tipy-danger*`, `--tipy-border`, `--tipy-disabled*` và `--tipy-focus`.
+
+**Trạng thái:** hover dùng sắc độ vai trò/nền nhạt, không filter; pressed lún nhẹ; focus-visible outline 3/offset 4; disabled nền xám, chữ rõ, không dịch chuyển hoặc gọi callback; loading khóa nút, `aria-busy`, icon Hourglass và chữ xử lý. Icon-only vẫn có tên đọc. Không animation lặp trên nút, reduced motion tắt transition.
+
+**Điều khiển chuyên dụng:** native tab/pagination/preset giữ callback, type, `aria-current/pressed`; chọn dùng xanh nhạt, bình thường trắng/viền trung tính. Switch giữ role/aria và bật xanh/tắt trung tính, X giữ vùng bấm 48. Phím dùng trắng/chữ tối, gợi ý xanh nhạt, đang nhấn xanh đậm/chữ trắng, disabled xám; chỉ chuẩn hóa màu/chữ/viền, không thay cơ chế IME/touch hoặc hình học responsive. Nút chọn file được tạo kiểu bằng `::file-selector-button`, không thêm button submit hoặc upload lúc chọn. Giữ các quy tắc kích thước riêng của Từ vựng.
+
+**Nguồn code:** `src/components/TipyButton.jsx`, `src/styles/tipy-button.css` và `src/styles/tipy-controls.css` nhập qua `tipy-ui.css`. Màu và trạng thái keyboard/native cũ trùng lặp đã gỡ tại nguồn tương ứng; CSS hình học và kiểu riêng vẫn còn nơi dùng được giữ. Không tự suy `variant` từ text lúc chạy. `ActionMenu` nhận variant của từng item; giữ native menuitem, focus, Esc và callback.
+
+**Trang duyệt:** chạy `npm run dev -- --host 127.0.0.1 --port 4207`, mở `http://127.0.0.1:4207/dev/buttons`; có liên kết Thử bộ nút ở footer development. Route lazy chỉ tồn tại khi `import.meta.env.DEV`; không mount App/auth/cache hoặc gọi API. Nút, tab, switch, keyboard và form chỉ dùng state/object URL, timer được dọn khi rời trang. Mẫu có bình thường/hover/pressed/focus/loading/disabled, nút dài, cỡ gọn/icon và chọn ảnh/Enter. Kiểm tra `scripts/check-button-preview.mjs` xác nhận 0 request nghiệp vụ. Sau bàn giao local, chủ dự án đã yêu cầu đẩy GitHub/Vercel/Supabase ngày 20/11/2026; cho phép triển khai bộ nút, còn trang duyệt vẫn chỉ ở development. Đợt này không thay API/schema, không cần migration.
+
+`vite.config.js` bỏ qua `graphify-out` và `test-results` khi theo dõi thay đổi development, để cập nhật HTML đồ thị/báo cáo không làm tải lại trang và mất bản đang thử. Kiểm tra trang duyệt có tạo HTML thử ở hai thư mục khi form đang có nội dung/ảnh rồi xác nhận state được giữ. Quy tắc này không đổi build production hoặc cơ chế tải/lưu backend.
+
 ## 4. Chữ và biểu tượng
 
 ### Font — giữ nguyên website
@@ -101,7 +134,7 @@ Focus `#2448A6`; gradient cam cuối/đế `#BC4100/#8C3100`; gradient xanh cu�
 | Màn chi tiết desktop   | Thanh trái 184, gap tới nội dung 24 px                            |
 | Tổng quan desktop      | Bảng phải 420 px, thành viên lấy phần còn lại                     |
 
-Chưa có số bóng F được đọc/đo riêng. **W/K:** panel hiện `0 6px 20px #402B200A`; nút đế 6, nhấn lún 4/đế còn 2 px, transition 120 ms. Giữ tương thích chờ đối chiếu, không gắn nhãn F hoặc thêm bóng nặng cho mọi khung.
+Chưa có số bóng F được đọc/đo riêng. **W/K:** panel hiện `0 6px 20px #402B200A`; bộ nút local mới dùng đế 3, nhấn lún 2/đế còn 1 px, transition 120 ms theo mục 3.1. Không gắn nhãn F/S hoặc thêm bóng nặng cho mọi khung.
 
 ### Bố cục
 
@@ -210,7 +243,7 @@ Các ràng buộc **W** không được thay bằng dữ liệu mẫu F. Chi ti�
 
 1. **Đã khớp:** 12 màu nền/chữ/viền/cam/xanh/lỗi/disabled, spacing 4–32, radius panel 24/input 14; font hiện tại cùng họ Nunito. Không đổi font hoặc tạo palette mới.
 2. **Vàng:** thêm `--tipy-gold: #FFD767`, dùng cho bục; số sao xanh ngọc. Bảng màu không thay đổi dữ liệu sao.
-3. **Nút:** CTA chung đã 56/chữ 18/icon 20/radius 24, stroke 2; phụ chữ tối/viền theo vai trò. Admin giữ 48/chữ 16/radius 24. Giữ type/disabled/loading/callback và chiều sâu W. Từ vựng có scope riêng giữ kích thước/kiểu cũ.
+3. **Nút:** CTA chung 56/chữ 18/icon 20/radius 24, stroke 2; phụ chữ tối/viền theo vai trò. Admin giữ 48/chữ 16/radius 24. Bản local mới chọn variant/trạng thái theo mục 3.1, giữ type/disabled/loading/callback. Từ vựng giữ kích thước riêng, dùng bảng màu/trạng thái nút chung.
 4. **Lớp:** desktop padding 32/gap 24/sidebar 184/cột phải tối đa 420; avatar thành viên 80/radius 24. Mobile padding 16, ba cột thành viên, bục và điều hướng phía dưới; màn ngang thấp giữ bố cục gọn riêng. Khung bấm và ảnh luôn cùng kích thước. Bục giữ thứ tự 3–1–2, thân 52/104/78 desktop và 36/64/50 mobile.
 5. **Chữ:** W nội dung 19, h1 clamp 28–36/h2 28 và leading chung; F phân cấp theo mục 4. Giữ font, chỉ tách token ngữ nghĩa cho cỡ/weight/leading thật sự cần khi triển khai; chưa có leading F xác nhận.
 6. **Game/kết quả:** đã dựng desktop nhưng chưa audit từng màn, mobile mới tổng quan. Không dùng mã bản dựng dự kiến chưa ghi vào F làm số đo mobile. Đọc lại từng engine/pause/saving/error/result và thử IME/keyboard thật trước khi đổi hình học/cỡ sao/chữ/nút. Không phục hồi quy tắc 48 px/cuộn ngang cho mọi lượt chơi.

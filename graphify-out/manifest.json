@@ -186,9 +186,9 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1795090555.0236669,
-    "seen": 1795093473.4421935,
-    "ast_hash": "d4e28f3f25e685cd3c69af9a01ff40a8",
+    "mtime": 1795135864.0449107,
+    "seen": 1795136518.1411786,
+    "ast_hash": "55c1c3e98643762c9e0cd07ee7be1982",
     "semantic_hash": ""
   },
   "src/characters/catalog.js": {
@@ -264,9 +264,9 @@
     "semantic_hash": ""
   },
   "src/components/TipyButton.jsx": {
-    "mtime": 1795109021.1202917,
-    "seen": 1795109424.2040513,
-    "ast_hash": "f4a7f74e1edbd13fc66dca11bf80a6bd",
+    "mtime": 1795135863.8412132,
+    "seen": 1795136518.1412406,
+    "ast_hash": "a364bf0590cd3bd234377bcbe7901bd9",
     "semantic_hash": ""
   },
   "src/components/ValidatedForm.jsx": {
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/features/admin/StudentActionDialog.jsx": {
-    "mtime": 1795085400.2656686,
-    "seen": 1795093473.4702115,
-    "ast_hash": "e8449a5104e2476804d61a80c7261d83",
+    "mtime": 1795136576.3646593,
+    "seen": 1795136676.428717,
+    "ast_hash": "4da3bc09ee088384c76b7e63b23d7457",
     "semantic_hash": ""
   },
   "src/features/admin/StudentHistory.jsx": {
@@ -294,9 +294,9 @@
     "semantic_hash": ""
   },
   "src/features/admin/StudentsTable.jsx": {
-    "mtime": 1794589171.9946072,
-    "seen": 1795093473.4731996,
-    "ast_hash": "8141e2be4096fd2e698f828d4dc75868",
+    "mtime": 1795135863.9659905,
+    "seen": 1795136518.1412601,
+    "ast_hash": "8630d0a9f2fd5ac0a90b3c51bb1b700e",
     "semantic_hash": ""
   },
   "src/features/admin/useStudentsPage.js": {
@@ -306,9 +306,9 @@
     "semantic_hash": ""
   },
   "src/features/assessments/AdminAssessments.jsx": {
-    "mtime": 1795090063.130639,
-    "seen": 1795093473.473208,
-    "ast_hash": "8551b63289f2b2b221d3d0b027faa8d7",
+    "mtime": 1795135915.3997834,
+    "seen": 1795136518.1412718,
+    "ast_hash": "ee7726e84b9a45940a9d7a8c19f044cb",
     "semantic_hash": ""
   },
   "src/features/assessments/AssessmentSummary.jsx": {
@@ -318,9 +318,9 @@
     "semantic_hash": ""
   },
   "src/features/assessments/AssessmentsPage.jsx": {
-    "mtime": 1795096924.5001385,
-    "seen": 1795097147.4914606,
-    "ast_hash": "0bf6209089dc0c8e427633193f76c5b9",
+    "mtime": 1795135915.447273,
+    "seen": 1795136518.1412792,
+    "ast_hash": "6e54fd9cfe3692b4f44dded53ee3277f",
     "semantic_hash": ""
   },
   "src/features/assessments/ContentPicker.jsx": {
@@ -330,9 +330,9 @@
     "semantic_hash": ""
   },
   "src/features/assessments/ResultViews.jsx": {
-    "mtime": 1795090062.899663,
-    "seen": 1795093473.4792237,
-    "ast_hash": "13551f0ccf08f6c1b225a75ed36d6c64",
+    "mtime": 1795135860.6897125,
+    "seen": 1795136518.1412866,
+    "ast_hash": "501ab0e71095b7fa5fcf5bbd38042c25",
     "semantic_hash": ""
   },
   "src/features/assessments/content.js": {
@@ -354,9 +354,9 @@
     "semantic_hash": ""
   },
   "src/features/classroom/AdminClasses.jsx": {
-    "mtime": 1794542368.2375648,
-    "seen": 1794554456.8608317,
-    "ast_hash": "cf5641cdf506a1c02893893127b8c3ed",
+    "mtime": 1795136576.6597607,
+    "seen": 1795136676.4287384,
+    "ast_hash": "771b85dd3e9640234458e7b671e77370",
     "semantic_hash": ""
   },
   "src/features/classroom/Attachment.jsx": {
@@ -390,15 +390,15 @@
     "semantic_hash": ""
   },
   "src/features/classroom/ClassroomPage.jsx": {
-    "mtime": 1795090555.0900023,
-    "seen": 1795093473.5062585,
-    "ast_hash": "5b20dbf7b75e6e38196b9baaf0337f9c",
+    "mtime": 1795135863.9383042,
+    "seen": 1795136518.141333,
+    "ast_hash": "c60519fbb109bc6fcec89d2ea7e56698",
     "semantic_hash": ""
   },
   "src/features/classroom/PostComposer.jsx": {
-    "mtime": 1795085400.1921449,
-    "seen": 1795093473.5062623,
-    "ast_hash": "61ef3dce979b72d273c62475f9a6baae",
+    "mtime": 1795135915.5473938,
+    "seen": 1795136518.1413367,
+    "ast_hash": "d0cb9e0b8cbe9a2b6dcc19a4d107df33",
     "semantic_hash": ""
   },
   "src/features/classroom/RosterEditor.jsx": {
@@ -420,9 +420,9 @@
     "semantic_hash": ""
   },
   "src/features/keyboard-quest/AdventureHeader.jsx": {
-    "mtime": 1794327428.9982758,
-    "seen": 1794554456.860854,
-    "ast_hash": "8f4820c4f10f858c2633ba933662f309",
+    "mtime": 1795135915.5572104,
+    "seen": 1795136518.1413553,
+    "ast_hash": "0f5212f8009a6c8993242a5b3551018f",
     "semantic_hash": ""
   },
   "src/features/keyboard-quest/AdventureScene.jsx": {
@@ -444,15 +444,15 @@
     "semantic_hash": ""
   },
   "src/features/keyboard-quest/LessonPlayer.jsx": {
-    "mtime": 1795096625.9093697,
-    "seen": 1795096783.9476836,
-    "ast_hash": "8d43a8e2188916a66a662910f6501fbc",
+    "mtime": 1795135915.5947647,
+    "seen": 1795136518.1413686,
+    "ast_hash": "e182a2a577a54cd04217305d264789b0",
     "semantic_hash": ""
   },
   "src/features/keyboard-quest/LessonPlayfield.jsx": {
-    "mtime": 1794642419.3980987,
-    "seen": 1795093473.5243807,
-    "ast_hash": "b9dfef1734d1b7206ef4cbec9c60564d",
+    "mtime": 1795135860.7466958,
+    "seen": 1795136518.1413717,
+    "ast_hash": "ba082cb9ceb37dc85b70521b2ea5fefc",
     "semantic_hash": ""
   },
   "src/features/keyboard-quest/LetterTarget.jsx": {
@@ -516,9 +516,9 @@
     "semantic_hash": ""
   },
   "src/features/typing/TypingGame.jsx": {
-    "mtime": 1795096396.7926564,
-    "seen": 1795096783.9477162,
-    "ast_hash": "7d877729636caca5646d4321704c523f",
+    "mtime": 1795135915.620496,
+    "seen": 1795136518.1414204,
+    "ast_hash": "bb42cbb70e73d8fdc4b77b544d82c85e",
     "semantic_hash": ""
   },
   "src/features/typing/TypingSetup.jsx": {
@@ -606,9 +606,9 @@
     "semantic_hash": ""
   },
   "src/main.jsx": {
-    "mtime": 1794317196.9322538,
-    "seen": 1794554456.8609204,
-    "ast_hash": "3a97a544e80bfb8a6c34bcd9c8f31b01",
+    "mtime": 1795135864.0181608,
+    "seen": 1795136518.1414793,
+    "ast_hash": "1aa70105c1eef26009b99a81d4b5dafc",
     "semantic_hash": ""
   },
   "src/screens/AdminPage.jsx": {
@@ -894,9 +894,9 @@
     "semantic_hash": ""
   },
   "tests/tipy-button.test.js": {
-    "mtime": 1794290380.1327908,
-    "seen": 1794554456.861024,
-    "ast_hash": "01d33b0fd70a181923c6f360b7daf608",
+    "mtime": 1795135915.7435467,
+    "seen": 1795136518.1417656,
+    "ast_hash": "0b4b39ce827e8ed04b6b34d0ee4cb3b3",
     "semantic_hash": ""
   },
   "tests/typing-v2.test.js": {
@@ -912,15 +912,15 @@
     "semantic_hash": ""
   },
   "vite.config.js": {
-    "mtime": 1794288780.0627484,
-    "seen": 1794554456.8610349,
-    "ast_hash": "2f37f656195bc5892dbd2e3259f7691d",
+    "mtime": 1795137130.7846432,
+    "seen": 1795137284.034633,
+    "ast_hash": "06509de1ca33eea6d32c3dff0a809251",
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1795108607.1568756,
-    "seen": 1795109424.2042823,
-    "ast_hash": "c8695976d03fa0763e28a6ddd9287e54",
+    "mtime": 1795136231.9112778,
+    "seen": 1795136518.1417813,
+    "ast_hash": "88565cae6ac63bfdffb26c19edf767c3",
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
@@ -960,9 +960,9 @@
     "semantic_hash": ""
   },
   "design-system/tipy/MASTER.md": {
-    "mtime": 1795109385.0662196,
-    "seen": 1795109424.2042928,
-    "ast_hash": "5e84513679617d498b1a6ef7155f2669",
+    "mtime": 1795137269.451825,
+    "seen": 1795137284.0346482,
+    "ast_hash": "471b5d14ebbb0caf7ae026d7f6dd00d9",
     "semantic_hash": ""
   },
   "design-system/tipy/preview.html": {
@@ -1554,15 +1554,15 @@
     "semantic_hash": ""
   },
   "src/components/ActionMenu.jsx": {
-    "mtime": 1795109996.989787,
-    "seen": 1795110185.8595045,
-    "ast_hash": "320485d6801cdc5d36e1cfd67fa2f3df",
+    "mtime": 1795136576.0719066,
+    "seen": 1795136676.428696,
+    "ast_hash": "970f2bd955334a900c6ed87c19f57022",
     "semantic_hash": ""
   },
   "src/components/CompletionScreen.jsx": {
-    "mtime": 1795109800.4333272,
-    "seen": 1795110185.859511,
-    "ast_hash": "f34d57dbf380c1749d2ef2e8707421aa",
+    "mtime": 1795135915.2827628,
+    "seen": 1795136518.1412172,
+    "ast_hash": "ee5fb27acdfad02e99370ebb0f206b92",
     "semantic_hash": ""
   },
   "src/components/PlaySurface.jsx": {
@@ -1911,6 +1911,18 @@
     "mtime": 1795095534.6335227,
     "seen": 1795097607.3664339,
     "ast_hash": "3ddbad9e7800e19403545071a4d86239",
+    "semantic_hash": ""
+  },
+  "scripts/check-button-preview.mjs": {
+    "mtime": 1795137139.5379746,
+    "seen": 1795137284.0342157,
+    "ast_hash": "58d14febde0fcded0c80bf42a316a22e",
+    "semantic_hash": ""
+  },
+  "src/screens/ButtonPreview.jsx": {
+    "mtime": 1795136774.2075636,
+    "seen": 1795136839.208453,
+    "ast_hash": "04cb66a61b8c33c6ac40a470b64c4db0",
     "semantic_hash": ""
   },
   "package-lock.json": {

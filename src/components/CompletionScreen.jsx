@@ -67,7 +67,13 @@ export default function CompletionScreen({
         {children}
         <div className="play-result-actions">
           {onBack && (
-            <TipyButton emphasis="secondary" icon={ArrowLeft} disabled={busy} onClick={onBack}>
+            <TipyButton
+              variant="back"
+              emphasis="secondary"
+              icon={ArrowLeft}
+              disabled={busy}
+              onClick={onBack}
+            >
               Quay lại
             </TipyButton>
           )}

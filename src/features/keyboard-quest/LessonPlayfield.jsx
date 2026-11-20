@@ -25,7 +25,7 @@ export default function LessonPlayfield({
     >
       <header className="quest-playfield-header quest-player-top">
         {onBack && (
-          <TipyButton emphasis="secondary" icon={ArrowLeft} onClick={onBack}>
+          <TipyButton variant="back" emphasis="secondary" icon={ArrowLeft} onClick={onBack}>
             Quay lại
           </TipyButton>
         )}

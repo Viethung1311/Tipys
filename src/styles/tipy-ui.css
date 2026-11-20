@@ -1,3 +1,4 @@
+@import './tipy-controls.css';
 /* Shared UI primitives. Arena, falling letters, canvas and keyboard geometry stay feature-owned. */
 .account-form label.tipy-choice {
   display: flex;
@@ -46,31 +47,8 @@
   background: var(--tipy-play-soft);
   border-color: var(--tipy-border);
 }
-.keyboard .key {
-  font-family: var(--tipy-font-family);
-}
 .touchboard .key {
   font-size: 18px;
-}
-.keyboard .key.selected {
-  color: var(--tipy-play);
-  background: var(--tipy-play-soft);
-  border-color: var(--tipy-play);
-}
-.keyboard .key.lit.selected {
-  color: var(--tipy-on-action);
-  background: var(--tipy-play);
-  border-color: var(--tipy-play);
-}
-.keyboard .key:disabled {
-  opacity: 1;
-  color: var(--tipy-disabled-text);
-  background: var(--tipy-disabled);
-  border-color: var(--tipy-disabled-base);
-}
-.keyboard .key:focus-visible {
-  outline: 3px solid var(--tipy-focus);
-  outline-offset: 2px;
 }
 .admin-metrics strong {
   color: var(--tipy-learn);
@@ -357,40 +335,6 @@ label.class-select {
 .admin-tabs {
   gap: 12px;
   margin-block: 20px;
-}
-.account-tabs button,
-.account-tabs a,
-.admin-tabs button,
-.presets button,
-.selection-info button,
-.text-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 48px;
-  min-height: 48px;
-  padding: 10px 14px;
-  border: 1px solid var(--tipy-border);
-  border-radius: var(--tipy-input-radius);
-  background: var(--tipy-surface-raised);
-  font: 800 var(--tipy-content-size) / 1.5 var(--tipy-font-family);
-  color: var(--tipy-text);
-  text-decoration: none;
-  white-space: normal;
-}
-.account-tabs .active,
-.account-tabs [aria-current],
-.admin-tabs .active,
-.presets .active {
-  background: var(--tipy-play-soft);
-  border-color: var(--tipy-play);
-  color: var(--tipy-play);
-}
-.account-tabs button:hover:not(:disabled),
-.admin-tabs button:hover:not(:disabled),
-.text-button:hover:not(:disabled) {
-  background: var(--tipy-surface);
 }
 :is(.account-tabs, .admin-tabs, .main-nav, .difficulty-options, .presets) button:focus-visible,
 .text-button:focus-visible,

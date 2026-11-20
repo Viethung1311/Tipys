@@ -237,7 +237,13 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
         <>
           <AssessmentSummary definition={preview.definition}>
             <div className="assessment-actions">
-              <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
+              <TipyButton
+                variant="back"
+                icon={ArrowLeft}
+                emphasis="secondary"
+                disabled={busy}
+                onClick={back}
+              >
                 Danh sách
               </TipyButton>
               {preview.status === 'draft' && preview.can_manage !== false ? (
@@ -544,7 +550,13 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
             />
           </fieldset>
           <div className="assessment-actions">
-            <TipyButton emphasis="secondary" icon={ArrowLeft} disabled={busy} onClick={back}>
+            <TipyButton
+              variant="back"
+              emphasis="secondary"
+              icon={ArrowLeft}
+              disabled={busy}
+              onClick={back}
+            >
               Danh sách
             </TipyButton>
             <TipyButton type="submit" icon={Eye} loading={busy} loadingLabel="Đang lưu nháp…">
@@ -683,7 +695,12 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
               />
             </label>
             <div className="assessment-actions">
-              <TipyButton emphasis="secondary" disabled={busy} onClick={() => setDeleting(null)}>
+              <TipyButton
+                variant="back"
+                emphasis="secondary"
+                disabled={busy}
+                onClick={() => setDeleting(null)}
+              >
                 Quay lại
               </TipyButton>
               <TipyButton

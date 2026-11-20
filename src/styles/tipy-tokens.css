@@ -39,8 +39,13 @@
   --tipy-button-height: 56px;
   --tipy-button-font-size: 18px;
   --tipy-button-radius: 24px;
-  --tipy-button-depth: 6px;
-  --tipy-button-pressed-depth: 2px;
-  --tipy-button-travel: 4px;
+  --tipy-button-depth: 3px;
+  --tipy-button-pressed-depth: 1px;
+  --tipy-button-travel: 2px;
+  --tipy-button-border-width: 1px;
+  --tipy-button-compact-height: 48px;
+  --tipy-button-compact-size: 16px;
+  --tipy-button-tab-radius: 14px;
+  --tipy-button-shadow: 0 4px 12px #402b200a;
   --tipy-button-duration: 120ms;
 }

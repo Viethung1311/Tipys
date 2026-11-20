@@ -393,7 +393,13 @@ export default function AssessmentsPage({
           />
         ) : detail ? (
           <>
-            <TipyButton icon={ArrowLeft} emphasis="secondary" disabled={busy} onClick={back}>
+            <TipyButton
+              variant="back"
+              icon={ArrowLeft}
+              emphasis="secondary"
+              disabled={busy}
+              onClick={back}
+            >
               Danh sách
             </TipyButton>
             <AssessmentSummary definition={detail.assessment.definition} student>
@@ -419,6 +425,7 @@ export default function AssessmentsPage({
                 detail.allowedAttempts === null ||
                 detail.allowedAttempts > detail.attempt.attempt_number) && (
                 <TipyButton
+                  variant="play"
                   icon={Play}
                   loading={busy}
                   disabled={
@@ -456,6 +463,7 @@ export default function AssessmentsPage({
                   </TipyButton>
                 )}
                 <TipyButton
+                  variant="play"
                   icon={Play}
                   disabled={
                     busy ||
@@ -662,6 +670,7 @@ function AssessmentRunner({
     <section className="assessment-runner" data-version={version} data-part-active={Boolean(part)}>
       <header className="assessment-run-header">
         <TipyButton
+          variant="back"
           icon={ArrowLeft}
           emphasis="secondary"
           disabled={busy}
@@ -748,7 +757,7 @@ function AssessmentRunner({
           description="Nội dung được giữ trên thiết bị. Giờ đóng bài vẫn được áp dụng."
           onClose={() => setPaused(false)}
         >
-          <TipyButton icon={Play} onClick={() => setPaused(false)}>
+          <TipyButton variant="play" icon={Play} onClick={() => setPaused(false)}>
             Tiếp tục
           </TipyButton>
         </Modal>
@@ -759,10 +768,11 @@ function AssessmentRunner({
           description="Tiến trình được giữ trên thiết bị này. Giờ đóng bài và số lượt vẫn theo quy định."
           onClose={() => setExiting(false)}
         >
-          <TipyButton emphasis="secondary" onClick={() => setExiting(false)}>
+          <TipyButton variant="back" emphasis="secondary" onClick={() => setExiting(false)}>
             Làm tiếp
           </TipyButton>
           <TipyButton
+            variant="back"
             icon={ArrowLeft}
             disabled={busy}
             onClick={() => {
