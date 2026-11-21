@@ -1,6 +1,8 @@
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import Reveal from '../shared/Reveal.jsx';
 import TipyButton from '../components/TipyButton.jsx';
+import { ART } from '../features/keyboard-guard/art.js';
+import '../features/keyboard-guard/card.css';
 import { availableGames, gameScreen, GAME_ENGINES } from '../game/catalog.js';
 
 /** Catalog metadata comes from the API; only registered engines are launchable. */
@@ -28,21 +30,60 @@ export default function GameLibrary({ catalog, onChoose, onHome }) {
             engine = GAME_ENGINES[game.engine_code];
           return (
             <Reveal key={game.game_id}>
-              <article className="game-card">
-                <div className="card-art" aria-hidden="true">
-                  <span className="mini-cloud">☁</span>
-                  <span className="mini-letter ml-a">A</span>
-                  <span className="mini-letter ml-f">F</span>
-                  <span className="mini-letter ml-j">J</span>
-                  <span className="mini-ground" />
-                  <span className="mini-star">✦</span>
-                </div>
+              <article
+                className={`game-card ${screen === 'guard' ? 'guard-card' : ''}`}
+                onClick={
+                  screen === 'guard'
+                    ? (e) => {
+                        if (!e.target.closest('a,button')) onChoose(screen);
+                      }
+                    : undefined
+                }
+              >
+                {screen === 'guard' ? (
+                  <div className="card-art guard-card-art" aria-hidden="true">
+                    <img
+                      src={ART.flight2.src}
+                      className="guard-card-ship"
+                      alt=""
+                      loading="lazy"
+                      width="512"
+                      height="512"
+                    />
+                    <svg className="guard-card-meteor" viewBox={ART.meteor.crop.join(' ')}>
+                      <image href={ART.meteor.src} width="1536" height="1024" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="card-art" aria-hidden="true">
+                    <span className="mini-cloud">☁</span>
+                    <span className="mini-letter ml-a">A</span>
+                    <span className="mini-letter ml-f">F</span>
+                    <span className="mini-letter ml-j">J</span>
+                    <span className="mini-ground" />
+                    <span className="mini-star">✦</span>
+                  </div>
+                )}
                 <div className="card-copy">
                   <span className={`tag ${screen ? 'green' : ''}`}>
                     <i />
                     {screen ? 'SẴN SÀNG CHƠI' : 'SẮP RA MẮT'}
                   </span>
-                  <h3>{game.game_name}</h3>
+                  <h3>
+                    {screen === 'guard' ? (
+                      <a
+                        href="/#typing/guard"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onChoose(screen);
+                        }}
+                      >
+                        {game.game_name}
+                      </a>
+                    ) : (
+                      game.game_name
+                    )}
+                  </h3>
                   <p>{game.description || 'Một thử thách mới đang chờ bạn khám phá.'}</p>
                   <div className="card-features">
                     {engine?.features.map((text) => (
@@ -51,7 +92,7 @@ export default function GameLibrary({ catalog, onChoose, onHome }) {
                   </div>
                 </div>
                 <TipyButton variant="play" disabled={!screen} onClick={() => onChoose(screen)}>
-                  {screen ? 'Chơi' : 'Đang chuẩn bị'}
+                  {screen === 'guard' ? 'Chơi ngay' : screen ? 'Chơi' : 'Đang chuẩn bị'}
                 </TipyButton>
               </article>
             </Reveal>

@@ -13,6 +13,7 @@ import AccountPoints from '../components/AccountPoints.jsx';
 import Companion from '../components/Companion.jsx';
 import useCompanion from '../hooks/useCompanion.js';
 const AdminAssessments = lazy(() => import('../features/assessments/AdminAssessments.jsx'));
+const GuardSettings = lazy(() => import('../features/keyboard-guard/GuardSettings.jsx'));
 const Teachers = lazy(() => import('../features/admin/Teachers.jsx'));
 const fields = [
   ['fall', 'Thời gian rơi ban đầu (giây)', 1, 30, 0.1],
@@ -130,7 +131,7 @@ export default function AdminPage() {
         engineCode: game.engine_code,
         description: game.description,
         active: game.is_active,
-        config: { ...game.config, levels },
+        config: game.engine_code === 'falling_letters' ? { ...game.config, levels } : game.config,
       });
       setNotice('Đã lưu. Cấu hình có hiệu lực ở lượt chơi mới.');
       const data = await api('bootstrap');
@@ -338,104 +339,121 @@ export default function AdminPage() {
               </Suspense>
             )}
             {tab === 'games' && (
-              <ValidatedForm className="panel" onSubmit={save}>
-                <h2>Cấu hình trò chơi</h2>
-                <div className="account-form">
-                  <label>
-                    Chọn game
-                    <select
-                      value={game?.game_id || ''}
-                      onChange={(event) =>
-                        selectGame(games.find((g) => g.game_id === event.target.value))
-                      }
-                    >
-                      {games.map((game) => (
-                        <option key={game.game_id} value={game.game_id}>
-                          {game.game_name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                {game && (
-                  <>
-                    <div className="account-form">
-                      <label>
-                        Tên game
-                        <input
-                          data-required-text
-                          required
-                          maxLength={100}
-                          value={game.game_name}
-                          onChange={(e) => setGame({ ...game, game_name: e.target.value })}
-                        />
-                      </label>
-                      <label className="check-label">
-                        <input
-                          type="checkbox"
-                          checked={game.is_active}
-                          onChange={(e) => setGame({ ...game, is_active: e.target.checked })}
-                        />
-                        Mở trò chơi cho học sinh
-                      </label>
-                    </div>
-                    {game.engine_code === 'falling_letters' ? (
-                      <>
-                        <p className="admin-rule">
-                          Luật typing: hết 3 mạng hoặc bấm sai lần thứ 6 thì kết thúc. Mỗi 500 điểm:
-                          thời gian rơi giảm 0,5 giây, khoảng xuất hiện giảm 0,1 giây, đến giới hạn
-                          đã đặt.
-                        </p>
-                        <div className="speed-grid">
-                          {Object.entries(LEVELS).map(([id, level]) => (
-                            <fieldset key={id}>
-                              <legend>
-                                {level.icon} {level.name}
-                              </legend>
-                              {fields.map(([key, label, min, max, step]) => (
-                                <label key={key}>
-                                  {label}
-                                  <input
-                                    name={`${id}-${key}`}
-                                    required
-                                    data-at-most={
-                                      key === 'minFall'
-                                        ? `${id}-fall`
-                                        : key === 'minSpawn'
-                                          ? `${id}-spawn`
-                                          : undefined
-                                    }
-                                    type="number"
-                                    min={min}
-                                    max={max}
-                                    step={step}
-                                    value={levels[id]?.[key] ?? ''}
-                                    onChange={(e) =>
-                                      setLevels({
-                                        ...levels,
-                                        [id]: { ...levels[id], [key]: Number(e.target.value) },
-                                      })
-                                    }
-                                  />
-                                </label>
-                              ))}
-                            </fieldset>
-                          ))}
-                        </div>
-                        <p className="muted">
-                          Số giây nhỏ hơn = nhanh hơn. Các mức nhanh nhất không được lớn hơn mức ban
-                          đầu.
-                        </p>
-                      </>
-                    ) : (
-                      <p>Cấu hình riêng của game này được giữ nguyên.</p>
-                    )}
-                    <TipyButton type="submit" icon={Save} disabled={busy}>
-                      Lưu cấu hình
-                    </TipyButton>
-                  </>
+              <>
+                <ValidatedForm className="panel" onSubmit={save}>
+                  <h2>Cấu hình trò chơi</h2>
+                  <div className="account-form">
+                    <label>
+                      Chọn game
+                      <select
+                        value={game?.game_id || ''}
+                        onChange={(event) =>
+                          selectGame(games.find((g) => g.game_id === event.target.value))
+                        }
+                      >
+                        {games.map((game) => (
+                          <option key={game.game_id} value={game.game_id}>
+                            {game.game_name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  {game && (
+                    <>
+                      <div className="account-form">
+                        <label>
+                          Tên game
+                          <input
+                            data-required-text
+                            required
+                            maxLength={100}
+                            value={game.game_name}
+                            onChange={(e) => setGame({ ...game, game_name: e.target.value })}
+                          />
+                        </label>
+                        <label className="check-label">
+                          <input
+                            type="checkbox"
+                            checked={game.is_active}
+                            onChange={(e) => setGame({ ...game, is_active: e.target.checked })}
+                          />
+                          Mở trò chơi cho học sinh
+                        </label>
+                      </div>
+                      {game.engine_code === 'falling_letters' ? (
+                        <>
+                          <p className="admin-rule">
+                            Luật typing: hết 3 mạng hoặc bấm sai lần thứ 6 thì kết thúc. Mỗi 500
+                            điểm: thời gian rơi giảm 0,5 giây, khoảng xuất hiện giảm 0,1 giây, đến
+                            giới hạn đã đặt.
+                          </p>
+                          <div className="speed-grid">
+                            {Object.entries(LEVELS).map(([id, level]) => (
+                              <fieldset key={id}>
+                                <legend>
+                                  {level.icon} {level.name}
+                                </legend>
+                                {fields.map(([key, label, min, max, step]) => (
+                                  <label key={key}>
+                                    {label}
+                                    <input
+                                      name={`${id}-${key}`}
+                                      required
+                                      data-at-most={
+                                        key === 'minFall'
+                                          ? `${id}-fall`
+                                          : key === 'minSpawn'
+                                            ? `${id}-spawn`
+                                            : undefined
+                                      }
+                                      type="number"
+                                      min={min}
+                                      max={max}
+                                      step={step}
+                                      value={levels[id]?.[key] ?? ''}
+                                      onChange={(e) =>
+                                        setLevels({
+                                          ...levels,
+                                          [id]: { ...levels[id], [key]: Number(e.target.value) },
+                                        })
+                                      }
+                                    />
+                                  </label>
+                                ))}
+                              </fieldset>
+                            ))}
+                          </div>
+                          <p className="muted">
+                            Số giây nhỏ hơn = nhanh hơn. Các mức nhanh nhất không được lớn hơn mức
+                            ban đầu.
+                          </p>
+                        </>
+                      ) : (
+                        <p>Cấu hình riêng của game này được giữ nguyên.</p>
+                      )}
+                      <TipyButton type="submit" icon={Save} disabled={busy}>
+                        Lưu cấu hình
+                      </TipyButton>
+                    </>
+                  )}
+                </ValidatedForm>
+                {GuardSettings && user?.role === 'admin' && (
+                  <Suspense fallback={<Loading label="Đang mở cấu hình Vệ binh…" />}>
+                    <GuardSettings
+                      key={user.user_id}
+                      user={user}
+                      game={games.find((g) => g.game_code === 'keyboard_guard')}
+                      onSaved={(saved) => {
+                        setGames((old) =>
+                          old.map((g) => (g.game_id === saved.game_id ? saved : g)),
+                        );
+                        setGame((old) => (old?.game_id === saved.game_id ? saved : old));
+                      }}
+                    />
+                  </Suspense>
                 )}
-              </ValidatedForm>
+              </>
             )}
           </>
         )}

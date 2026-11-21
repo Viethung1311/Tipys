@@ -6,6 +6,7 @@ import { resultRows } from '../../src/game/results.js';
 import { ApiError, requireAdmin, fail } from '../errors.js';
 import { validateLevels, validateProgress } from './game-validation.js';
 import { uuid } from './classrooms.js';
+import { GUARD_CODE, validGuardSettings } from '../../src/features/keyboard-guard/settings.js';
 export function createGames(db) {
   return {
     async games(admin = false) {
@@ -13,6 +14,18 @@ export function createGames(db) {
       const { data, error } = await (admin ? query : query.eq('is_active', true));
       fail(error);
       return data;
+    },
+    async guardConfig() {
+      const { data, error } = await db
+        .from('games')
+        .select('*')
+        .eq('game_code', GUARD_CODE)
+        .eq('is_active', true)
+        .single();
+      fail(error, 'Vệ binh bàn phím chưa được mở.');
+      if (data.engine_code !== GUARD_CODE || !validGuardSettings(data.config))
+        throw new ApiError(503, 'Cấu hình Vệ binh bàn phím chưa sẵn sàng.');
+      return { game: data };
     },
     async history(profile, { userId } = {}) {
       if (userId !== undefined) {
@@ -84,6 +97,14 @@ export function createGames(db) {
       if (!input.config || typeof input.config !== 'object' || Array.isArray(input.config))
         throw new ApiError(400, 'Cấu hình game phải là một đối tượng JSON.');
       if (code === 'falling_letters') validateLevels(input.config.levels);
+      if (code === GUARD_CODE || input.engineCode === GUARD_CODE) {
+        if (
+          code !== GUARD_CODE ||
+          input.engineCode !== GUARD_CODE ||
+          !validGuardSettings(input.config)
+        )
+          throw new ApiError(400, 'Cấu hình Vệ binh bàn phím chưa hợp lệ.');
+      }
       const { data, error } = await db
         .from('games')
         .upsert(
@@ -110,6 +131,8 @@ export function createGames(db) {
         .eq('is_active', true)
         .single();
       fail(error, 'Trò chơi chưa được mở.');
+      if (game.engine_code === GUARD_CODE)
+        throw new ApiError(400, 'Vệ binh bàn phím chưa ghi lịch sử hoặc thưởng tài khoản.');
       if (game.engine_code === QUEST_CODE) {
         if (game.game_code !== QUEST_CODE) throw new ApiError(400, 'Mã game chưa hợp lệ.');
         return questStart(db, profile, game, input);

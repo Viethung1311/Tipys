@@ -94,6 +94,8 @@ export function createHandler({ env = process.env, makeBackend = createBackend }
           notifications,
         });
       }
+      if (req.method === 'GET' && action === 'guard_config')
+        return res.status(200).json(await backend.guardConfig());
       const { profile, access } = await current();
       if (req.method === 'GET' && action === 'teachers')
         return res.status(200).json(await backend.teachers(profile, req.query));

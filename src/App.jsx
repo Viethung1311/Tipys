@@ -16,6 +16,7 @@ const StudentNotifications = lazy(
   () => import('./features/notifications/StudentNotifications.jsx'),
 );
 import GameLibrary from './screens/GameLibrary.jsx';
+const KeyboardGuard = lazy(() => import('./features/keyboard-guard/KeyboardGuard.jsx'));
 const KeyboardQuest = lazy(() => import('./features/keyboard-quest/KeyboardQuest.jsx'));
 const TypingSetup = lazy(() => import('./features/typing/TypingSetup.jsx'));
 const TypingGame = lazy(() => import('./features/typing/TypingGame.jsx'));
@@ -35,13 +36,15 @@ export default function App() {
         ? 'library'
         : location.hash === '#typing/setup'
           ? 'setup'
-          : location.hash === '#typing/quest'
-            ? 'quest'
-            : location.hash === '#classroom'
-              ? 'classroom'
-              : location.hash === '#tests'
+          : location.hash === '#typing/guard'
+            ? 'guard'
+            : location.hash === '#typing/quest'
+              ? 'quest'
+              : location.hash === '#classroom'
                 ? 'classroom'
-                : 'home',
+                : location.hash === '#tests'
+                  ? 'classroom'
+                  : 'home',
   );
   const [settings, setSettings] = useState(readSettings),
     [runSettings, setRunSettings] = useState(settings);
@@ -169,15 +172,17 @@ export default function App() {
           ? '/#home'
           : next === 'library'
             ? '/#typing'
-            : next === 'quest'
-              ? '/#typing/quest'
-              : next === 'setup'
-                ? '/#typing/setup'
-                : `/#${next}`,
+            : next === 'guard'
+              ? '/#typing/guard'
+              : next === 'quest'
+                ? '/#typing/quest'
+                : next === 'setup'
+                  ? '/#typing/setup'
+                  : `/#${next}`,
     );
   };
   const { preferences, setPreferences, play } = useGameAudio(
-    ['game', 'quest', 'tests', 'classroom'].includes(screen) &&
+    ['game', 'quest', 'guard', 'tests', 'classroom'].includes(screen) &&
       gamePlaying &&
       !audioOpen &&
       !accountOpen &&
@@ -355,6 +360,21 @@ export default function App() {
             <Reveal key="library">
               <GameLibrary catalog={catalog} onChoose={navigate} onHome={() => navigate('home')} />
             </Reveal>
+          ) : screen === 'guard' ? (
+            <KeyboardGuard
+              key={user?.user_id || 'guest'}
+              session={user}
+              game={catalog?.find((g) => g.game_code === 'keyboard_guard')}
+              ready={bootstrapReady}
+              onBack={() => navigate('library')}
+              onGameSaved={(saved) =>
+                setCatalog((old) =>
+                  (old || []).map((g) => (g.game_id === saved.game_id ? saved : g)),
+                )
+              }
+              onPlayingChange={setGamePlaying}
+              avatarOverride={myAvatar?.userId === user?.user_id ? myAvatar?.value : null}
+            />
           ) : screen === 'quest' ? (
             <KeyboardQuest
               key={user?.user_id || 'guest'}

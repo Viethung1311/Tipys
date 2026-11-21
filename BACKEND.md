@@ -263,3 +263,19 @@ Migration `supabase/migrations/20261113080419_student_star_balance_reset.sql` ch
 - Kiểm tra: `node --test tests/star-balance-reset.test.js`, `npm run build`, `node scripts/check-star-balance.mjs` (Chrome). Kịch bản Network dùng handler API thật + SQL PGlite riêng, chặn route localhost; không gọi Supabase thật. PGlite chỉ có một kết nối, không chứng minh khóa cạnh tranh giữa nhiều kết nối PostgreSQL.
 
 Migration 20261119141302_assessment_auto_finish.sql thêm biên nhận start theo (user_id,request_id), metadata bài/lượt còn lại trong cùng response start và danh sách đã phân trang. Giữ RLS/EXECUTE chỉ service_role, tái kiểm tra quyền và deadline cả khi phát lại biên nhận. Đã kiểm thử bằng SQL PGlite riêng; áp dụng vào Supabase tipy-stem (pjzsszjcymcfyamycidx) ngày 19/11/2026, version 20261119141302.
+
+
+## Vệ binh bàn phím · phát hành 21/11/2026
+
+- Game/engine `keyboard_guard`, đường dẫn `/#typing/guard`, thứ ba trong `/#typing`.
+- Schema hiện có đủ: cấu hình v3 trong `games.config`, seed DML `db/keyboard_guard.sql`
+  với ON CONFLICT DO NOTHING; không migration, không sửa hai game cũ hoặc dữ liệu người dùng.
+- GET `guard_config` đọc đúng hàng đang mở; POST `save_game` xác minh Admin từ profile
+  hiện tại rồi validate kích thước, ba màn/ba đợt, speed/FPS/tổng/cap/khoảng sinh.
+  Anon/authenticated không có quyền UPDATE trực tiếp; giữ RLS games sẵn có.
+- Đọc cấu hình một lần lúc bắt đầu/retry; mọi animation/phím/va chạm tại máy.
+  Mở/đóng cài đặt dùng state, Lưu một POST. Lượt hiện tại giữ snapshot sâu.
+- Chưa lưu lịch sử hoặc cấp thưởng game này. `start` chặn keyboard_guard, không tạo
+  player_game_stats/active_plays hay thêm điểm/sao vào tài khoản bằng client tự gửi.
+- Rollout: seed hàng tắt, triển khai đúng commit, chờ READY, bật riêng keyboard_guard,
+  kiểm tra catalog/config/tài nguyên production. Rollback tắt riêng hàng và quay bản trước.

@@ -1,0 +1,43 @@
+.guard-settings {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+.guard-settings h2,
+.guard-settings p {
+  margin: 0;
+}
+.guard-settings label {
+  display: grid;
+  gap: 8px;
+  max-width: 480px;
+  font-weight: 800;
+}
+.guard-settings input,
+.guard-settings select {
+  width: 100%;
+}
+.guard-settings input[type='range'] {
+  min-height: 48px;
+  accent-color: var(--tipy-play);
+}
+.guard-size-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  height: 180px;
+  background: var(--tipy-surface);
+  border: 1px solid var(--tipy-border);
+  border-radius: var(--tipy-panel-radius, 24px);
+}
+.guard-size-preview img {
+  object-fit: contain;
+  max-width: 45%;
+}
+.guard-settings-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}

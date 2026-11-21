@@ -96,6 +96,52 @@ S thể hiện nút gần phẳng/viền mảnh; hover, focus và bóng nhấn k
 
 `vite.config.js` bỏ qua `graphify-out` và `test-results` khi theo dõi thay đổi development, để cập nhật HTML đồ thị/báo cáo không làm tải lại trang và mất bản đang thử. Kiểm tra trang duyệt có tạo HTML thử ở hai thư mục khi form đang có nội dung/ảnh rồi xác nhận state được giữ. Quy tắc này không đổi build production hoặc cơ chế tải/lưu backend.
 
+### Vệ binh bàn phím — bố cục và bản dev
+
+**K/W, 20/11/2026:** `/dev/keyboard-guard` dùng phác thảo và ảnh Vũ Trụ của chủ dự án,
+không phải màn Figma đã đo. Feature ở `src/features/keyboard-guard`; dùng `TipyButton`,
+`PlaySurface`, `Modal`, `AudioSettings` và `CompletionScreen` có sẵn.
+Bố cục bản thử mới: trái trống và có Thoát, giữa là chiến đấu dọc theo tọa độ
+480×800 co giãn cùng tỷ lệ, phải là điểm/avatar/tên/màn. HP và năng lượng bằng sprite
+ở góc trên bên phải trong chiến đấu: cụm rộng 30% (giảm 25% so với bản 40%),
+cách mép trong 12 px, HP trên/năng lượng dưới và thu khoảng trống ảnh bằng margin
+âm 6%. Thiên thạch sinh ngoài mép trên theo bán kính ảnh, dải vào tránh cụm trạng
+thái; vận tốc cũ giữ nguyên nên đường bay mới dài hơn. Mobile dọc chuyển thông tin thành vùng phụ
+bên dưới; mobile ngang chuyển điều khiển sang vùng phải để giữ chiều cao chiến đấu.
+Nhãn từ vựng là DOM riêng dưới đá, luôn thẳng và tương phản cao. Đã bỏ hàng phím/nút mắt; ô nhập native ở trên tàu, hỗ trợ Backspace/composition. Dùng
+visual viewport, không đổi hình học bàn phím của game khác. Nền vũ trụ, 5 máu,
+5 năng lượng, khiên một va chạm, loạt ba viên và nổ bốn ảnh thuộc feature này;
+không cấp sao tài khoản. Chế độ ít chuyển động giữ nền tĩnh; reduced motion bỏ nhấp nháy trang trí.
+Cấu hình, giới hạn đối tượng và ảnh nguồn tại `src/features/keyboard-guard/README.md`.
+Avatar/tên local là minh họa cấu hình, không phải tài khoản đã xác minh. Bộ ảnh mới
+20/11/2026 được ánh xạ rõ trong `src/features/keyboard-guard/art.js`: HP/năng lượng
+768×320 giữ khung cố định/pixelated; nền `space_01..04` dịch tuần hoàn, không cộng
+hai lần tốc độ; tàu `flight_01..06` neo thân chung và chạy 11 fps bằng game clock.
+Khiên phủ vòng ngoài, không thay tàu bay bằng ảnh tàu tĩnh. Khi trình duyệt báo
+reduced motion, màn giới thiệu giải thích và có hai lựa chọn rõ: Chơi có hiệu ứng bay
+(chủ động bật nền/tàu) hoặc Chơi ít chuyển động (nền/tàu tĩnh). Tạm dừng cho bật/tắt
+bay mà không dựng lại engine; nhấp nháy/quay trang trí vẫn theo reduced motion.
+Nền mặc định 50 đơn vị thiết kế/giây, tàu 11 fps. Nút Chơi chờ ảnh tải và giải mã xong. Bản dev không ghi backend; bản online và cấu hình dùng chung được mô tả ở mục phát hành bên dưới.
+
+Bản local 21/11/2026 dùng 23 từ ngắn có dấu từ `keyboard-quest/content.js` qua
+`keyboard-guard/words.js`, không đổi thư viện hoặc điều kiện mở khóa. Khóa mục tiêu
+theo phần đầu từ/gần tàu, chỉ bắn khi hoàn chỉnh đúng dấu; nháp IME không bắn.
+Tàu/đá mặc định 80%, chữ độc lập, nhịp sinh giãn để tránh chồng nhãn. Công cụ trong Admin → Tốc độ & độ khó chỉ mount cho Admin; bản online lưu cấu hình chung tại backend, bản dev riêng dùng localStorage theo origin. Bánh răng trong lượt chơi chỉ hiện khi bootstrap xác minh Admin,
+mở bảng sẽ tạm dừng. Màn 1/2/3 có tốc độ cơ sở 0,5×–2×; mỗi màn có 3 đợt, mỗi đợt có hệ số tốc độ,
+tổng mục tiêu, giới hạn đồng thời, khoảng sinh và FPS riêng. Mặc định đợt 1/2/3:
+1×/1,25×/1,6×, mỗi đợt 5 mục tiêu, tối đa 3, khoảng 4,5 giây, 11 FPS.
+Hoạt ảnh theo đợt thật: flight → boost → boost_vfx; bộ cuối đã gồm cả tàu.
+Đợt nghỉ giữ bộ cũ, đầu đợt mới chuyển tốc smoothstep 0,5 giây. Tốc độ hiệu dụng
+là tốc độ màn × hệ số đợt, dùng chung cho thiên thạch/nền/sao phụ; không nhân nhịp
+sprite, số lượng hay khoảng sinh. Nền cơ sở mặc định 50 px/giây, cuộn liên tục.
+Hurt 3 khung/0,3 giây chỉ khi HP giảm, ưu tiên tạm thời rồi về bộ của đợt hiện tại.
+Khiên không chạy hurt; điểm neo riêng từng bộ giữ thân/mũi/đầu súng, collider không
+đổi theo lửa/hào quang. Cả 45 ảnh được giải mã trước Chơi, pause đóng băng đồng hồ.
+Lưu/khôi phục theo màn được chọn (cả 3 đợt); kích thước dùng chung; lượt mới chụp
+cấu hình. Schema local v3 nâng v1/v2 trong bộ nhớ; tổng cũ dưới 3 nâng lên 3 để mỗi
+đợt có mục tiêu. Chi tiết quyền, giới hạn và tình trạng thiếu API đăng nhập local
+ở README feature. Đây là bản thử theo tài nguyên/chỉ dẫn chủ dự án, không số đo Figma mới.
+
 ## 4. Chữ và biểu tượng
 
 ### Font — giữ nguyên website
@@ -258,3 +304,14 @@ Chủ dự án đã cho phép áp dụng code và triển khai trong yêu cầu 
 - Thử Default/Pressed/Selected/Open/Closed/Loading/Disabled/Error/Empty/Success theo component; X/Esc/ngoài menu, Tab/Enter/Space/mũi tên và trả focus. Đổi bố cục không gọi API hoặc bắt đầu lại lượt.
 - Khi code đổi chạy `npm run build`, `npm test` và kiểm tra luồng liên quan: `scripts/check-classroom-hub.mjs`, `scripts/check-play-surface.mjs`, `scripts/check-assessment-autosave.mjs`. Script bố cục trước hub/auto-finish không thay nghiệm thu hiện tại. Dùng database/tài khoản thử, không gửi đề/tặng/reset/xóa dữ liệu thật.
 - Tài liệu thuần túy: Prettier hai file, `git diff --check`, kiểm tra đường dẫn/node ID/hex/số liệu/mâu thuẫn. Không bắt buộc build/test gameplay khi runtime không đổi; báo rõ không có kiểm thử giao diện mới.
+
+
+### Vệ binh bàn phím · tích hợp phát hành 21/11/2026
+
+`/#typing/guard` là game thứ ba ở `/#typing`; thẻ dùng cùng GameLibrary/TipyButton,
+ảnh tàu + thiên thạch từ `public/guard-art`, giữ tỉ lệ bằng object-fit/SVG viewBox.
+Cấu hình online dùng `games.config`, Admin chỉnh ở bảng quản trị hoặc bánh răng
+trong game; cùng form/validation ba màn, ba đợt. Mỗi lượt GET cấu hình mới và giữ
+snapshot. Bản `/dev/keyboard-guard` vẫn độc lập/localOnly cho phát triển.
+Tên/điểm/sao kết quả online là của lượt chơi, chưa cộng tài khoản hoặc xếp hạng.
+Các thông số sprite, nền, hurt và bố cục dọc đã duyệt ở phần trên được giữ.

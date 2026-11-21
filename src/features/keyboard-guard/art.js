@@ -1,0 +1,60 @@
+// Originals copied byte-for-byte from the user's Vũ Trụ folder, 20/11/2026.
+// No suffixed alternatives were present when this mapping was verified.
+export const ART = {
+  ship: { src: '/guard-art/ship.png', crop: [404, 108, 728, 776] },
+  shield: { src: '/guard-art/shield.png', crop: [408, 148, 712, 720] },
+  bolt: { src: '/guard-art/bolt.png', crop: [484, 176, 280, 892] },
+  meteor: { src: '/guard-art/meteor.png', crop: [528, 280, 484, 460] },
+  hp0: { src: '/guard-art/hp_0.png' },
+  hp1: { src: '/guard-art/hp_1.png' },
+  hp2: { src: '/guard-art/hp_2.png' },
+  hp3: { src: '/guard-art/hp_3.png' },
+  hp4: { src: '/guard-art/hp_4.png' },
+  hp5: { src: '/guard-art/hp_5.png' },
+  energy0: { src: '/guard-art/energy_0.png' },
+  energy1: { src: '/guard-art/energy_1.png' },
+  energy2: { src: '/guard-art/energy_2.png' },
+  energy3: { src: '/guard-art/energy_3.png' },
+  energy4: { src: '/guard-art/energy_4.png' },
+  energy5: { src: '/guard-art/energy_5.png' },
+  space0: { src: '/guard-art/space_01.png' },
+  space1: { src: '/guard-art/space_02.png' },
+  space2: { src: '/guard-art/space_03.png' },
+  space3: { src: '/guard-art/space_04.png' },
+  flight0: { src: '/guard-art/flight_01.png' },
+  flight1: { src: '/guard-art/flight_02.png' },
+  flight2: { src: '/guard-art/flight_03.png' },
+  flight3: { src: '/guard-art/flight_04.png' },
+  flight4: { src: '/guard-art/flight_05.png' },
+  flight5: { src: '/guard-art/flight_06.png' },
+  boost0: { src: '/guard-art/boost_01.png' },
+  boost1: { src: '/guard-art/boost_02.png' },
+  boost2: { src: '/guard-art/boost_03.png' },
+  boost3: { src: '/guard-art/boost_04.png' },
+  boost4: { src: '/guard-art/boost_05.png' },
+  boost5: { src: '/guard-art/boost_06.png' },
+  boostVfx0: { src: '/guard-art/boost_vfx_01.png' },
+  boostVfx1: { src: '/guard-art/boost_vfx_02.png' },
+  boostVfx2: { src: '/guard-art/boost_vfx_03.png' },
+  boostVfx3: { src: '/guard-art/boost_vfx_04.png' },
+  boostVfx4: { src: '/guard-art/boost_vfx_05.png' },
+  boostVfx5: { src: '/guard-art/boost_vfx_06.png' },
+  hurt0: { src: '/guard-art/hurt_01.png' },
+  hurt1: { src: '/guard-art/hurt_02.png' },
+  hurt2: { src: '/guard-art/hurt_03.png' },
+  explosion0: { src: '/guard-art/explosion_01.png' },
+  explosion1: { src: '/guard-art/explosion_02.png' },
+  explosion2: { src: '/guard-art/explosion_03.png' },
+  explosion3: { src: '/guard-art/explosion_04.png' },
+};
+
+// Common body anchor, not the changing alpha bounds of the engine flame.
+export const FLIGHT_BODY = { x: 256, y: 176, length: 318, noseY: 17, canvasSize: 512 };
+
+// Nose and cockpit measured in the supplied 512px canvases, excluding flame/halo.
+export const SHIP_ANCHORS = {
+  flight: FLIGHT_BODY,
+  boost: { x: 256, y: 165, length: 288, noseY: 21, canvasSize: 512 },
+  boostVfx: { x: 256, y: 165, length: 288, noseY: 21, canvasSize: 512 },
+  hurt: { x: 256, y: 218, length: 336, noseY: 50, canvasSize: 512 },
+};
