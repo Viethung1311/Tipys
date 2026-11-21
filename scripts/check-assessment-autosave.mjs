@@ -18,7 +18,7 @@ writeFileSync(
 );
 writeFileSync(
   dir + '/entry.jsx',
-  `import React from 'react';import {createRoot} from 'react-dom/client';import Page from '../../src/features/assessments/AssessmentsPage.jsx';import {setApiIdentity} from '../../src/game/backend.js';import '../../src/index.css';import '../../src/styles/tipy-ui.css';import '../../src/styles/loading.css';import '../../src/features/keyboard-quest/quest.css';const noop=()=>{};setApiIdentity(window.fixtureUser);createRoot(document.getElementById('root')).render(<React.StrictMode><Page user={window.fixtureUser} sound={noop} onPlayingChange={noop}/></React.StrictMode>);`,
+  `import React from 'react';import {createRoot} from 'react-dom/client';import Page from '../../src/features/assessments/AssessmentsPage.jsx';import {setApiIdentity} from '../../src/game/backend.js';import '../../src/index.css';import '../../src/styles/responsive.css';import '../../src/styles/tipy-ui.css';import '../../src/styles/loading.css';import '../../src/features/keyboard-quest/quest.css';const noop=()=>{};setApiIdentity(window.fixtureUser);createRoot(document.getElementById('root')).render(<React.StrictMode><Page user={window.fixtureUser} sound={noop} onPlayingChange={noop}/></React.StrictMode>);`,
 );
 const server = spawn(
   process.execPath,

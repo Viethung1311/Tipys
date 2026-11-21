@@ -247,9 +247,9 @@ export function guardTick(s, seconds) {
     s.time >= s.spawnAt &&
     s.targets.every((t) => t.y > c.spawn.minGap - s.meteorRadius - 90)
   ) {
-    const available = s.words.filter(
-      (item) => !s.targets.some((t) => guardText(t.key) === guardText(item.word)),
-    );
+    const available = (
+      c.contentQueue ? s.words.slice(s.spawnedTotal, s.spawnedTotal + 1) : s.words
+    ).filter((item) => !s.targets.some((t) => guardText(t.key) === guardText(item.word)));
     if (available.length) {
       const radius = s.meteorRadius;
       const padding = radius + c.spawn.edgePadding;
@@ -265,6 +265,8 @@ export function guardTick(s, seconds) {
       s.targets.push({
         id: s.nextId++,
         key: word.word,
+        label: word.label,
+        contentId: word.id,
         topic: word.topicTitle,
         x,
         y,

@@ -74,13 +74,13 @@ export function renderGuard(
     draw('meteor', t.x, t.y, c.meteorSize, reduced ? 0 : t.rotation);
     const label = labels.children[i];
     label.hidden = false;
-    label.textContent = t.key;
+    label.textContent = t.label || t.key;
     const inset = Math.min(58, Math.max(0, (w - 16) / 2));
     label.style.left = `${Math.max(inset, Math.min(w - inset, ox + t.x * scale))}px`;
     label.style.top = `${oy + (t.y + c.meteorSize * 0.8) * scale}px`;
     label.style.fontSize = `${Math.max(18, 26 * scale)}px`;
     label.dataset.active = String(s.inputTargetId === t.id);
-    label.setAttribute('aria-label', `${t.key} · ${t.topic || 'Từ vựng'}`);
+    label.setAttribute('aria-label', `${t.label || t.key} · ${t.topic || 'Từ vựng'}`);
     label.dataset.state = t.state;
     label.dataset.targetId = String(t.id);
   });

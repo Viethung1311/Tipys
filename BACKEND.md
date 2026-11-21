@@ -279,3 +279,14 @@ Migration 20261119141302_assessment_auto_finish.sql thêm biên nhận start the
   player_game_stats/active_plays hay thêm điểm/sao vào tài khoản bằng client tự gửi.
 - Rollout: seed hàng tắt, triển khai đúng commit, chờ READY, bật riêng keyboard_guard,
   kiểm tra catalog/config/tài nguyên production. Rollback tắt riêng hàng và quay bản trước.
+### Bài kiểm tra Vệ binh bàn phím (21/11/2026)
+
+- Dùng chung assessment API, RLS, người nhận, lịch, biên nhận start/submit, snapshot từng lượt và kết quả tốt nhất. Không tạo bảng từ vựng, tài khoản, lịch sử riêng hoặc thưởng sao.
+- `selection.guard.ids` tham chiếu TEST_CONTENT. Backend tạo snapshot nội dung thật và cấu hình từ `games.config` tại lúc lưu; bài đã gửi giữ quy tắc bất biến. Học sinh không cần mở khóa chủ đề tự do để làm nội dung được giao.
+- Cấu hình riêng: 1–3 đợt, tối đa 100 mục tiêu/bài, tốc độ 50–300%/đợt, tuần tự/ngẫu nhiên, cho lặp/không lặp, điểm đạt và hoàn thành tốt. Không lặp tính số từ khác nhau, không tính trùng ID cùng chữ. Space ánh xạ thành dấu cách khi chơi.
+- Adapter chạy cùng engine với bước 1/60 giây và seed theo attempt_id. Bằng chứng là tick và thay đổi chuỗi nhập (gồm composition/IME). Backend tái dựng lượt, tính điểm/độ chính xác/số phá và điều kiện kết thúc; bỏ số tổng do browser khai. Giới hạn 12000 sự kiện, 864000 tick (tối đa 4 giờ, đủ cho 100 mục tiêu ở tốc độ thấp), giữ giới hạn HTTP hiện có.
+- Trong lượt chỉ giữ bản thiết bị theo tài khoản/bài/lượt. Bài luôn mở không ghi giữa lượt; bài có lịch giữ lô bằng chứng 30 giây đang có để server chốt hết hạn. Kết thúc tự submit một yêu cầu; mất phản hồi thử lại cùng requestId. Xem thử người tạo không gọi start/submit hoặc lưu kết quả.
+- `db/guard_assessments.sql` mở giới hạn 3 phần và bổ sung game_titles trong cùng truy vấn danh sách, trạng thái kết quả guard/timeout. Không cập nhật/xóa kết quả cũ. EXECUTE vẫn chỉ service_role; phạm vi lớp hiện tại giữ nguyên.
+- Kiểm thử: `node --test tests/guard-assessments.test.js`, `node scripts/check-guard-assessments.mjs` (SQL thử cô lập), hồi quy `node scripts/check-assessment-autosave.mjs`.
+
+Migration áp dụng tại Supabase tipy-stem (pjzsszjcymcfyamycidx): `20261121115350_guard_assessments.sql`. Không thêm bảng, không thay đổi dữ liệu học sinh hoặc sao.

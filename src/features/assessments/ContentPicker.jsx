@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { TEST_CONTENT, TEST_WORLDS, contentMatches } from './content.js';
 export default function ContentPicker({ selected, onChange, disabled }) {
   const [search, setSearch] = useState('');
-  const filtered = TEST_CONTENT.filter((item) => contentMatches(item, search)),
+  const [topic, setTopic] = useState('all');
+  const filtered = TEST_CONTENT.filter(
+      (item) => contentMatches(item, search) && (topic === 'all' || String(item.world) === topic),
+    ),
     chosen = new Set(selected);
   const change = (items, active) => {
     const next = new Set(selected);
@@ -13,12 +16,48 @@ export default function ContentPicker({ selected, onChange, disabled }) {
     <section className="assessment-picker" aria-label="Kho nội dung">
       <h3>Kho nội dung</h3>
       <label>
+        Chủ đề
+        <select value={topic} disabled={disabled} onChange={(e) => setTopic(e.target.value)}>
+          <option value="all">Tất cả chủ đề</option>
+          {TEST_WORLDS.map((w) => (
+            <option value={w.id} key={w.id}>
+              {w.title}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
         Tìm ký tự, từ, câu hoặc bài
         <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
       </label>
       <p role="status">
         Đã chọn {selected.length} mục · {filtered.length} kết quả đang lọc (gồm cả màn thu gọn).
       </p>
+      {selected.length > 0 && (
+        <details>
+          <summary>Danh sách đã chọn ({selected.length})</summary>
+          <ol>
+            {selected.map((id) => {
+              const item = TEST_CONTENT.find((i) => i.id === id);
+              return (
+                item && (
+                  <li key={id}>
+                    {item.target === 'Space' ? 'Phím cách' : item.target} · {item.lessonTitle}{' '}
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      aria-label={`Bỏ chọn ${item.target} · ${item.lessonTitle}`}
+                      onClick={() => change([item], false)}
+                    >
+                      Bỏ chọn
+                    </button>
+                  </li>
+                )
+              );
+            })}
+          </ol>
+        </details>
+      )}
       <button
         type="button"
         disabled={disabled || !filtered.length}

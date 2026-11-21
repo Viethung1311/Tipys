@@ -22,7 +22,7 @@ export function Scores({ results = [] }) {
     ? results.map((r) => (
         <div key={r.id}>
           {r.title}:{' '}
-          {r.type === 'falling'
+          {['falling', 'guard'].includes(r.type)
             ? `${r.score} điểm`
             : `${r.correct}/${r.total} mục · ${r.accuracy}%`}
         </div>
@@ -31,11 +31,15 @@ export function Scores({ results = [] }) {
 }
 export function Outcome({ results = [] }) {
   return results
-    .filter((r) => r.type === 'falling' && r.targetScore != null)
+    .filter((r) => ['falling', 'guard'].includes(r.type) && r.targetScore != null)
     .map((r) => (
       <div key={r.id}>
-        {r.outcome === 'good' ? 'Hoàn thành tốt' : 'Cần luyện thêm'} · {r.score}/{r.targetScore}{' '}
-        điểm
+        {r.outcome === 'good'
+          ? 'Hoàn thành tốt'
+          : r.outcome === 'completed'
+            ? 'Hoàn thành'
+            : 'Cần luyện thêm'}{' '}
+        · {r.score}/{r.targetScore} điểm
       </div>
     ));
 }

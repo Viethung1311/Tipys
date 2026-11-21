@@ -8,9 +8,18 @@ export function assessmentSucceeded(attempt) {
     attempt?.submitted_at &&
       attempt.results?.length &&
       attempt.results.every((result) =>
-        result.type === 'falling' && result.targetScore != null
+        ['falling', 'guard'].includes(result.type) && result.targetScore != null
           ? result.outcome === 'good'
           : result.completed,
+      ),
+  );
+}
+export function assessmentCompleted(attempt) {
+  return Boolean(
+    attempt?.submitted_at &&
+      attempt.results?.length &&
+      attempt.results.every((r) =>
+        r.type === 'falling' && r.targetScore != null ? r.outcome === 'good' : r.completed,
       ),
   );
 }

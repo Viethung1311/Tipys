@@ -1,5 +1,10 @@
 import ValidatedForm from '../../components/ValidatedForm.jsx';
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import GuardAssessmentEditor from './GuardAssessmentEditor.jsx';
+import { guardAssessmentError } from '../keyboard-guard/assessment.js';
+import { TEST_CONTENT } from './content.js';
+import { enterPlayFullscreen } from '../../components/PlaySurface.jsx';
+const GuardAssessmentPreview = lazy(() => import('./GuardAssessmentPreview.jsx'));
 import { Plus, Eye, Send, ArrowLeft, Copy, ChartColumn, Save, Trash2 } from 'lucide-react';
 import { api } from '../../game/backend.js';
 import TipyButton from '../../components/TipyButton.jsx';
@@ -125,6 +130,8 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
     [notice, setNotice] = useState('');
   const pending = useRef(null),
     sending = useRef(false);
+  const [playingPreview, setPlayingPreview] = useState(null);
+  const [guardLoading, setGuardLoading] = useState(false);
   useEffect(() => {
     let live = true;
     setList(null);
@@ -161,6 +168,7 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
   };
   const field = (key, value) => setDraft((old) => ({ ...old, [key]: value }));
   const back = () => {
+    setGuardLoading(false);
     setDraft(null);
     setPreview(null);
     setResultExam(null);
@@ -169,6 +177,17 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
     setRevision((n) => n + 1);
   };
   const save = () => {
+    if (guardLoading) return;
+    if (draft.selection.guard) {
+      const error = guardAssessmentError(
+        draft.selection.guard,
+        TEST_CONTENT.filter((i) => draft.selection.guard.ids.includes(i.id)),
+      );
+      if (error) {
+        setError(error);
+        return;
+      }
+    }
     if (draft.selection.falling && !draft.selection.falling.keys.length) {
       setError('Chọn ít nhất một phím cho Chữ rơi.');
       return;
@@ -231,12 +250,28 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
         </p>
       )}
       {notice && <p role="status">{notice}</p>}
+      {playingPreview && (
+        <Suspense fallback={<Loading label="Đang mở xem thử…" />}>
+          <GuardAssessmentPreview section={playingPreview} onBack={() => setPlayingPreview(null)} />
+        </Suspense>
+      )}
       {resultExam ? (
         <TeacherResults exam={resultExam} classes={classes} classId={classId} onBack={back} />
       ) : preview ? (
         <>
           <AssessmentSummary definition={preview.definition}>
             <div className="assessment-actions">
+              {preview.definition.sections.some((s) => s.type === 'guard') && (
+                <TipyButton
+                  variant="play"
+                  onClick={() => {
+                    enterPlayFullscreen();
+                    setPlayingPreview(preview.definition.sections.find((s) => s.type === 'guard'));
+                  }}
+                >
+                  Chơi xem thử Vệ binh
+                </TipyButton>
+              )}
               <TipyButton
                 variant="back"
                 icon={ArrowLeft}
@@ -447,6 +482,14 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
           <Recipients draft={draft} setDraft={setDraft} classes={classes} busy={busy} />
           <fieldset disabled={busy}>
             <legend>Các phần chơi</legend>
+            <GuardAssessmentEditor
+              onPending={setGuardLoading}
+              value={draft.selection.guard}
+              disabled={busy}
+              onChange={(guard) =>
+                setDraft((old) => ({ ...old, selection: { ...old.selection, guard } }))
+              }
+            />
             <label className="assessment-check">
               <input
                 type="checkbox"
@@ -559,7 +602,13 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
             >
               Danh sách
             </TipyButton>
-            <TipyButton type="submit" icon={Eye} loading={busy} loadingLabel="Đang lưu nháp…">
+            <TipyButton
+              type="submit"
+              icon={Eye}
+              loading={busy}
+              disabled={guardLoading}
+              loadingLabel="Đang lưu nháp…"
+            >
               Xem trước
             </TipyButton>
           </div>
@@ -572,6 +621,7 @@ export default function AdminAssessments({ classes = [], classId, cache, ownerId
           {list.items.map((exam) => (
             <article className="panel assessment-list-item" key={exam.assessment_id}>
               <h3>{exam.title}</h3>
+              {exam.game_titles?.length > 0 && <p>{exam.game_titles.join(' · ')}</p>}
               <p>
                 {exam.status === 'draft'
                   ? 'Bản nháp'

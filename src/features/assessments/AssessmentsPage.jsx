@@ -1,7 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Play, RotateCcw, Pause } from 'lucide-react';
 import PlaySurface, { enterPlayFullscreen } from '../../components/PlaySurface.jsx';
-import CompletionScreen, { assessmentSucceeded } from '../../components/CompletionScreen.jsx';
+import CompletionScreen, {
+  assessmentSucceeded,
+  assessmentCompleted,
+} from '../../components/CompletionScreen.jsx';
+import { ART as GUARD_ART } from '../keyboard-guard/art.js';
 import { api } from '../../game/backend.js';
 import TipyButton from '../../components/TipyButton.jsx';
 import Modal from '../../components/Modal.jsx';
@@ -16,6 +20,7 @@ import './assessments.css';
 const AdminAssessments = lazy(() => import('./AdminAssessments.jsx'));
 const LessonPlayer = lazy(() => import('../keyboard-quest/LessonPlayer.jsx'));
 const FallingGame = lazy(() => import('../typing/TypingGame.jsx'));
+const KeyboardGuard = lazy(() => import('../keyboard-guard/KeyboardGuard.jsx'));
 const noop = () => {};
 const statusLabel = { not_started: 'Chưa làm', in_progress: 'Đang làm', submitted: 'Đã nộp' };
 function Pages({ data, onPage }) {
@@ -375,18 +380,27 @@ export default function AssessmentsPage({
           />
         ) : immersive && detail?.attempt?.submitted_at ? (
           <CompletionScreen
+            title={
+              !assessmentSucceeded(detail.attempt) && assessmentCompleted(detail.attempt)
+                ? 'Hoàn thành'
+                : undefined
+            }
             good={assessmentSucceeded(detail.attempt)}
             celebrate={celebrate}
             background={
-              adventureWorld(
-                detail.assessment.definition.sections.find((s) => s.type === 'quest')?.items?.[0]
-                  ?.world || 3,
-              ).background.src
+              detail.assessment.definition.sections.every((s) => s.type === 'guard')
+                ? GUARD_ART.space0.src
+                : adventureWorld(
+                    detail.assessment.definition.sections.find((s) => s.type === 'quest')
+                      ?.items?.[0]?.world || 3,
+                  ).background.src
             }
             busy={busy}
             onBack={back}
             scores={detail.attempt.results.map((r) => [
-              r.type === 'falling' ? r.score + ' điểm' : (r.score ?? r.accuracy) + '/100 điểm',
+              ['falling', 'guard'].includes(r.type)
+                ? r.score + ' điểm'
+                : (r.score ?? r.accuracy) + '/100 điểm',
               r.title,
             ])}
             onRetry={canRetry ? () => startAttempt() : undefined}
@@ -453,6 +467,7 @@ export default function AssessmentsPage({
             {list.items.map((exam) => (
               <article className="panel assessment-list-item" key={exam.assessment_id}>
                 <h2>{exam.title}</h2>
+                {exam.game_titles?.length > 0 && <p>{exam.game_titles.join(' · ')}</p>}
                 <p>{exam.description}</p>
                 <p>Người giao: {exam.teacher}</p>
                 <strong>{statusLabel[exam.attempt_status]}</strong>
@@ -614,6 +629,13 @@ function AssessmentRunner({
   );
   const adapter = useMemo(() => {
     if (!part) return null;
+    if (part.type === 'guard')
+      return {
+        section: part,
+        attemptId: attempt.attempt_id,
+        initial: initial.ticks !== undefined ? initial : undefined,
+        onChange: (value) => savePart(part.id, value),
+      };
     if (part.type === 'quest') {
       const answers = initial.answers || createAnswers(lesson);
       const update = (rows, seconds) =>
@@ -733,6 +755,15 @@ function AssessmentRunner({
                   />
                 </div>
               </div>
+            ) : part.type === 'guard' ? (
+              <KeyboardGuard
+                key={part.id}
+                assessment={adapter}
+                session={user}
+                externalPaused={blocked || ending || paused || exiting}
+                onBack={onExit}
+                onPlayingChange={onPlayingChange}
+              />
             ) : (
               <FallingGame
                 key={part.id}

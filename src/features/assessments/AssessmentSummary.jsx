@@ -2,8 +2,7 @@ import { LEVELS } from '../../game/config.js';
 import { dateVN, duration } from './format.js';
 export default function AssessmentSummary({ definition, student = false, children }) {
   const total = definition.sections.reduce(
-    (n, section) =>
-      n + (section.type === 'quest' ? section.items.length : section.settings.keys.length),
+    (n, section) => n + (section.items ? section.items.length : section.settings.keys.length),
     0,
   );
   return (
@@ -59,7 +58,31 @@ export default function AssessmentSummary({ definition, student = false, childre
             <h3>
               Phần {index + 1} · {section.title}
             </h3>
-            {section.type === 'falling' ? (
+            {section.type === 'guard' ? (
+              <>
+                <p>
+                  {section.items.length} nội dung · {section.config.totalTargets} thiên thạch ·{' '}
+                  {section.config.waves} đợt
+                </p>
+                <p>
+                  {section.order === 'random' ? 'Ngẫu nhiên' : 'Tuần tự'} ·{' '}
+                  {section.repeat ? 'Cho phép lặp' : 'Không lặp'}
+                </p>
+                <p>
+                  Điểm đạt: {section.passScore} · Hoàn thành tốt: {section.goodScore}
+                </p>
+                <details>
+                  <summary>Nội dung đã chọn</summary>
+                  <ol>
+                    {section.items.map((i) => (
+                      <li key={i.id}>
+                        {i.target === 'Space' ? 'Phím cách' : i.target} · {i.lessonTitle}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              </>
+            ) : section.type === 'falling' ? (
               <>
                 <p>
                   <b>Độ khó:</b> {LEVELS[section.settings.difficulty].name} ·{' '}
@@ -119,7 +142,11 @@ export function SectionResults({ results = [] }) {
           <p>
             {result.correct} đúng · {result.wrong} sai · {result.accuracy}% chính xác
           </p>
-          {result.type === 'falling' ? (
+          {result.type === 'guard' ? (
+            <p>
+              {result.score} điểm · {result.destroyed || 0}/{result.total} thiên thạch đã phá
+            </p>
+          ) : result.type === 'falling' ? (
             <p>
               {result.score} điểm · {result.missed} chữ bỏ lỡ
             </p>

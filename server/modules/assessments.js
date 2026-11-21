@@ -4,6 +4,13 @@ import { validateLevels, validateProgress } from './game-validation.js';
 import { TEST_CONTENT } from '../../src/features/assessments/content.js';
 import { SUPPORTED_KEYS, LEVELS } from '../../src/game/config.js';
 import { matchesTarget } from '../../src/features/keyboard-quest/engine.js';
+import { defaultGuardSettings } from '../../src/features/keyboard-guard/settings.js';
+import {
+  guardAssessmentSection,
+  replayGuardAssessment,
+  guardEvidence,
+  guardAssessmentResult,
+} from '../../src/features/keyboard-guard/assessment.js';
 const invalid = () => {
   throw new ApiError(400, 'Nội dung hoặc kết quả bài kiểm tra chưa hợp lệ.');
 };
@@ -12,7 +19,7 @@ const distinct = (values, max) => {
     invalid();
   return values;
 };
-export function assessmentSnapshot(input, levels = LEVELS) {
+export function assessmentSnapshot(input, levels = LEVELS, guardSettings = defaultGuardSettings()) {
   const schedule = input.schedule || { mode: 'always' };
   const repeats = input.repeats || { mode: 'none' };
   if (
@@ -73,12 +80,24 @@ export function assessmentSnapshot(input, levels = LEVELS) {
     if (items.some((i) => !i)) invalid();
     sections.push({ id: 'quest', type: 'quest', title: 'Gõ và viết chữ', items });
   }
+  let guard = null;
+  if (selection.guard) {
+    const ids = distinct(selection.guard.ids, TEST_CONTENT.length);
+    const items = ids.map((id) => TEST_CONTENT.find((item) => item.id === id));
+    if (items.some((item) => !item)) invalid();
+    try {
+      sections.push(guardAssessmentSection(selection.guard, items, guardSettings));
+    } catch (error) {
+      throw new ApiError(400, error.message);
+    }
+    guard = { ...selection.guard, ids };
+  }
   return {
     title: text(input.title, 100, 'Tên bài'),
     description: text(input.description, 1000, 'Giới thiệu', false),
     instructions: text(input.instructions, 2000, 'Cách chơi', false),
     targets: { classIds, userIds },
-    selection: { questIds, falling: selection.falling || null },
+    selection: { questIds, falling: selection.falling || null, ...(guard && { guard }) },
     sections,
     schedule:
       schedule.mode === 'always'
@@ -120,9 +139,17 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
         wrong: 0,
         accuracy: 0,
         completed: false,
-        ...(section.type === 'quest'
-          ? { answered: 0, total: section.items.length }
-          : { score: 0, missed: 0 }),
+        ...(section.type === 'guard'
+          ? {
+              score: 0,
+              destroyed: 0,
+              total: section.config.totalTargets,
+              targetScore: section.goodScore,
+              outcome: 'practice',
+            }
+          : section.type === 'quest'
+            ? { answered: 0, total: section.items.length }
+            : { score: 0, missed: 0 }),
       });
       continue;
     }
@@ -188,7 +215,28 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
         total: section.items.length,
         completed: correct === section.items.length,
       });
-    } else {
+    } else if (section.type === 'guard') {
+      if (!Array.isArray(value.inputs)) invalid();
+      if (
+        old &&
+        (value.ticks < old.ticks ||
+          value.inputs?.length < old.inputs.length ||
+          old.inputs.some(
+            (event, index) => JSON.stringify(event) !== JSON.stringify(value.inputs[index]),
+          ))
+      )
+        invalid();
+      let run;
+      try {
+        run = replayGuardAssessment(section, attempt.attempt_id, value);
+      } catch {
+        invalid();
+      }
+      const evidence = guardEvidence(run);
+      if (evidence.seconds !== value.seconds || (old?.done && !evidence.done)) invalid();
+      output[section.id] = evidence;
+      results.push(guardAssessmentResult(section, run));
+    } else if (section.type === 'falling') {
       const state = value.state;
       if (!state || !['countdown', 'playing', 'paused', 'result'].includes(state.status)) invalid();
       const { correct, wrong, missed } = state;
@@ -297,7 +345,7 @@ export function assessmentResult(definition, payload, attempt, now = Date.now())
         accuracy: correct + wrong ? Math.round((10000 * correct) / (correct + wrong)) / 100 : 0,
         completed: state.status === 'result',
       });
-    }
+    } else invalid();
   }
   if (
     seconds > 86400 ||
@@ -382,6 +430,16 @@ export function createAssessments(db) {
       if (!Number.isInteger(input.version) || input.version < 0) invalid();
       assessmentSnapshot(input, LEVELS); // Reject malformed drafts before reading game configuration.
       let levels = LEVELS;
+      let guardSettings = defaultGuardSettings();
+      if (input.selection?.guard) {
+        const game = await db
+          .from('games')
+          .select('config')
+          .eq('game_code', 'keyboard_guard')
+          .single();
+        if (game.error) throw new ApiError(400, 'Chưa mở được cấu hình Vệ binh bàn phím.');
+        guardSettings = game.data.config;
+      }
       if (input.selection?.falling) {
         const game = await db
           .from('games')
@@ -395,7 +453,7 @@ export function createAssessments(db) {
         assessmentId: input.assessmentId,
         requestId: input.requestId,
         version: input.version,
-        definition: assessmentSnapshot(input, levels),
+        definition: assessmentSnapshot(input, levels, guardSettings),
       });
     },
     async assessmentPublish(profile, input) {

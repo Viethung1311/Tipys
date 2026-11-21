@@ -165,3 +165,10 @@ Student. Chưa kiểm tra bộ gõ thật/điện thoại thật/Safari hoặc �
 Kiểm tra ba bộ sprite, hurt từng đợt, khiên, tốc độ/gear/cấu hình: `node scripts/check-guard-waves.mjs` (hoặc `check-guard-settings.mjs`) (API role fixture, không tài khoản thật).
 
 Kiểm tra phát hành/catalog/cấu hình online hai thiết bị: `node scripts/check-guard-release.mjs`.
+## Bài kiểm tra
+
+Trong Lớp học → Kiểm tra → Tạo mới, chọn **Thêm Vệ binh bàn phím**, chọn mã nội dung trong ContentPicker chung và cấu hình 1–3 đợt. Bài đã gửi bất biến theo cơ chế hiện có; Chỉnh sửa nháp giữ đúng ID, bài đã gửi dùng Tạo bản mới. Chơi xem thử không tạo lượt hoặc kết quả.
+
+`assessment.js` tạo snapshot/cấu hình bài, seed theo mã lượt và bằng chứng delta nhập + tick cố định. Backend `assessmentResult` tái dựng bằng cùng engine, không tin điểm/HP/tổng phá do browser gửi. `AssessmentsPage` dùng session chung để giữ bản thiết bị, tự lưu kết thúc và retry cùng requestId; lịch 30 giây bằng chứng chỉ dành cho bài có giờ đóng. Không gọi API mỗi phím, không thưởng sao luyện tập và không đụng quy tắc mở khóa thư viện tự do.
+
+Migration `20261121115350_guard_assessments.sql` dùng bảng assessment hiện có, mở ba phần và nhãn game trong danh sách. Kiểm thử bằng `node scripts/check-guard-assessments.mjs` (database cô lập).

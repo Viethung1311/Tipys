@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Pause, Volume2, Settings } from 'lucide-react';
 import PlaySurface, { enterPlayFullscreen } from '../../components/PlaySurface.jsx';
 import GuardWordInput from './GuardWordInput.jsx';
@@ -16,6 +16,13 @@ import Avatar from '../classroom/Avatar.jsx';
 import { GUARD_LEVEL } from './level.js';
 import { createGuard, guardInput, guardTick, guardResult } from './engine.js';
 import { ART, renderGuard } from './render.js';
+import {
+  GUARD_STEP,
+  replayGuardAssessment,
+  guardAssessmentInput,
+  guardAssessmentTick,
+  guardEvidence,
+} from './assessment.js';
 import './keyboard-guard.css';
 
 export default function KeyboardGuard({
@@ -27,12 +34,19 @@ export default function KeyboardGuard({
   onGameSaved,
   onPlayingChange,
   avatarOverride,
+  assessment,
+  externalPaused = false,
 }) {
   const engine = useRef(null),
     canvas = useRef(null),
     labels = useRef(null),
     images = useRef({}),
     inputLayer = useRef(null);
+  const assessmentRun = useRef(null),
+    assessmentRef = useRef(assessment),
+    externalRef = useRef(externalPaused);
+  assessmentRef.current = assessment;
+  externalRef.current = externalPaused;
   const [stage, setStage] = useState(1);
   const [runConfig, setRunConfig] = useState(() => guardLevel());
   const [localUser, setLocalUser] = useState(null);
@@ -66,6 +80,28 @@ export default function KeyboardGuard({
   const [entry, setEntry] = useState({ value: '', feedback: 'empty' });
   const { preferences, setPreferences, play } = useGameAudio(status === 'playing');
   const active = status !== 'intro';
+  useEffect(() => {
+    if (!assessment || artState !== 'ready' || assessmentRun.current) return;
+    let run;
+    try {
+      run = replayGuardAssessment(assessment.section, assessment.attemptId, assessment.initial);
+    } catch {
+      setStartError(
+        'Chưa khôi phục được lượt trên thiết bị. Em quay lại danh sách rồi thử tiếp nhé.',
+      );
+      return;
+    }
+    assessmentRun.current = run;
+    engine.current = run.state;
+    setRunConfig(run.state.config);
+    setStatus(run.state.status);
+    sync();
+  }, [assessment, artState]);
+  useEffect(() => {
+    if (!assessment) return;
+    if (externalPaused) pause();
+    else resume();
+  }, [externalPaused, artState]);
   useEffect(() => {
     aliveRef.current = true;
     return () => {
@@ -210,7 +246,10 @@ export default function KeyboardGuard({
   };
   const typeWord = (value, options) => {
     if (engine.current) {
-      guardInput(engine.current, value, options);
+      if (assessmentRun.current) {
+        guardAssessmentInput(assessmentRun.current, value, options);
+        assessmentRef.current.onChange(guardEvidence(assessmentRun.current));
+      } else guardInput(engine.current, value, options);
       syncEntry();
     }
   };
@@ -238,15 +277,29 @@ export default function KeyboardGuard({
     if (!active || result) return;
     let frame,
       last = null,
+      accumulator = 0,
+      lastSecond = -1,
       previousHud = '';
     const animate = (now) => {
       const s = engine.current;
       const dt = last === null ? 0 : (now - last) / 1000;
       last = now;
-      guardTick(s, dt);
+      if (assessmentRun.current) {
+        if (!externalRef.current && ['playing', 'clearing'].includes(s.status)) {
+          accumulator += Math.min(0.05, Math.max(0, dt));
+          while (accumulator >= GUARD_STEP && ['playing', 'clearing'].includes(s.status)) {
+            guardAssessmentTick(assessmentRun.current);
+            accumulator -= GUARD_STEP;
+          }
+        } else accumulator = 0;
+        if (Math.floor(s.time) !== lastSecond || ['won', 'lost'].includes(s.status)) {
+          lastSecond = Math.floor(s.time);
+          assessmentRef.current.onChange(guardEvidence(assessmentRun.current));
+        }
+      } else guardTick(s, dt);
       const events = s.events.splice(0);
       if (events.includes('lost') || events.includes('won')) {
-        setResult(guardResult(s));
+        if (!assessmentRun.current) setResult(guardResult(s));
         setStatus(s.status);
         play(s.status === 'won' ? 'record' : 'finish');
       } else if (events.includes('damage')) play('missed');
@@ -290,6 +343,26 @@ export default function KeyboardGuard({
     onBack?.();
   };
 
+  if (assessment && !active && startError)
+    return (
+      <section role="alert">
+        <p>{startError}</p>
+        <TipyButton variant="back" onClick={onBack}>
+          Quay lại
+        </TipyButton>
+      </section>
+    );
+  if (assessment && !active)
+    return (
+      <Loading
+        label={
+          artState === 'error'
+            ? 'Chưa tải được ảnh. Em tải lại để thử nhé.'
+            : 'Đang tải phi thuyền…'
+        }
+      />
+    );
+  const Surface = assessment ? Fragment : PlaySurface;
   if (!active)
     return (
       <main className="guard-intro">
@@ -369,7 +442,7 @@ export default function KeyboardGuard({
       </main>
     );
   return (
-    <PlaySurface>
+    <Surface>
       {starting && <Loading label="Đang mở lượt chơi…" />}
       {startError && (
         <p role="alert" className="guard-save-error">
@@ -394,19 +467,21 @@ export default function KeyboardGuard({
         />
       ) : (
         <section className="guard-game" aria-label="Vệ binh bàn phím">
-          <aside className="guard-left" aria-label="Vùng thiết kế sau">
-            <TipyButton
-              className="guard-exit"
-              variant="back"
-              size="compact"
-              aria-label="Thoát"
-              onClick={() => {
-                pause();
-                setLeaving(true);
-              }}
-            >
-              Thoát
-            </TipyButton>
+          <aside className="guard-left" aria-label="Vùng điều khiển">
+            {!assessment && (
+              <TipyButton
+                className="guard-exit"
+                variant="back"
+                size="compact"
+                aria-label="Thoát"
+                onClick={() => {
+                  pause();
+                  setLeaving(true);
+                }}
+              >
+                Thoát
+              </TipyButton>
+            )}
           </aside>
           <div className="guard-center">
             <div className="guard-battle-slot">
@@ -448,9 +523,11 @@ export default function KeyboardGuard({
             </div>
             <footer className="guard-footer">
               <div className="guard-tools">
-                <TipyButton icon={Pause} emphasis="secondary" size="compact" onClick={pause}>
-                  Tạm dừng
-                </TipyButton>
+                {!assessment && (
+                  <TipyButton icon={Pause} emphasis="secondary" size="compact" onClick={pause}>
+                    Tạm dừng
+                  </TipyButton>
+                )}
                 <TipyButton
                   icon={Volume2}
                   iconOnly
@@ -464,7 +541,7 @@ export default function KeyboardGuard({
                 >
                   Âm thanh
                 </TipyButton>
-                {user?.role === 'admin' && (
+                {!assessment && user?.role === 'admin' && (
                   <TipyButton
                     icon={Settings}
                     iconOnly
@@ -505,7 +582,7 @@ export default function KeyboardGuard({
           </aside>
         </section>
       )}
-      {status === 'paused' && !soundOpen && !leaving && !settingsOpen && (
+      {status === 'paused' && !externalPaused && !soundOpen && !leaving && !settingsOpen && (
         <Modal
           title="Tàu đang nghỉ"
           description="Thiên thạch và thời gian đều đã dừng."
@@ -529,7 +606,11 @@ export default function KeyboardGuard({
       {leaving && (
         <Modal
           title="Rời lượt chơi?"
-          description="Điểm bản thử của lượt này sẽ không được giữ."
+          description={
+            assessment
+              ? 'Tiến trình được giữ trên thiết bị. Lịch và số lượt vẫn theo quy định.'
+              : 'Điểm bản thử của lượt này sẽ không được giữ.'
+          }
           onClose={() => setLeaving(false)}
         >
           <TipyButton variant="back" onClick={back}>
@@ -581,6 +662,6 @@ export default function KeyboardGuard({
           onClose={() => setSoundOpen(false)}
         />
       )}
-    </PlaySurface>
+    </Surface>
   );
 }

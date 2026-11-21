@@ -247,6 +247,23 @@ body:has(.assessment-summary) :is(.tipy-companion, .companion-bubble) {
   width: 100%;
   margin: 20px 0;
 }
+.assessment-guard-preview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.assessment-guard-preview > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.assessment-guard-preview > .guard-game {
+  flex: 1;
+  width: 100%;
+  height: auto;
+}
 .assessment-runner .quest-play-scene {
   margin: 20px 0;
 }

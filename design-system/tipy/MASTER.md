@@ -315,3 +315,9 @@ trong game; cùng form/validation ba màn, ba đợt. Mỗi lượt GET cấu h�
 snapshot. Bản `/dev/keyboard-guard` vẫn độc lập/localOnly cho phát triển.
 Tên/điểm/sao kết quả online là của lượt chơi, chưa cộng tài khoản hoặc xếp hạng.
 Các thông số sprite, nền, hurt và bố cục dọc đã duyệt ở phần trên được giữ.
+
+### Bài kiểm tra Vệ binh bàn phím
+
+Kế thừa form, ContentPicker, TipyButton, AssessmentSummary, trang kết quả và PlaySurface hiện có; không suy thêm token từ Figma. Người tạo chọn nội dung theo mã gốc, lọc chủ đề/tìm kiếm và xem/bỏ danh sách đã chọn. Form riêng hiển thị 1–3 đợt, số mục tiêu, tốc độ, khoảng sinh, FPS, thứ tự/lặp và hai ngưỡng điểm. Lỗi cấu hình chặn lưu tại trình duyệt và backend. Xem thử ghi rõ không tính lượt/kết quả.
+
+Khi học sinh vào bài, engine dùng nội dung/cấu hình snapshot; không có Settings Admin hoặc màn chọn chế độ tự do. Kết quả chỉ xuất hiện sau xác nhận backend, điểm guard dùng đơn vị điểm riêng; chi tiết có độ chính xác và số thiên thạch phá được. Giữ Quay lại bên trái, Làm lại bên phải theo số lượt/lịch còn hiệu lực. Phần chưa lưu hiển thị trạng thái và Thử lại bằng luồng chung.
